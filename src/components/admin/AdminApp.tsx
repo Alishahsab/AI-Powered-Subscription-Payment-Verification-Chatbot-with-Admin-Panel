@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  Bell, Inbox as InboxIcon, KeyRound, LayoutDashboard, LogOut, Menu, Search, Settings as SettingsIcon, Users, X, ExternalLink,
+  Bell, Eye, EyeOff, Inbox as InboxIcon, KeyRound, LayoutDashboard, Lock, LogOut, Menu, Search, Settings as SettingsIcon, ShieldCheck, Users, X, ExternalLink,
 } from "lucide-react";
 import { markAllNotificationsRead, updateState, useStore } from "@/lib/store";
 import type { AdminStatus } from "@/lib/types";
@@ -20,7 +20,9 @@ export type Nav = { section: Section; tab?: InboxTab; customerId?: string };
 export type Go = (n: Nav) => void;
 
 const ADMIN_SESSION = "ps_admin";
-const DEMO_PASSWORD = "admin123";
+// Demo credentials; override per deployment with NEXT_PUBLIC_ADMIN_USER / NEXT_PUBLIC_ADMIN_PASSWORD.
+const ADMIN_USER = process.env.NEXT_PUBLIC_ADMIN_USER || "admin";
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin123";
 
 export default function AdminApp() {
   const [authed, setAuthed] = useState(() => {
@@ -54,38 +56,76 @@ export default function AdminApp() {
 }
 
 function Login({ onDone }: { onDone: () => void }) {
+  const [user, setUser] = useState("");
   const [pw, setPw] = useState("");
-  const [err, setErr] = useState(false);
+  const [show, setShow] = useState(false);
+  const [err, setErr] = useState("");
+  const field =
+    "mt-1.5 w-full h-12 rounded-xl border border-zinc-200 bg-zinc-50 px-4 text-[15px] outline-none focus:bg-white focus:border-[#0C2660] focus:ring-4 focus:ring-[#0C2660]/10 transition";
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user.trim() || !pw) return setErr("Enter your username and password.");
+    // Demo-only check. Real sign-in moves to Supabase Auth with the database.
+    if (user.trim().toLowerCase() === ADMIN_USER.toLowerCase() && pw === ADMIN_PASSWORD) onDone();
+    else setErr("Incorrect username or password.");
+  };
+
   return (
-    <div className="adm min-h-dvh grid place-items-center px-4">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (pw === DEMO_PASSWORD) onDone();
-          else setErr(true);
-        }}
-        className="w-full max-w-[380px] bg-white rounded-2xl border border-zinc-200 shadow-sm p-7"
-      >
-        <Monogram size={48} className="rounded-xl" />
-        <h1 className="mt-5 text-[20px] font-semibold tracking-tight">Admin sign in</h1>
-        <p className="text-[13.5px] text-zinc-500 mt-1">Premium Store management panel</p>
-        <label className="block mt-6">
-          <span className="text-[13px] font-medium text-zinc-700">Password</span>
-          <input
-            type="password"
-            autoFocus
-            value={pw}
-            onChange={(e) => {
-              setPw(e.target.value);
-              setErr(false);
-            }}
-            className="mt-1.5 w-full h-10 rounded-lg border border-zinc-200 px-3 text-[14px] outline-none focus:border-zinc-400 focus:ring-4 focus:ring-zinc-900/5"
-          />
-        </label>
-        {err && <p className="text-[12.5px] text-red-600 mt-2">Incorrect password.</p>}
-        <button className="mt-5 w-full h-10 rounded-lg bg-zinc-900 text-white text-[14px] font-medium hover:bg-zinc-800">Sign in</button>
-        <p className="mt-4 text-center text-[12px] text-zinc-400">Demo password: {DEMO_PASSWORD}</p>
-      </form>
+    <div className="adm h-dvh overflow-hidden flex md:items-center md:justify-center md:p-6 bg-[#eceef2]">
+      <div className="w-full h-full md:h-[min(620px,calc(100dvh-48px))] md:max-w-[980px] flex flex-col md:flex-row md:rounded-[28px] overflow-hidden md:shadow-[0_30px_80px_-30px_rgba(15,23,42,0.35)] md:border md:border-zinc-200">
+        <div className="shrink-0 md:w-[44%] bg-[linear-gradient(160deg,#0c2660_0%,#061639_70%)] text-white px-6 pt-7 pb-14 md:p-12 flex flex-col">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-wordmark.png" alt="Premium Store" className="h-11 md:h-14 w-auto self-start select-none" draggable={false} />
+          <div className="mt-6 md:mt-auto md:mb-auto">
+            <div className="inline-flex items-center gap-1.5 text-[11.5px] uppercase tracking-[0.16em] font-semibold text-[#C9A45C]">
+              <ShieldCheck size={14} /> Admin panel
+            </div>
+            <h1 className="mt-2 font-[family-name:var(--font-display)] font-extrabold tracking-[-0.02em] text-[28px] md:text-[40px] leading-[1.1]">
+              Manage orders,
+              <br />
+              <span className="text-[#C9A45C]">codes & customers.</span>
+            </h1>
+            <p className="hidden md:block mt-4 text-[15px] leading-relaxed text-white/65 max-w-[340px]">
+              Verify payments, send premium codes and keep every chat organised — in one place.
+            </p>
+          </div>
+        </div>
+
+        <div className="relative flex-1 min-h-0 -mt-8 md:mt-0 bg-white rounded-t-[28px] md:rounded-none flex">
+          <form onSubmit={submit} className="w-full max-w-[420px] mx-auto px-6 pt-7 pb-6 md:px-0 md:py-12 flex flex-col md:justify-center">
+            <Monogram size={52} className="rounded-[13px] mb-5" />
+            <h2 className="font-[family-name:var(--font-display)] font-bold text-[26px] md:text-[30px] tracking-[-0.02em]">Sign in</h2>
+            <p className="mt-1 text-[14px] text-zinc-500">Only authorised staff can access this panel.</p>
+
+            <label className="block mt-6">
+              <span className="text-[13.5px] font-semibold text-zinc-800">Username</span>
+              <input autoFocus autoComplete="username" value={user} onChange={(e) => { setUser(e.target.value); setErr(""); }} placeholder="Enter username" className={field} />
+            </label>
+            <label className="block mt-4">
+              <span className="text-[13.5px] font-semibold text-zinc-800">Password</span>
+              <div className="relative">
+                <input
+                  type={show ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={pw}
+                  onChange={(e) => { setPw(e.target.value); setErr(""); }}
+                  placeholder="Enter password"
+                  className={cx(field, "pr-12")}
+                />
+                <button type="button" onClick={() => setShow((v) => !v)} className="absolute right-2 top-[calc(50%+3px)] -translate-y-1/2 size-9 grid place-items-center rounded-lg text-zinc-500 hover:bg-zinc-100" aria-label={show ? "Hide password" : "Show password"}>
+                  {show ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+            </label>
+            {err && <p className="text-[13px] text-red-600 mt-3">{err}</p>}
+
+            <button className="mt-6 w-full h-12 rounded-xl bg-[#0C2660] text-white text-[15.5px] font-semibold flex items-center justify-center gap-2 shadow-[0_12px_28px_-14px_#0C2660] hover:brightness-125 transition">
+              <Lock size={16} /> Sign in
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

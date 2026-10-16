@@ -40,9 +40,6 @@ export default function Onboarding({ onDone }: { onDone: (id: string) => void })
               <br />
               <span className="text-[var(--gold)]">delivered in minutes.</span>
             </h1>
-            <p className="hidden md:block mt-4 text-[15.5px] leading-relaxed text-white/70 max-w-[380px]">
-              Buy your subscription, get support and keep every code safe — all in one private chat.
-            </p>
           </div>
 
           <div className="relative hidden md:block mt-9 space-y-4 [@media(max-height:720px)]:mt-6 [@media(max-height:720px)]:space-y-3">
