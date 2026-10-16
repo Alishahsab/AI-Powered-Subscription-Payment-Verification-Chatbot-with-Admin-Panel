@@ -165,11 +165,11 @@ function Shell({ onLogout }: { onLogout: () => void }) {
   ];
 
   const sidebar = (
-    <div className="h-full flex flex-col bg-[#101216] text-zinc-300">
-      <div className="h-16 flex items-center gap-3 px-5 border-b border-white/[0.06]">
+    <div className="h-full flex flex-col bg-[linear-gradient(180deg,#0c2660_0%,#061639_100%)] text-white/75">
+      <div className="h-16 flex items-center gap-3 px-5 border-b border-white/10">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo-wordmark.png" alt={s.settings.storeName} className="h-8 w-auto select-none" draggable={false} />
-        <span className="ml-auto text-[10.5px] uppercase tracking-[0.14em] text-zinc-500 font-semibold">Admin</span>
+        <span className="ml-auto text-[10.5px] uppercase tracking-[0.14em] text-white/50 font-semibold">Admin</span>
       </div>
       <nav className="p-3 space-y-0.5 flex-1">
         {items.map((it) => (
@@ -178,7 +178,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
             onClick={() => go({ section: it.k })}
             className={cx(
               "w-full flex items-center gap-3 h-10 px-3 rounded-lg text-[13.5px] transition",
-              nav.section === it.k ? "bg-white/[0.08] text-white" : "hover:bg-white/[0.04] hover:text-white"
+              nav.section === it.k ? "bg-white/[0.12] text-white font-medium shadow-[inset_3px_0_0_#C9A45C]" : "hover:bg-white/[0.06] hover:text-white"
             )}
           >
             {it.icon}
@@ -187,11 +187,11 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           </button>
         ))}
       </nav>
-      <div className="p-3 border-t border-white/[0.06] space-y-0.5">
-        <a href={process.env.NEXT_PUBLIC_CUSTOMER_URL || "/"} target="_blank" className="w-full flex items-center gap-3 h-10 px-3 rounded-lg text-[13.5px] hover:bg-white/[0.04] hover:text-white">
+      <div className="p-3 border-t border-white/10 space-y-0.5">
+        <a href={process.env.NEXT_PUBLIC_CUSTOMER_URL || "/"} target="_blank" className="w-full flex items-center gap-3 h-10 px-3 rounded-lg text-[13.5px] hover:bg-white/[0.06] hover:text-white">
           <ExternalLink size={16} /> Open customer chat
         </a>
-        <button onClick={onLogout} className="w-full flex items-center gap-3 h-10 px-3 rounded-lg text-[13.5px] hover:bg-white/[0.04] hover:text-white">
+        <button onClick={onLogout} className="w-full flex items-center gap-3 h-10 px-3 rounded-lg text-[13.5px] hover:bg-white/[0.06] hover:text-white">
           <LogOut size={16} /> Sign out
         </button>
       </div>
@@ -229,7 +229,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
-            <div className="hidden md:flex items-center rounded-lg bg-zinc-100 p-0.5" title={outside ? "Outside working hours — buying is paused" : undefined}>
+            <div className="hidden md:flex items-center rounded-lg bg-zinc-100 p-0.5" title={outside ? "Outside working hours, buying is paused" : undefined}>
               {statusOpts.map((o) => (
                 <button
                   key={o.k}
@@ -283,7 +283,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
                 </>
               )}
             </div>
-            <div className="size-9 rounded-full bg-zinc-900 text-white grid place-items-center text-[12px] font-semibold">AD</div>
+            <div className="size-9 rounded-full bg-[#0C2660] text-white grid place-items-center text-[12px] font-semibold">AD</div>
           </div>
         </header>
 
@@ -293,7 +293,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
             <button
               key={o.k}
               onClick={() => updateState((d) => void (d.settings.status = o.k))}
-              className={cx("flex-1 h-8 rounded-md text-[12.5px] font-medium flex items-center justify-center gap-1.5", s.settings.status === o.k ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-600")}
+              className={cx("flex-1 h-8 rounded-md text-[12.5px] font-medium flex items-center justify-center gap-1.5", s.settings.status === o.k ? "bg-[#0C2660] text-white" : "bg-zinc-100 text-zinc-600")}
             >
               <span className={cx("size-1.5 rounded-full", o.dot)} /> {o.label}
             </button>
@@ -319,7 +319,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
               setToasts((x) => x.filter((y) => y.id !== t.id));
               go({ section: "inbox", customerId: t.customerId, tab: t.title.startsWith("Payment") ? "pending" : t.title.includes("issue") ? "issues" : "general" });
             }}
-            className="toast w-full text-left bg-zinc-900 text-white rounded-xl shadow-2xl px-4 py-3 flex gap-3"
+            className="toast w-full text-left bg-[#0C2660] text-white rounded-xl shadow-2xl px-4 py-3 flex gap-3"
           >
             <span className="mt-1 size-2 rounded-full bg-[#C9A45C] shrink-0" />
             <span className="min-w-0">

@@ -64,7 +64,7 @@ export function hoursLabel(s: Settings) {
     d.setHours(h, m || 0);
     return d.toLocaleTimeString("en-US", { hour: "numeric", minute: m ? "2-digit" : undefined });
   };
-  return `${f(s.hours.start)} – ${f(s.hours.end)}`;
+  return `${f(s.hours.start)} to ${f(s.hours.end)}`;
 }
 
 export const statusMeta: Record<AdminStatus, { label: string; dot: string; hint: string }> = {

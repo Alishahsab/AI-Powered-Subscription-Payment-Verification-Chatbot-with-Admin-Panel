@@ -16,7 +16,7 @@ export default function Codes() {
   const [result, setResult] = useState<{ added: number; duplicates: string[] } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const name = (id?: string) => s.customers.find((c) => c.id === id)?.name ?? "—";
+  const name = (id?: string) => s.customers.find((c) => c.id === id)?.name ?? "Unknown";
   const rows = useMemo(
     () =>
       s.codes
@@ -38,7 +38,7 @@ export default function Codes() {
       <div className="max-w-[1200px] mx-auto p-4 lg:p-7 space-y-5">
         <div>
           <h1 className="text-[22px] font-semibold tracking-tight">Codes</h1>
-          <p className="text-[13.5px] text-zinc-500 mt-0.5">Upload the codes you receive. The right code is assigned automatically when you approve a payment — a code can never be sent twice.</p>
+          <p className="text-[13.5px] text-zinc-500 mt-0.5">Upload the codes you receive. The right code is assigned automatically when you approve a payment. A code can never be sent twice.</p>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -46,7 +46,7 @@ export default function Codes() {
             const avail = s.codes.filter((k) => k.planId === p.id && k.status === "available").length;
             const used = s.codes.filter((k) => k.planId === p.id && k.status === "assigned").length;
             return (
-              <button key={p.id} onClick={() => setPlan(p.id)} className={cx("text-left rounded-xl border p-4 transition bg-white", plan === p.id ? "border-zinc-900 ring-4 ring-zinc-900/5" : "border-zinc-200 hover:border-zinc-300")}>
+              <button key={p.id} onClick={() => setPlan(p.id)} className={cx("text-left rounded-xl border p-4 transition bg-white", plan === p.id ? "border-[#0C2660] ring-4 ring-[#0C2660]/10" : "border-zinc-200 hover:border-zinc-300")}>
                 <div className="text-[12.5px] text-zinc-500 font-medium">{p.name}</div>
                 <div className="mt-1 flex items-baseline gap-1.5">
                   <span className={cx("text-[24px] font-semibold tabular-nums", avail < 5 && "text-red-600")}>{avail}</span>
@@ -92,7 +92,7 @@ export default function Codes() {
                       <tr key={k.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/70">
                         <td className="px-5 py-2.5 font-mono font-semibold tracking-wider">{k.value}</td>
                         <td className="px-3 py-2.5">{k.status === "available" ? <Badge tone="green">Available</Badge> : <Badge>Sent</Badge>}</td>
-                        <td className="px-3 py-2.5">{k.status === "assigned" ? <span>{name(k.customerId)} <span className="text-zinc-400">· {k.orderId}</span></span> : <span className="text-zinc-400">—</span>}</td>
+                        <td className="px-3 py-2.5">{k.status === "assigned" ? <span>{name(k.customerId)} <span className="text-zinc-400">· {k.orderId}</span></span> : <span className="text-zinc-400">Not sent</span>}</td>
                         <td className="px-3 py-2.5 text-zinc-500 whitespace-nowrap">{fmtDateTime(k.assignedAt ?? k.addedAt)}</td>
                         <td className="px-3 py-2.5 text-right">
                           {k.status === "available" && (

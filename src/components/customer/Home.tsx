@@ -87,7 +87,7 @@ export default function Home({ customer, onOpen, onLogout }: { customer: Custome
                   <div className="text-[14px]">
                     <div className="font-semibold">{latest.planName} plan</div>
                     <div className="text-[var(--muted)] text-[13px]">
-                      {validUntil > now ? `Valid until ${fmtDate(validUntil)}` : `Ended ${fmtDate(validUntil)} — renew anytime`}
+                      {validUntil > now ? `Valid until ${fmtDate(validUntil)}` : `Ended ${fmtDate(validUntil)} , renew anytime`}
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 import type { Code, Conversation, Customer, Message, Order, State, Ticket, Notification } from "./types";
 
-export const STATE_VERSION = 7;
+export const STATE_VERSION = 8;
 
 const MIN = 60_000;
 const HOUR = 60 * MIN;
@@ -128,7 +128,7 @@ export function createSeed(): State {
     msg(c.id, "user", "Buy a Subscription", at - MIN);
     msg(c.id, "bot", `Order ${id} created for ${p.name}.`, at, { kind: "account", orderId: id });
     msg(c.id, "user", "Payment proof submitted", at + 4 * MIN, { kind: "proof", orderId: id });
-    msg(c.id, "bot", "Thank you. Your payment is being verified — your code will arrive right here in a few minutes.", at + 4 * MIN + 2000);
+    msg(c.id, "bot", "Thank you. Your payment is being verified. Your code will arrive right here in a few minutes.", at + 4 * MIN + 2000);
     return id;
   };
   pending(customers[1], "p3", 1, now - 18 * MIN);
@@ -168,17 +168,17 @@ export function createSeed(): State {
       status: "active",
       hours: { start: "09:00", end: "22:00", enforce: false },
       statusMessages: {
-        active: "Thank you. Your payment is being verified — your code will arrive right here in a few minutes.",
-        away: "Thank you, your payment is recorded. Our admin is briefly away — your code will be sent here and to your email as soon as it's verified.",
+        active: "Thank you. Your payment is being verified. Your code will arrive right here in a few minutes.",
+        away: "Thank you, your payment is recorded. Our admin is briefly away. Your code will be sent here and to your email as soon as it's verified.",
         offline: "We're not taking new orders right now. Subscriptions are available daily between {hours}. Customer Support remains open 24/7.",
       },
       terms: [
         "Create an order only when you are ready to pay.",
         "Payment must be completed within {timer} minutes of creating the order.",
-        "Our payment account may change — always use the details shown in your order.",
+        "Our payment account may change, so always use the details shown in your order.",
       ],
       howItWorks:
-        "1. Pick your plan and payment method.\n2. Create the order — our account details appear for {timer} minutes.\n3. Send the exact amount and upload the payment screenshot with the transaction ID.\n4. We verify your payment and send your premium code right here in the chat. It's also saved in Order History.",
+        "1. Pick your plan and payment method.\n2. Create the order. Our account details appear for {timer} minutes.\n3. Send the exact amount and upload the payment screenshot with the transaction ID.\n4. We verify your payment and send your premium code right here in the chat. It's also saved in Order History.",
       accountTimerMin: 30,
       retentionDays: 15,
       accent: "#0C2660",
@@ -187,10 +187,10 @@ export function createSeed(): State {
     plans,
     methods,
     faqs: [
-      { id: "f1", q: "How long does it take to get my code?", a: "During working hours codes are usually sent within 5–15 minutes after your payment is verified." },
+      { id: "f1", q: "How long does it take to get my code?", a: "During working hours codes are usually sent within 5 to 15 minutes after your payment is verified." },
       { id: "f2", q: "Which payment methods do you accept?", a: "JazzCash, Easypaisa and NayaPay. For other banks, choose \"Other bank\" and we'll share the details." },
       { id: "f3", q: "Where do I enter my premium code?", a: "Open the app, go to Profile → Subscription → Redeem Code, enter the code and tap Activate." },
-      { id: "f4", q: "My code says \"already used\". What now?", a: "This usually means the code was applied on another account. Open Customer Support and select \"Code shows already used\" — we'll check which account it was applied to." },
+      { id: "f4", q: "My code says \"already used\". What now?", a: "This usually means the code was applied on another account. Open Customer Support and select \"Code shows already used\" and we'll check which account it was applied to." },
       { id: "f5", q: "Subscription is not showing after activation", a: "Make sure you're logged in with the same Gmail you used when applying the code. Still stuck? Open a support ticket." },
       { id: "f6", q: "Can I use one subscription on multiple devices?", a: "A subscription is tied to one account. You can log in with that account on your own devices." },
       { id: "f7", q: "I lost my code. Can I get it again?", a: "Yes. Every code we send is saved in Order History on the home screen, with date and time." },

@@ -62,7 +62,7 @@ export default function Customers({ go }: { go: Go }) {
                         </div>
                       </td>
                       <td className="px-3 py-3 tabular-nums">{c.phone}</td>
-                      <td className="px-3 py-3 text-zinc-600">{c.email ?? <span className="text-zinc-400">—</span>}</td>
+                      <td className="px-3 py-3 text-zinc-600">{c.email ?? <span className="text-zinc-400">Not added</span>}</td>
                       <td className="px-3 py-3 tabular-nums">{count}</td>
                       <td className="px-3 py-3 tabular-nums">{rs(spent)}</td>
                       <td className="px-3 py-3 text-zinc-500 whitespace-nowrap">{timeAgo(c.lastSeenAt, now)}</td>

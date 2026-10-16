@@ -44,7 +44,7 @@ function buildItems(s: State, tab: InboxTab, now: number): Item[] {
       .slice()
       .sort((a, b) => (a.status === b.status ? b.createdAt - a.createdAt : a.status === "open" ? -1 : 1))
       .map((t) => ({
-        key: t.id, customerId: t.customerId, title: name(t.customerId), sub: `${t.category} — ${t.message}`, at: t.createdAt,
+        key: t.id, customerId: t.customerId, title: name(t.customerId), sub: `${t.category}: ${t.message}`, at: t.createdAt,
         unread: t.status === "open" ? 1 : 0, badge: t.status === "open" ? <Badge tone="red">Open · {t.id}</Badge> : <Badge>Resolved</Badge>,
       }));
   return Object.values(s.conversations)
@@ -104,7 +104,7 @@ export default function Inbox({ initialTab, initialCustomer }: { initialTab?: In
             <button
               key={t.k}
               onClick={() => setTab(t.k)}
-              className={cx("h-8 px-2.5 rounded-md text-[12.5px] font-medium whitespace-nowrap flex items-center justify-between gap-1.5", tab === t.k ? "bg-zinc-900 text-white" : "bg-zinc-50 text-zinc-600 hover:bg-zinc-100")}
+              className={cx("h-8 px-2.5 rounded-md text-[12.5px] font-medium whitespace-nowrap flex items-center justify-between gap-1.5", tab === t.k ? "bg-[#0C2660] text-white" : "bg-zinc-50 text-zinc-600 hover:bg-zinc-100")}
             >
               {t.label}
               {!!counts[t.k] && <span className={cx("text-[10.5px] rounded-full min-w-4 h-4 px-1 grid place-items-center", tab === t.k ? "bg-white/20" : "bg-red-500 text-white")}>{counts[t.k]}</span>}
@@ -233,7 +233,7 @@ function Thread({ s, customerId, onBack, onDetails }: { s: State; customerId: st
           </div>
         )}
         <div className="flex items-end gap-2">
-          <button onClick={() => setQr((v) => !v)} className={cx("size-10 shrink-0 grid place-items-center rounded-lg border", qr ? "bg-zinc-900 text-white border-zinc-900" : "border-zinc-200 text-zinc-600 hover:bg-zinc-50")} title="Quick replies">
+          <button onClick={() => setQr((v) => !v)} className={cx("size-10 shrink-0 grid place-items-center rounded-lg border", qr ? "bg-[#0C2660] text-white border-[#0C2660]" : "border-zinc-200 text-zinc-600 hover:bg-zinc-50")} title="Quick replies">
             <Zap size={16} />
           </button>
           <textarea
@@ -304,7 +304,7 @@ function AdminBubble({ m, s }: { m: Message; s: State }) {
             "px-3.5 py-2 rounded-xl text-[13.5px] leading-relaxed whitespace-pre-line",
             m.from === "user" && "bg-white border border-zinc-200 text-zinc-800",
             m.from === "bot" && "bg-zinc-100 text-zinc-600",
-            m.from === "admin" && "bg-zinc-900 text-white"
+            m.from === "admin" && "bg-[#0C2660] text-white"
           )}
         >
           {m.text}
@@ -340,7 +340,7 @@ function Details({ s, customerId }: { s: State; customerId: string }) {
         </div>
         <dl className="mt-4 grid grid-cols-[90px_1fr] gap-y-1.5 text-[12.5px]">
           <dt className="text-zinc-500">WhatsApp</dt><dd className="font-medium">{c.phone}</dd>
-          <dt className="text-zinc-500">Email</dt><dd className="font-medium truncate">{c.email ?? "—"}</dd>
+          <dt className="text-zinc-500">Email</dt><dd className="font-medium truncate">{c.email ?? "Not added"}</dd>
           <dt className="text-zinc-500">Orders</dt><dd className="font-medium">{orders.filter((o) => o.status === "approved").length} delivered · {rs(spent)}</dd>
         </dl>
         <div className="mt-3">
@@ -425,7 +425,7 @@ function OrderPanel({ s, o }: { s: State; o: Order }) {
         <Stat k="Plan" v={o.planName} />
         <Stat k="Amount" v={rs(o.amount)} />
         <Stat k="Method" v={o.methodName} />
-        <Stat k="TID" v={o.tid ?? "—"} mono />
+        <Stat k="TID" v={o.tid ?? "N/A"} mono />
       </div>
       {o.tid && (
         <div className={cx("mt-2 text-[12px] flex items-center gap-1.5", tidDup ? "text-red-600" : "text-emerald-700")}>
@@ -449,7 +449,7 @@ function OrderPanel({ s, o }: { s: State; o: Order }) {
             <Check size={15} /> Approve & send code
           </Btn>
           <div className="text-[11.5px] text-center text-zinc-500">
-            {stock ? `${stock} code${stock > 1 ? "s" : ""} left for ${o.planName} — the next one is assigned automatically` : `No codes left for ${o.planName}`}
+            {stock ? `${stock} code${stock > 1 ? "s" : ""} left for ${o.planName}. The next one is assigned automatically` : `No codes left for ${o.planName}`}
           </div>
           {showManual ? (
             <div className="flex gap-2 fade">

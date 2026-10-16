@@ -225,7 +225,7 @@ export function chooseMenu(customerId: string, opt: MenuOption) {
 export function choosePlan(customerId: string, planId: string) {
   const p = get().plans.find((x) => x.id === planId)!;
   mutate((d) => {
-    push(d, customerId, "user", `${p.name} — Rs ${p.price.toLocaleString()}`, "order");
+    push(d, customerId, "user", `${p.name}, Rs ${p.price.toLocaleString()}`, "order");
     d.conversations[customerId].draft.planId = planId;
   });
   withBot(customerId, (d) => {
@@ -356,7 +356,7 @@ export function saveEmail(customerId: string, email: string | null) {
     }
   });
   withBot(customerId, (d) => {
-    push(d, customerId, "bot", email ? `Saved. We'll also send your code to ${email}.` : "No problem — your code will arrive right here in the chat.", "order");
+    push(d, customerId, "bot", email ? `Saved. We'll also send your code to ${email}.` : "No problem, your code will arrive right here in the chat.", "order");
     d.conversations[customerId].stage = "menu";
   });
 }
@@ -389,7 +389,7 @@ export function submitTicket(customerId: string, text: string) {
     notify(d, { type: "ticket", title: "New app issue", body: `${customerName(d, customerId)} · ${c.draft.supportCategory}`, customerId });
   });
   withBot(customerId, (d) => {
-    push(d, customerId, "bot", `Your ticket ${tid} has been submitted. Our team will reply right here — you can close this page, your chat will be saved.`, "support");
+    push(d, customerId, "bot", `Your ticket ${tid} has been submitted. Our team will reply right here. You can close this page, your chat will be saved.`, "support");
     d.conversations[customerId].stage = "menu";
   });
 }

@@ -27,7 +27,7 @@ export function Btn({ variant = "secondary", size = "md", className = "", ...p }
       className={cx(
         "inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap",
         size === "sm" ? "h-8 px-3 text-[12.5px]" : "h-9 px-3.5 text-[13.5px]",
-        variant === "primary" && "bg-zinc-900 text-white hover:bg-zinc-800",
+        variant === "primary" && "bg-[#0C2660] text-white hover:bg-[#0a1f52]",
         variant === "secondary" && "bg-white border border-zinc-200 text-zinc-800 hover:bg-zinc-50",
         variant === "ghost" && "text-zinc-600 hover:bg-zinc-100",
         variant === "danger" && "bg-white border border-red-200 text-red-600 hover:bg-red-50",
@@ -50,7 +50,7 @@ export function Badge({ tone = "zinc", children }: { tone?: "zinc" | "green" | "
 }
 
 export const inputCls =
-  "w-full h-9 rounded-lg border border-zinc-200 bg-white px-3 text-[13.5px] outline-none focus:border-zinc-400 focus:ring-4 focus:ring-zinc-900/5 transition placeholder:text-zinc-400";
+  "w-full h-9 rounded-lg border border-zinc-200 bg-white px-3 text-[13.5px] outline-none focus:border-zinc-400 focus:ring-4 focus:ring-[#0C2660]/10 transition placeholder:text-zinc-400";
 
 export function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label?: string }) {
   return (

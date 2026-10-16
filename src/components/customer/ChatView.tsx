@@ -251,7 +251,7 @@ function ProofCard({ m, s }: { m: Message; s: State }) {
       )}
       <div className="px-3 py-2.5 text-[12.5px]">
         <div className="font-semibold flex items-center gap-1.5"><Check size={13} className="text-[var(--accent)]" /> Payment proof submitted</div>
-        <div className="text-[var(--muted)] mt-0.5">TID {o?.tid ?? "—"} · {fmtTime(m.createdAt)}</div>
+        <div className="text-[var(--muted)] mt-0.5">TID {o?.tid ?? "N/A"} · {fmtTime(m.createdAt)}</div>
       </div>
     </div>
   );
@@ -286,8 +286,11 @@ function Dock({ s, customer, onUpload }: { s: State; customer: Customer; onUploa
   const cid = customer.id;
   const order = activeOrder(s, cid);
   const back = (
-    <button onClick={() => backToMenu(cid)} className="text-[13px] text-[var(--muted)] hover:text-[var(--text)] px-2 py-1.5 flex items-center justify-center gap-1.5 mx-auto md:col-span-2 w-fit">
-      <LayoutGrid size={14} /> Main menu
+    <button
+      onClick={() => backToMenu(cid)}
+      className="mt-1 h-11 px-5 rounded-full border-2 border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))] text-[var(--accent)] text-[14px] font-semibold flex items-center justify-center gap-2 mx-auto md:col-span-2 w-fit hover:bg-[var(--accent)] hover:text-[var(--accent-ink)] hover:border-[var(--accent)] transition"
+    >
+      <LayoutGrid size={16} /> Back to main menu
     </button>
   );
 
@@ -372,7 +375,7 @@ function Dock({ s, customer, onUpload }: { s: State; customer: Customer; onUploa
       return wrap(
         <div className="space-y-2">
           <button onClick={() => createOrder(cid)} className="w-full h-12 rounded-xl bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-[15px]">
-            I agree — create order
+            I agree, create order
           </button>
           <button onClick={() => howItWorks(cid)} className="w-full h-11 rounded-xl bg-[var(--surface)] border border-[var(--line)] font-semibold text-[14px]">
             How does it work?
