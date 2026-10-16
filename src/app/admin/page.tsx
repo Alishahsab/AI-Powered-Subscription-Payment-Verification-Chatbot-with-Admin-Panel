@@ -1,12 +1,8 @@
-"use client";
+import { notFound } from "next/navigation";
+import AdminEntry from "./AdminEntry";
 
-import dynamic from "next/dynamic";
-
-const AdminApp = dynamic(() => import("@/components/admin/AdminApp"), {
-  ssr: false,
-  loading: () => <div className="min-h-dvh bg-[#f5f6f8]" />,
-});
-
+// hidden entirely on the customer-only deployment (see APP_MODE in app/page.tsx)
 export default function Page() {
-  return <AdminApp />;
+  if (process.env.APP_MODE === "customer") notFound();
+  return <AdminEntry />;
 }

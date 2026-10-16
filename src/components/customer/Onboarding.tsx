@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ArrowRight, History, Lock, ShieldCheck, Zap } from "lucide-react";
 import { registerCustomer, useStore } from "@/lib/store";
-import { Monogram } from "@/components/shared";
 
 const features = [
   { icon: <Zap size={17} />, title: "Code in minutes", desc: "Pay, upload proof, get your code right in the chat." },
@@ -31,11 +30,9 @@ export default function Onboarding({ onDone }: { onDone: (id: string) => void })
     <div className="h-dvh w-full overflow-hidden flex md:items-center md:justify-center md:p-6">
       <div className="w-full h-full md:h-[min(700px,calc(100dvh-48px))] md:max-w-[1100px] flex flex-col md:flex-row md:rounded-[28px] overflow-hidden md:shadow-[0_30px_80px_-30px_rgba(15,23,42,0.35)] md:border md:border-[var(--line)]">
         {/* brand panel */}
-        <div className="relative shrink-0 md:w-[46%] bg-[var(--accent)] text-white overflow-hidden px-6 pt-7 pb-14 md:p-12 [@media(max-height:680px)]:pt-5 [@media(max-height:680px)]:pb-12 flex flex-col">
-          <div className="relative flex items-center gap-3">
-            <Monogram size={44} className="rounded-[11px] ring-1 ring-white/15" />
-            <span className="font-[family-name:var(--font-display)] font-semibold text-[19px] tracking-tight">{s.settings.storeName}</span>
-          </div>
+        <div className="relative shrink-0 md:w-[46%] bg-[linear-gradient(160deg,#0c2660_0%,#061639_70%)] text-white overflow-hidden px-6 pt-7 pb-14 md:p-12 [@media(max-height:680px)]:pt-5 [@media(max-height:680px)]:pb-12 flex flex-col">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-wordmark.png" alt={s.settings.storeName} className="relative h-11 md:h-14 w-auto self-start select-none" draggable={false} />
 
           <div className="relative mt-6 md:mt-auto md:pt-8 [@media(max-height:680px)]:mt-4">
             <h1 className="font-[family-name:var(--font-display)] font-extrabold tracking-[-0.02em] text-[30px] leading-[1.08] md:text-[46px] [@media(max-height:720px)]:md:text-[38px] [@media(max-height:680px)]:text-[26px]">

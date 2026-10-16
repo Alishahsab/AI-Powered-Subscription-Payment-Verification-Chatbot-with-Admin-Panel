@@ -8,7 +8,7 @@ import { cx, uid } from "@/lib/utils";
 import { Btn, Card, CardHead, LazyInput, Toggle, inputCls } from "./ui";
 
 const accents = [
-  { name: "Brand navy", v: "#19335C" },
+  { name: "Brand navy", v: "#0C2660" },
   { name: "Emerald", v: "#0F7B5F" },
   { name: "Royal", v: "#3B4FD8" },
   { name: "Bronze", v: "#9A6B24" },

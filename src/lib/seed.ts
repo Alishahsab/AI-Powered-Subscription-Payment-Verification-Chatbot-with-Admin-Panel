@@ -1,6 +1,6 @@
 import type { Code, Conversation, Customer, Message, Order, State, Ticket, Notification } from "./types";
 
-export const STATE_VERSION = 6;
+export const STATE_VERSION = 7;
 
 const MIN = 60_000;
 const HOUR = 60 * MIN;
@@ -181,7 +181,7 @@ export function createSeed(): State {
         "1. Pick your plan and payment method.\n2. Create the order — our account details appear for {timer} minutes.\n3. Send the exact amount and upload the payment screenshot with the transaction ID.\n4. We verify your payment and send your premium code right here in the chat. It's also saved in Order History.",
       accountTimerMin: 30,
       retentionDays: 15,
-      accent: "#19335C",
+      accent: "#0C2660",
       supportCategories: ["Code shows already used", "Subscription not showing", "App not working", "Something else"],
     },
     plans,

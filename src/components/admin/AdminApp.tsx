@@ -148,11 +148,9 @@ function Shell({ onLogout }: { onLogout: () => void }) {
   const sidebar = (
     <div className="h-full flex flex-col bg-[#101216] text-zinc-300">
       <div className="h-16 flex items-center gap-3 px-5 border-b border-white/[0.06]">
-        <Monogram size={34} className="rounded-lg" />
-        <div className="leading-tight">
-          <div className="text-white font-semibold text-[14px]">{s.settings.storeName}</div>
-          <div className="text-[11.5px] text-zinc-500">Admin panel</div>
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-wordmark.png" alt={s.settings.storeName} className="h-8 w-auto select-none" draggable={false} />
+        <span className="ml-auto text-[10.5px] uppercase tracking-[0.14em] text-zinc-500 font-semibold">Admin</span>
       </div>
       <nav className="p-3 space-y-0.5 flex-1">
         {items.map((it) => (
@@ -171,7 +169,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
         ))}
       </nav>
       <div className="p-3 border-t border-white/[0.06] space-y-0.5">
-        <a href="/" target="_blank" className="w-full flex items-center gap-3 h-10 px-3 rounded-lg text-[13.5px] hover:bg-white/[0.04] hover:text-white">
+        <a href={process.env.NEXT_PUBLIC_CUSTOMER_URL || "/"} target="_blank" className="w-full flex items-center gap-3 h-10 px-3 rounded-lg text-[13.5px] hover:bg-white/[0.04] hover:text-white">
           <ExternalLink size={16} /> Open customer chat
         </a>
         <button onClick={onLogout} className="w-full flex items-center gap-3 h-10 px-3 rounded-lg text-[13.5px] hover:bg-white/[0.04] hover:text-white">

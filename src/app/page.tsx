@@ -1,12 +1,13 @@
-"use client";
+import { redirect } from "next/navigation";
+import CustomerEntry from "./CustomerEntry";
 
-import dynamic from "next/dynamic";
-
-const CustomerApp = dynamic(() => import("@/components/customer/CustomerApp"), {
-  ssr: false,
-  loading: () => <div className="min-h-dvh bg-[#08090b]" />,
-});
-
+/*
+ * APP_MODE lets the same code deploy as separate projects:
+ *   "customer" → only the chatbot (/admin returns 404)
+ *   "admin"    → only the admin panel (/ redirects to /admin)
+ *   unset      → both (single deployment)
+ */
 export default function Page() {
-  return <CustomerApp />;
+  if (process.env.APP_MODE === "admin") redirect("/admin");
+  return <CustomerEntry />;
 }
