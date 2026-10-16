@@ -1,11 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Inter_Tight, Manrope } from "next/font/google";
+import { Inter_Tight } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
-const manrope = Manrope({ variable: "--font-manrope", subsets: ["latin"] });
-// Free, commercially licensed stand-in for Neue Montreal (headings)
-const display = Inter_Tight({ variable: "--font-heading", subsets: ["latin"], weight: ["500", "600", "700", "800"] });
+// Fallback while the licensed Neue Montreal files are not in public/fonts (see globals.css)
+const fallback = Inter_Tight({ variable: "--font-heading", subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800"] });
 
 export const metadata: Metadata = {
   title: "Premium Store",
@@ -21,7 +19,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${manrope.variable} ${display.variable} h-full`}>
+    <html lang="en" className={`${fallback.variable} h-full`}>
       <body className="min-h-full">{children}</body>
     </html>
   );

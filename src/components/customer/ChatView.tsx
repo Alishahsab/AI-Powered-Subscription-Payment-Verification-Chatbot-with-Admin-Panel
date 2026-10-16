@@ -266,7 +266,7 @@ function CodeCard({ m, s }: { m: Message; s: State }) {
         <div className="text-[12px] text-[var(--muted)]">Your premium code for</div>
         <div className="font-bold text-[16px]">{o.planName}</div>
         <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-[var(--bg)]/70 border border-[var(--line)] px-3.5 py-3">
-          <div className="font-[family-name:var(--font-manrope)] font-extrabold text-[24px] tracking-[0.2em] text-[var(--accent)] tabular-nums">{o.code}</div>
+          <div className="font-[family-name:var(--font-display)] font-extrabold text-[24px] tracking-[0.2em] text-[var(--accent)] tabular-nums">{o.code}</div>
           <CopyBtn value={o.code} />
         </div>
       </div>

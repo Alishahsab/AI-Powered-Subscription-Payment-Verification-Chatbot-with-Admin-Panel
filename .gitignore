@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# licensed fonts (Neue Montreal) - do not commit to the public repo
+/public/fonts/*
+!/public/fonts/README.txt

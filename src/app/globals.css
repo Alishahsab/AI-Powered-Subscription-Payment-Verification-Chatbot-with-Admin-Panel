@@ -1,11 +1,42 @@
 @import "tailwindcss";
 
+/*
+ * Neue Montreal (Pangram Pangram) — licensed font, files are not committed.
+ * Drop the font files into public/fonts/ with these names and the whole app
+ * switches to it; until then it falls back to Inter Tight.
+ */
+@font-face {
+  font-family: "Neue Montreal";
+  src: url("/fonts/NeueMontreal-Light.woff2") format("woff2"), url("/fonts/NeueMontreal-Light.otf") format("opentype");
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Montreal";
+  src: url("/fonts/NeueMontreal-Regular.woff2") format("woff2"), url("/fonts/NeueMontreal-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Montreal";
+  src: url("/fonts/NeueMontreal-Medium.woff2") format("woff2"), url("/fonts/NeueMontreal-Medium.otf") format("opentype");
+  font-weight: 500 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Montreal";
+  src: url("/fonts/NeueMontreal-Bold.woff2") format("woff2"), url("/fonts/NeueMontreal-Bold.otf") format("opentype");
+  font-weight: 700 900;
+  font-display: swap;
+}
+
 @theme inline {
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-heading);
+  --font-sans: var(--font-brand);
+  --font-display: var(--font-brand);
 }
 
 :root {
+  --font-brand: "Neue Montreal", var(--font-heading), system-ui, sans-serif;
   --accent: #0c2660;
   --accent-ink: #ffffff;
   --gold: #c9a45c;
@@ -17,7 +48,7 @@ body {
 }
 
 body {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-brand);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -30,7 +61,7 @@ body {
   --line: rgba(15, 23, 42, 0.09);
   --text: #111827;
   --muted: #667085;
-  font-family: var(--font-manrope), system-ui, sans-serif;
+  font-family: var(--font-brand);
   color: var(--text);
 }
 
@@ -139,7 +170,7 @@ body {
 
 /* ---------- admin ---------- */
 .adm {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-brand);
   color: #15181d;
   background: #f5f6f8;
 }

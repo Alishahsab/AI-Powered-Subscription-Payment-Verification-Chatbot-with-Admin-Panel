@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  Bell, Eye, EyeOff, Inbox as InboxIcon, KeyRound, LayoutDashboard, Lock, LogOut, Menu, Search, Settings as SettingsIcon, ShieldCheck, Users, X, ExternalLink,
+  Bell, Eye, EyeOff, Inbox as InboxIcon, KeyRound, LayoutDashboard, Lock, LogOut, Menu, Search, Settings as SettingsIcon, Users, X, ExternalLink,
 } from "lucide-react";
 import { markAllNotificationsRead, updateState, useStore } from "@/lib/store";
 import type { AdminStatus } from "@/lib/types";
 import { beep, cx, effectiveStatus, timeAgo, withinHours } from "@/lib/utils";
-import { Monogram, useExpirySweep, useNow } from "@/components/shared";
+import { useExpirySweep, useNow } from "@/components/shared";
 import Dashboard from "./Dashboard";
 import Inbox, { type InboxTab } from "./Inbox";
 import Codes from "./Codes";
@@ -72,31 +72,12 @@ function Login({ onDone }: { onDone: () => void }) {
   };
 
   return (
-    <div className="adm h-dvh overflow-hidden flex md:items-center md:justify-center md:p-6 bg-[#eceef2]">
-      <div className="w-full h-full md:h-[min(620px,calc(100dvh-48px))] md:max-w-[980px] flex flex-col md:flex-row md:rounded-[28px] overflow-hidden md:shadow-[0_30px_80px_-30px_rgba(15,23,42,0.35)] md:border md:border-zinc-200">
-        <div className="shrink-0 md:w-[44%] bg-[linear-gradient(160deg,#0c2660_0%,#061639_70%)] text-white px-6 pt-7 pb-14 md:p-12 flex flex-col">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-wordmark.png" alt="Premium Store" className="h-11 md:h-14 w-auto self-start select-none" draggable={false} />
-          <div className="mt-6 md:mt-auto md:mb-auto">
-            <div className="inline-flex items-center gap-1.5 text-[11.5px] uppercase tracking-[0.16em] font-semibold text-[#C9A45C]">
-              <ShieldCheck size={14} /> Admin panel
-            </div>
-            <h1 className="mt-2 font-[family-name:var(--font-display)] font-extrabold tracking-[-0.02em] text-[28px] md:text-[40px] leading-[1.1]">
-              Manage orders,
-              <br />
-              <span className="text-[#C9A45C]">codes & customers.</span>
-            </h1>
-            <p className="hidden md:block mt-4 text-[15px] leading-relaxed text-white/65 max-w-[340px]">
-              Verify payments, send premium codes and keep every chat organised — in one place.
-            </p>
-          </div>
-        </div>
-
-        <div className="relative flex-1 min-h-0 -mt-8 md:mt-0 bg-white rounded-t-[28px] md:rounded-none flex">
-          <form onSubmit={submit} className="w-full max-w-[420px] mx-auto px-6 pt-7 pb-6 md:px-0 md:py-12 flex flex-col md:justify-center">
-            <Monogram size={52} className="rounded-[13px] mb-5" />
-            <h2 className="font-[family-name:var(--font-display)] font-bold text-[26px] md:text-[30px] tracking-[-0.02em]">Sign in</h2>
-            <p className="mt-1 text-[14px] text-zinc-500">Only authorised staff can access this panel.</p>
+    <div className="adm min-h-dvh grid place-items-center px-4 py-8">
+          <form onSubmit={submit} className="w-full max-w-[400px] bg-white rounded-2xl border border-zinc-200 shadow-sm p-7 md:p-8">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-wordmark-dark.png" alt="Premium Store" className="h-12 w-auto select-none" draggable={false} />
+            <h1 className="mt-6 font-[family-name:var(--font-display)] text-[21px] font-semibold tracking-tight">Admin sign in</h1>
+            <p className="text-[13.5px] text-zinc-500 mt-1">Premium Store management panel</p>
 
             <label className="block mt-6">
               <span className="text-[13.5px] font-semibold text-zinc-800">Username</span>
@@ -124,8 +105,6 @@ function Login({ onDone }: { onDone: () => void }) {
               <Lock size={16} /> Sign in
             </button>
           </form>
-        </div>
-      </div>
     </div>
   );
 }

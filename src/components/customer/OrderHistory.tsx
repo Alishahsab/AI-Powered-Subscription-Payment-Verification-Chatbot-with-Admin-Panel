@@ -59,7 +59,7 @@ export default function OrderHistory({ customer, onBack, showBack = true }: { cu
                   <div className="mt-3 flex items-center justify-between rounded-xl bg-[var(--bg)] border border-[var(--line)] px-3.5 py-2.5">
                     <div>
                       <div className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--muted)]">Premium code</div>
-                      <div className="font-[family-name:var(--font-manrope)] font-extrabold text-[20px] tracking-[0.18em] text-[var(--accent)] tabular-nums">{o.code}</div>
+                      <div className="font-[family-name:var(--font-display)] font-extrabold text-[20px] tracking-[0.18em] text-[var(--accent)] tabular-nums">{o.code}</div>
                     </div>
                     <CopyCode value={o.code!} />
                   </div>
