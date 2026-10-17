@@ -7,18 +7,21 @@ type BackToMenuButtonProps = {
 };
 
 const buttonClass =
-  "h-11 px-5 rounded-full border-2 border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))] text-[var(--accent)] text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[var(--accent)] hover:text-[var(--accent-ink)] hover:border-[var(--accent)] transition";
+  "h-9 px-4 rounded-full text-[var(--accent)] text-[13.5px] font-semibold flex items-center justify-center gap-1.5 hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] transition";
 
 export default function BackToMenuButton({ customerId, showBack = false }: BackToMenuButtonProps) {
   return (
-    <div className="mt-2 flex items-center justify-center gap-2 md:col-span-2">
+    <div className="mt-1 flex items-center justify-center gap-1 md:col-span-2">
       {showBack && (
-        <button onClick={() => goBack(customerId)} className={buttonClass}>
-          <ArrowLeft size={16} /> Back
-        </button>
+        <>
+          <button onClick={() => goBack(customerId)} className={buttonClass}>
+            <ArrowLeft size={15} /> Back
+          </button>
+          <span className="h-4 w-px bg-[var(--line)]" />
+        </>
       )}
       <button onClick={() => backToMenu(customerId)} className={buttonClass}>
-        <LayoutGrid size={16} /> Main menu
+        <LayoutGrid size={15} /> Main menu
       </button>
     </div>
   );

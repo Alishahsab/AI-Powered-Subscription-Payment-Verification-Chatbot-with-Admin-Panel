@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, CreditCard, Lock } from "lucide-react";
+import { Clock, Lock } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
 import { formatCountdown } from "@/lib/format";
 import { canStillPay } from "@/lib/store/helpers";
@@ -29,43 +29,46 @@ export default function PaymentCard({ message }: { message: Message }) {
   const runningOut = timeLeft < 5 * 60_000;
 
   return (
-    <div className="w-[320px] md:w-[380px] max-w-full rounded-2xl rounded-bl-md overflow-hidden border border-[var(--line)] bg-[var(--surface)] shadow-[0_6px_20px_-12px_rgba(15,23,42,0.25)]">
-      <div className="px-4 pt-3.5 pb-3 border-b border-[var(--line)] flex items-center justify-between">
+    <div className="w-[310px] md:w-[400px] max-w-full rounded-2xl rounded-bl-md overflow-hidden border border-[var(--line)] bg-[var(--surface)] shadow-[0_8px_24px_-14px_rgba(15,23,42,0.25)]">
+      <div className="px-4 pt-3.5 pb-3 flex items-start justify-between gap-3">
         <div>
           <div className="text-[11px] uppercase tracking-[0.12em] text-[var(--muted)] font-semibold">Order {order.id}</div>
-          <div className="font-semibold text-[15px] mt-0.5">{order.planName}</div>
+          <div className="font-bold text-[16px] mt-0.5">{order.planName}</div>
+          <div className="text-[12.5px] text-[var(--muted)]">via {order.methodName}</div>
         </div>
         <div className="text-right">
-          <div className="text-[11px] text-[var(--muted)]">Amount</div>
-          <div className="font-bold text-[17px] text-[var(--accent)]">Rs {order.amount.toLocaleString()}</div>
+          <div className="font-bold text-[20px] leading-tight text-[var(--accent)]">Rs {order.amount.toLocaleString()}</div>
+          {payable && (
+            <div className="mt-1">
+              <CopyButton value={String(order.amount)} label="Copy" />
+            </div>
+          )}
         </div>
       </div>
 
       {payable ? (
-        <div className="px-4 py-3.5 space-y-3">
-          <div className="flex items-center gap-2 text-[13px] text-[var(--muted)]">
-            <CreditCard size={14} /> Send payment to our bank account
-          </div>
-
-          <div className="rounded-xl bg-[var(--surface-2)] p-3 space-y-2.5">
-            <DetailRow label="Bank" value={bank.bankName} />
-            <div className="h-px bg-[var(--line)]" />
-            <DetailRow label="Account number" value={bank.accountNumber} copyable large />
-            <div className="h-px bg-[var(--line)]" />
-            <DetailRow label="Account title" value={bank.accountTitle} />
-            <div className="flex justify-end">
-              <CopyButton value={String(order.amount)} label="Copy amount" />
+        <div className="px-4 pb-4 space-y-3">
+          <div className="rounded-xl bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))] border border-[color-mix(in_srgb,var(--accent)_14%,transparent)] px-3.5 py-3">
+            <div className="text-[11.5px] text-[var(--muted)]">Send to this account number</div>
+            <div className="mt-1 flex items-center justify-between gap-2">
+              <div className="font-bold text-[15.5px] md:text-[18px] md:tracking-wide tabular-nums whitespace-nowrap">{bank.accountNumber}</div>
+              <CopyButton value={bank.accountNumber} />
             </div>
           </div>
 
-          <div>
+          <div className="grid grid-cols-2 gap-3 px-1">
+            <Detail label="Bank" value={bank.bankName} />
+            <Detail label="Account title" value={bank.accountTitle} />
+          </div>
+
+          <div className="pt-1">
             <div className="flex items-center justify-between text-[12px] mb-1.5">
               <span className="flex items-center gap-1.5 text-[var(--muted)]">
                 <Clock size={12} /> Details hide in
               </span>
               <span className={`font-bold tabular-nums ${runningOut ? "text-red-600" : ""}`}>{formatCountdown(timeLeft)}</span>
             </div>
-            <div className="h-1 rounded-full bg-black/[0.05] overflow-hidden">
+            <div className="h-1.5 rounded-full bg-black/[0.05] overflow-hidden">
               <div className={`h-full rounded-full transition-all duration-1000 ${runningOut ? "bg-red-500" : "bg-[var(--accent)]"}`} style={{ width: `${progress}%` }} />
             </div>
           </div>
@@ -75,7 +78,7 @@ export default function PaymentCard({ message }: { message: Message }) {
           )}
         </div>
       ) : (
-        <div className="px-4 py-4 flex items-center gap-3">
+        <div className="px-4 py-3.5 border-t border-[var(--line)] flex items-center gap-3">
           <div className="size-9 rounded-full grid place-items-center bg-black/[0.04] text-[var(--muted)] shrink-0">
             <Lock size={15} />
           </div>
@@ -89,21 +92,11 @@ export default function PaymentCard({ message }: { message: Message }) {
   );
 }
 
-type DetailRowProps = {
-  label: string;
-  value: string;
-  copyable?: boolean;
-  large?: boolean;
-};
-
-function DetailRow({ label, value, copyable, large }: DetailRowProps) {
+function Detail({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-2">
-      <div>
-        <div className="text-[11px] text-[var(--muted)]">{label}</div>
-        <div className={large ? "font-bold text-[16px] tracking-wide" : "font-semibold text-[14px]"}>{value}</div>
-      </div>
-      {copyable && <CopyButton value={value} />}
+    <div className="min-w-0">
+      <div className="text-[11px] text-[var(--muted)]">{label}</div>
+      <div className="font-semibold text-[14px] truncate">{value}</div>
     </div>
   );
 }
