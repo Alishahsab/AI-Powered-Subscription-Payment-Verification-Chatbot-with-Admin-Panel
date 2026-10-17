@@ -37,7 +37,7 @@ export default function Inbox({ initialTab, initialCustomerId }: InboxProps) {
 
   return (
     <div className="h-full flex">
-      <div className={classNames("w-full lg:w-[340px] shrink-0 border-r border-zinc-200/80 bg-white flex flex-col", selectedCustomerId && "hidden lg:flex")}>
+      <div className={classNames("w-full lg:w-[360px] shrink-0 border-r border-zinc-200/80 bg-white flex flex-col", selectedCustomerId && "hidden lg:flex")}>
         <ChatList
           tab={tab}
           onTabChange={setTab}
@@ -55,7 +55,7 @@ export default function Inbox({ initialTab, initialCustomerId }: InboxProps) {
         <>
           <ChatThread customerId={selectedCustomerId} onBack={() => setChosenCustomerId(undefined)} onShowDetails={() => setDetailsOpen(true)} />
 
-          <div className="hidden xl:block w-[360px] shrink-0 border-l border-zinc-200/80 bg-white overflow-y-auto">
+          <div className="hidden xl:block w-[340px] shrink-0 border-l border-zinc-200/80 bg-white overflow-y-auto">
             <CustomerPanel customerId={selectedCustomerId} />
           </div>
 

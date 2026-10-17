@@ -1,11 +1,10 @@
 "use client";
 
 import { ShieldAlert } from "lucide-react";
-import { formatDate, formatMoney } from "@/lib/format";
+import { classNames, formatDate, formatMoney } from "@/lib/format";
 import { toggleCustomerBlocked } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import Avatar from "../ui/Avatar";
-import Button from "../ui/Button";
 import OrderReview from "./OrderReview";
 import TicketCard from "./TicketCard";
 
@@ -21,28 +20,17 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
   const tickets = state.tickets.filter((ticket) => ticket.customerId === customerId);
 
   return (
-    <div className="divide-y divide-zinc-100">
-      <div className="p-5">
-        <div className="flex items-center gap-3">
-          <Avatar name={customer.name} size={44} />
-          <div className="min-w-0">
-            <div className="font-semibold text-[15px]">{customer.name}</div>
-            <div className="text-[12.5px] text-zinc-500">Customer since {formatDate(customer.createdAt)}</div>
-          </div>
-        </div>
+    <div className="p-5 space-y-4">
+      <div className="flex flex-col items-center text-center pt-2">
+        <Avatar name={customer.name} size={64} />
+        <div className="mt-3 font-bold text-[17px] text-zinc-900">{customer.name}</div>
+        <div className="text-[13px] text-zinc-500 break-all">{customer.email}</div>
+        <div className="text-[12px] text-zinc-400 mt-0.5">Customer since {formatDate(customer.createdAt)}</div>
+      </div>
 
-        <dl className="mt-4 grid grid-cols-[90px_1fr] gap-y-1.5 text-[12.5px]">
-          <dt className="text-zinc-500">Email</dt>
-          <dd className="font-medium truncate">{customer.email}</dd>
-          <dt className="text-zinc-500">Orders</dt>
-          <dd className="font-medium">
-            {completed.length} completed · {formatMoney(totalSpent)}
-          </dd>
-        </dl>
-
-        <Button size="sm" variant={customer.blocked ? "secondary" : "danger"} className="mt-3" onClick={() => toggleCustomerBlocked(customer.id)}>
-          <ShieldAlert size={13} /> {customer.blocked ? "Unblock customer" : "Block customer"}
-        </Button>
+      <div className="grid grid-cols-2 gap-2">
+        <Stat label="Completed orders" value={String(completed.length)} />
+        <Stat label="Total spent" value={formatMoney(totalSpent)} />
       </div>
 
       {focusOrder && <OrderReview key={focusOrder.id + focusOrder.status} order={focusOrder} />}
@@ -50,6 +38,25 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
       {tickets.map((ticket) => (
         <TicketCard key={ticket.id} ticket={ticket} />
       ))}
+
+      <button
+        onClick={() => toggleCustomerBlocked(customer.id)}
+        className={classNames(
+          "w-full h-10 rounded-xl text-[13px] font-semibold flex items-center justify-center gap-1.5 transition",
+          customer.blocked ? "bg-zinc-100 text-zinc-700 hover:bg-zinc-200" : "text-red-600 hover:bg-red-50"
+        )}
+      >
+        <ShieldAlert size={14} /> {customer.blocked ? "Unblock customer" : "Block customer"}
+      </button>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-[#f5f6f8] px-3.5 py-3">
+      <div className="text-[17px] font-bold text-zinc-900">{value}</div>
+      <div className="text-[11.5px] text-zinc-500 mt-0.5">{label}</div>
     </div>
   );
 }

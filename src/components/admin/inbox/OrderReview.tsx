@@ -7,7 +7,6 @@ import { formatDateTime, formatMoney, formatTime } from "@/lib/format";
 import { approveOrder, rejectOrder, rejectReasons } from "@/lib/store/admin";
 import type { Order } from "@/lib/types";
 import Badge from "../ui/Badge";
-import Button from "../ui/Button";
 import { orderStatusBadge } from "../ui/orderStatus";
 
 export default function OrderReview({ order }: { order: Order }) {
@@ -16,59 +15,61 @@ export default function OrderReview({ order }: { order: Order }) {
   const badge = orderStatusBadge[order.status];
 
   return (
-    <div className="p-5">
-      <div className="flex items-center justify-between">
-        <div className="text-[12px] uppercase tracking-wider text-zinc-500 font-semibold">Order {order.id}</div>
+    <div className="rounded-2xl border border-zinc-200/80 overflow-hidden">
+      <div className="px-4 py-3 flex items-center justify-between bg-[#f8f9fb] border-b border-zinc-200/80">
+        <div>
+          <div className="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Latest order</div>
+          <div className="text-[13.5px] font-bold text-zinc-900">{order.id}</div>
+        </div>
         <Badge tone={badge.tone}>{badge.label}</Badge>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <Detail label="Plan" value={order.planName} />
-        <Detail label="Amount" value={formatMoney(order.amount)} />
-        <Detail label="Method" value={order.methodName} />
-        <Detail label="Sender name" value={order.senderName ?? "N/A"} />
-      </div>
+      <dl className="px-4 py-3 space-y-2 text-[13px]">
+        <Row label="Plan" value={order.planName} />
+        <Row label="Amount" value={formatMoney(order.amount)} strong />
+        <Row label="Method" value={order.methodName} />
+        {order.senderName && <Row label="Sender name" value={order.senderName} />}
+        <Row label="Created" value={formatDateTime(order.createdAt)} />
+        {order.submittedAt && <Row label="Proof sent" value={formatTime(order.submittedAt)} />}
+      </dl>
 
       {order.screenshot && (
-        <button onClick={() => setZoomed(true)} className="mt-3 block w-full rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50">
-          <StoredImage path={order.screenshot} alt="Payment screenshot" className="w-full h-72 object-contain" />
-        </button>
+        <div className="px-4 pb-3">
+          <button onClick={() => setZoomed(true)} className="block w-full rounded-xl overflow-hidden border border-zinc-200 bg-zinc-50">
+            <StoredImage path={order.screenshot} alt="Payment screenshot" className="w-full h-64 object-contain" />
+          </button>
+        </div>
       )}
 
-      <div className="mt-2 text-[11.5px] text-zinc-400">
-        Created {formatDateTime(order.createdAt)}
-        {order.submittedAt && ` · proof at ${formatTime(order.submittedAt)}`}
-      </div>
-
       {order.status === "pending_review" && (
-        <div className="mt-4 space-y-2">
-          <Button variant="success" className="w-full h-10" onClick={() => approveOrder(order.id)}>
+        <div className="px-4 pb-4 space-y-2">
+          <button onClick={() => approveOrder(order.id)} className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
             <Check size={15} /> Approve payment
-          </Button>
+          </button>
           {choosingReason ? (
-            <div className="rounded-lg border border-red-200 bg-red-50/50 p-2 space-y-1 fade-in">
+            <div className="rounded-xl border border-red-200 bg-red-50/50 p-1.5 space-y-0.5 fade-in">
               {rejectReasons.map((reason) => (
-                <button key={reason} onClick={() => rejectOrder(order.id, reason)} className="w-full text-left text-[12.5px] px-2.5 py-1.5 rounded-md hover:bg-red-100 text-red-700">
+                <button key={reason} onClick={() => rejectOrder(order.id, reason)} className="w-full text-left text-[12.5px] px-2.5 py-2 rounded-lg hover:bg-red-100 text-red-700">
                   {reason}
                 </button>
               ))}
             </div>
           ) : (
-            <Button variant="danger" className="w-full" onClick={() => setChoosingReason(true)}>
+            <button onClick={() => setChoosingReason(true)} className="w-full h-10 rounded-xl text-red-600 hover:bg-red-50 text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
               <X size={14} /> Reject
-            </Button>
+            </button>
           )}
         </div>
       )}
 
       {order.status === "completed" && (
-        <div className="mt-4 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-[12.5px] text-emerald-800 flex gap-2">
+        <div className="mx-4 mb-4 rounded-xl bg-emerald-50 px-3 py-2.5 text-[12.5px] text-emerald-800 flex gap-2">
           <Info size={15} className="shrink-0 mt-0.5" />
           <span>Approved {formatDateTime(order.reviewedAt ?? order.createdAt)}. Type the premium code in the chat to send it.</span>
         </div>
       )}
 
-      {order.status === "rejected" && <div className="mt-3 text-[12.5px] text-red-700 bg-red-50 rounded-lg px-3 py-2">Rejected: {order.rejectReason}. The customer can upload new proof.</div>}
+      {order.status === "rejected" && <div className="mx-4 mb-4 text-[12.5px] text-red-700 bg-red-50 rounded-xl px-3 py-2.5">Rejected: {order.rejectReason}. The customer can upload new proof.</div>}
 
       {zoomed && order.screenshot && (
         <div className="fixed inset-0 z-50 bg-black/80 grid place-items-center p-6 fade-in" onClick={() => setZoomed(false)}>
@@ -79,11 +80,11 @@ export default function OrderReview({ order }: { order: Order }) {
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className="rounded-lg bg-zinc-50 border border-zinc-100 px-3 py-2">
-      <div className="text-[11px] text-zinc-500">{label}</div>
-      <div className="text-[13px] font-semibold truncate">{value}</div>
+    <div className="flex items-center justify-between gap-3">
+      <dt className="text-zinc-500">{label}</dt>
+      <dd className={strong ? "font-bold text-[#0C2660]" : "font-medium text-zinc-800 text-right truncate"}>{value}</dd>
     </div>
   );
 }
