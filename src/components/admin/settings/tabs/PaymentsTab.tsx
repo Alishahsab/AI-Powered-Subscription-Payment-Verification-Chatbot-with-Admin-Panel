@@ -77,6 +77,14 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
           ))}
         </div>
       </SettingsSection>
+
+      <SettingsSection title="How does it work?" description="Answer shown when a customer taps How does it work? before ordering.">
+        <textarea rows={5} maxLength={limits.longTextMax} value={draft.settings.howItWorks} onChange={(event) => updateDraft((next) => (next.settings.howItWorks = event.target.value))} className={textareaClass} />
+      </SettingsSection>
+
+      <SettingsSection title="After a code is sent" description="Shown to the customer right after you send a premium code. Leave an empty line between the activation steps and the safety notes.">
+        <textarea rows={9} maxLength={limits.longTextMax} value={draft.settings.codeInstructions} onChange={(event) => updateDraft((next) => (next.settings.codeInstructions = event.target.value))} className={textareaClass} />
+      </SettingsSection>
     </>
   );
 }

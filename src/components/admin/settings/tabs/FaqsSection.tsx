@@ -6,7 +6,7 @@ import { inputClass, textareaClass } from "../../ui/styles";
 import type { SettingsTabProps } from "../Settings";
 import { SettingsSection } from "../SettingsSection";
 
-export default function FaqsTab({ draft, updateDraft }: SettingsTabProps) {
+export default function FaqsSection({ draft, updateDraft }: SettingsTabProps) {
   const addQuestion = () => {
     updateDraft((next) => {
       next.faqs.push({ id: createId(), question: "", answer: "" });

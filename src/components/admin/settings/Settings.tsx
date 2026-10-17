@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Clock, CreditCard, HelpCircle, MessageSquareText, Palette, Timer } from "lucide-react";
+import { Check, Clock, CreditCard, LifeBuoy, Palette, Timer } from "lucide-react";
 import { classNames } from "@/lib/format";
 import { saveSettings, type EditableSettings } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
@@ -10,9 +10,8 @@ import { validateConfig } from "@/lib/validation";
 import Button from "../ui/Button";
 import AppearanceTab from "./tabs/AppearanceTab";
 import AvailabilityTab from "./tabs/AvailabilityTab";
-import FaqsTab from "./tabs/FaqsTab";
-import MessagesTab from "./tabs/MessagesTab";
 import PaymentsTab from "./tabs/PaymentsTab";
+import SupportTab from "./tabs/SupportTab";
 import TimersTab from "./tabs/TimersTab";
 
 export type UpdateDraft = (change: (draft: EditableSettings) => void) => void;
@@ -25,8 +24,7 @@ export type SettingsTabProps = {
 const tabs = [
   { key: "availability", label: "Availability", icon: <Clock size={15} /> },
   { key: "payments", label: "Plans & payments", icon: <CreditCard size={15} /> },
-  { key: "messages", label: "Chat messages", icon: <MessageSquareText size={15} /> },
-  { key: "faqs", label: "FAQs", icon: <HelpCircle size={15} /> },
+  { key: "support", label: "Support", icon: <LifeBuoy size={15} /> },
   { key: "timers", label: "Timers & data", icon: <Timer size={15} /> },
   { key: "appearance", label: "Appearance", icon: <Palette size={15} /> },
 ] as const;
@@ -103,7 +101,7 @@ export default function Settings() {
               Discard
             </Button>
             <Button variant="primary" onClick={save} disabled={!hasChanges} className="px-5">
-              <Check size={15} /> Save changes
+              Save changes
             </Button>
           </div>
         </div>
@@ -138,8 +136,7 @@ export default function Settings() {
           )}
           {tab === "availability" && <AvailabilityTab draft={draft} updateDraft={updateDraft} />}
           {tab === "payments" && <PaymentsTab draft={draft} updateDraft={updateDraft} />}
-          {tab === "messages" && <MessagesTab draft={draft} updateDraft={updateDraft} />}
-          {tab === "faqs" && <FaqsTab draft={draft} updateDraft={updateDraft} />}
+          {tab === "support" && <SupportTab draft={draft} updateDraft={updateDraft} />}
           {tab === "timers" && <TimersTab draft={draft} updateDraft={updateDraft} />}
           {tab === "appearance" && <AppearanceTab draft={draft} updateDraft={updateDraft} />}
         </div>
