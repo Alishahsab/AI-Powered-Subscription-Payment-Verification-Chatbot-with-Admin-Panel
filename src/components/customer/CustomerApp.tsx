@@ -1,49 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
+import { useAuthUser } from "@/hooks/useAuthUser";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { useOrderExpiry } from "@/hooks/useOrderExpiry";
 import { usePresence } from "@/hooks/usePresence";
 import { textColorFor } from "@/lib/format";
+import { ensureCustomerProfile, signOut } from "@/lib/store/customer";
 import { useAppState } from "@/lib/store/state";
+import { startSync, stopSync } from "@/lib/supabase/sync";
 import AuthScreen from "./AuthScreen";
 import Sidebar from "./Sidebar";
 import ChatScreen from "./chat/ChatScreen";
 
-const SESSION_KEY = "premium_store_customer";
-
-function readSession() {
-  try {
-    return localStorage.getItem(SESSION_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function writeSession(customerId: string | null) {
-  try {
-    if (customerId) localStorage.setItem(SESSION_KEY, customerId);
-    else localStorage.removeItem(SESSION_KEY);
-  } catch {}
-}
-
 export default function CustomerApp() {
   const state = useAppState();
   const isDesktop = useIsDesktop();
-  const [customerId, setCustomerId] = useState<string | null>(readSession);
-  const customer = state.customers.find((item) => item.id === customerId);
+  const { user, checking } = useAuthUser("customer");
+  const customer = user ? state.customers.find((item) => item.id === user.id) : undefined;
+
+  useEffect(() => {
+    if (!user) return;
+    startSync("customer").then(() => ensureCustomerProfile(user));
+  }, [user]);
 
   useOrderExpiry();
   usePresence(customer?.id);
 
-  const signIn = (id: string) => {
-    writeSession(id);
-    setCustomerId(id);
-  };
-
-  const signOut = () => {
-    writeSession(null);
-    setCustomerId(null);
+  const handleSignOut = async () => {
+    await signOut();
+    await stopSync();
   };
 
   const accent = state.settings.accent;
@@ -51,16 +37,29 @@ export default function CustomerApp() {
 
   return (
     <div className="customer-app min-h-dvh w-full bg-[var(--page)] flex" style={themeStyle}>
-      {customer ? (
+      {checking || (user && !customer) ? (
+        <LoadingScreen />
+      ) : customer ? (
         <div className="flex-1 flex h-dvh md:p-4 lg:p-5">
           <div className="relative flex-1 flex max-w-[1440px] mx-auto bg-[var(--bg)] md:rounded-3xl md:border md:border-[var(--line)] md:shadow-[0_24px_60px_-28px_rgba(15,23,42,0.28)] overflow-hidden">
-            {isDesktop && <Sidebar customer={customer} onSignOut={signOut} />}
-            <ChatScreen customer={customer} onSignOut={isDesktop ? undefined : signOut} />
+            {isDesktop && <Sidebar customer={customer} onSignOut={handleSignOut} />}
+            <ChatScreen customer={customer} onSignOut={isDesktop ? undefined : handleSignOut} />
           </div>
         </div>
       ) : (
-        <AuthScreen onSignedIn={signIn} />
+        <AuthScreen />
       )}
+    </div>
+  );
+}
+
+function LoadingScreen() {
+  return (
+    <div className="flex-1 grid place-items-center">
+      <div className="flex flex-col items-center gap-3 text-[var(--muted)] text-[14px]">
+        <img src="/logo-icon.png" alt="Premium Store" className="size-14 rounded-2xl animate-pulse" />
+        Loading your chat…
+      </div>
     </div>
   );
 }

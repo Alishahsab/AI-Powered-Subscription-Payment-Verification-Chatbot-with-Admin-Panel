@@ -16,10 +16,12 @@ export default function ReportIssueSheet({ customerId, onClose }: ReportIssueShe
   const [problem, setProblem] = useState(commonProblems[0]);
   const [details, setDetails] = useState("");
   const [screenshot, setScreenshot] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const submit = () => {
+  const submit = async () => {
     const description = details.trim() ? `${problem}. ${details.trim()}` : problem;
-    reportPaymentIssue(customerId, description, screenshot ?? undefined);
+    setBusy(true);
+    await reportPaymentIssue(customerId, description, screenshot ?? undefined);
     onClose();
   };
 
@@ -53,8 +55,8 @@ export default function ReportIssueSheet({ customerId, onClose }: ReportIssueShe
         <ImagePicker image={screenshot} onChange={setScreenshot} label="Attach the error screenshot (optional)" />
       </div>
 
-      <button onClick={submit} className="mt-5 w-full h-12 rounded-xl bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-[15px]">
-        Send report
+      <button onClick={submit} disabled={busy} className="mt-5 w-full h-12 rounded-xl bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-[15px] disabled:opacity-60">
+        {busy ? "Sending…" : "Send report"}
       </button>
     </Sheet>
   );

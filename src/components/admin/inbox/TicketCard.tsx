@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2 } from "lucide-react";
+import StoredImage from "@/components/StoredImage";
 import { formatDateTime } from "@/lib/format";
 import { setTicketResolved } from "@/lib/store/admin";
 import type { Ticket } from "@/lib/types";
@@ -21,7 +22,7 @@ export default function TicketCard({ ticket }: { ticket: Ticket }) {
 
       <p className="text-[13px] text-zinc-700 mt-2 leading-relaxed">{ticket.message}</p>
       {ticket.orderId && <div className="text-[12px] text-zinc-500 mt-1">Order {ticket.orderId}</div>}
-      {ticket.screenshot && <img src={ticket.screenshot} alt="Issue screenshot" className="mt-2 w-full max-h-48 object-contain rounded-lg border border-zinc-200 bg-zinc-50" />}
+      {ticket.screenshot && <StoredImage path={ticket.screenshot} alt="Issue screenshot" className="mt-2 w-full h-48 object-contain rounded-lg border border-zinc-200 bg-zinc-50" />}
       <div className="text-[11.5px] text-zinc-400 mt-1">{formatDateTime(ticket.createdAt)}</div>
 
       <Button size="sm" className="mt-3" onClick={() => setTicketResolved(ticket.id, isOpen)}>

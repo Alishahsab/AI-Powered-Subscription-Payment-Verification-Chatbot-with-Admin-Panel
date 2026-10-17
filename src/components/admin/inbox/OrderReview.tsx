@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Info, X } from "lucide-react";
+import StoredImage from "@/components/StoredImage";
 import { formatDateTime, formatMoney, formatTime } from "@/lib/format";
 import { approveOrder, rejectOrder, rejectReasons } from "@/lib/store/admin";
 import type { Order } from "@/lib/types";
@@ -30,7 +31,7 @@ export default function OrderReview({ order }: { order: Order }) {
 
       {order.screenshot && (
         <button onClick={() => setZoomed(true)} className="mt-3 block w-full rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50">
-          <img src={order.screenshot} alt="Payment screenshot" className="w-full max-h-72 object-contain" />
+          <StoredImage path={order.screenshot} alt="Payment screenshot" className="w-full h-72 object-contain" />
         </button>
       )}
 
@@ -71,7 +72,7 @@ export default function OrderReview({ order }: { order: Order }) {
 
       {zoomed && order.screenshot && (
         <div className="fixed inset-0 z-50 bg-black/80 grid place-items-center p-6 fade-in" onClick={() => setZoomed(false)}>
-          <img src={order.screenshot} alt="Payment screenshot" className="max-h-full max-w-full rounded-lg" />
+          <StoredImage path={order.screenshot} alt="Payment screenshot" className="max-h-full max-w-full rounded-lg" />
         </div>
       )}
     </div>

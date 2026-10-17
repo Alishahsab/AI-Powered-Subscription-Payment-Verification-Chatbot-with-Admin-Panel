@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RotateCcw } from "lucide-react";
-import { deleteOldChats, resetDemoData } from "@/lib/store/admin";
+import { deleteOldChats } from "@/lib/store/admin";
 import Button from "../../ui/Button";
 import type { SettingsTabProps } from "../Settings";
 import { ChoiceButtons, SettingsSection } from "../SettingsSection";
@@ -14,10 +13,6 @@ export default function TimersTab({ draft, updateDraft }: SettingsTabProps) {
   const runCleanup = () => {
     const result = deleteOldChats();
     setCleanupResult(`Removed ${result.removedMessages} old messages and ${result.removedScreenshots} screenshots.`);
-  };
-
-  const resetDemo = () => {
-    if (confirm("Reset all demo data?")) resetDemoData();
   };
 
   return (
@@ -40,12 +35,6 @@ export default function TimersTab({ draft, updateDraft }: SettingsTabProps) {
           <Button onClick={runCleanup}>Run clean-up now</Button>
           {cleanupResult && <span className="text-[12.5px] text-emerald-700 fade-in">{cleanupResult}</span>}
         </div>
-      </SettingsSection>
-
-      <SettingsSection title="Demo data" description="Restore the sample customers, orders and chats.">
-        <Button variant="danger" onClick={resetDemo}>
-          <RotateCcw size={14} /> Reset demo
-        </Button>
       </SettingsSection>
     </>
   );

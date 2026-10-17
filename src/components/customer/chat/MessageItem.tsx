@@ -1,4 +1,5 @@
 import BrandIcon from "@/components/BrandIcon";
+import StoredImage from "@/components/StoredImage";
 import { formatTime } from "@/lib/format";
 import type { Message } from "@/lib/types";
 import PaymentCard from "./cards/PaymentCard";
@@ -61,7 +62,7 @@ function TextBubble({ message }: { message: Message }) {
 function ImageBubble({ message }: { message: Message }) {
   return (
     <div className="w-[240px] rounded-2xl rounded-br-md overflow-hidden border border-[var(--line)] bg-[var(--surface)]">
-      <img src={message.image} alt="Attached screenshot" className="w-full max-h-64 object-cover object-top" />
+      {message.image && <StoredImage path={message.image} alt="Attached screenshot" className="w-full h-44 object-cover object-top" />}
       <div className="px-3 py-2 text-[11.5px] text-[var(--muted)]">Screenshot · {formatTime(message.createdAt)}</div>
     </div>
   );

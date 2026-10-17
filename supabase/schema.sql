@@ -1,0 +1,241 @@
+create table if not exists public.admins (
+  user_id uuid primary key references auth.users (id) on delete cascade
+);
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (select 1 from public.admins where user_id = auth.uid());
+$$;
+
+create table if not exists public.store_config (
+  id int primary key default 1 check (id = 1),
+  settings jsonb not null,
+  plans jsonb not null,
+  methods jsonb not null,
+  faqs jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.customers (
+  id uuid primary key references auth.users (id) on delete cascade,
+  name text not null,
+  email text not null,
+  created_at bigint not null,
+  last_seen_at bigint not null,
+  blocked boolean not null default false,
+  payment_blocked_until bigint
+);
+
+create table if not exists public.conversations (
+  customer_id uuid primary key references public.customers (id) on delete cascade,
+  stage text not null default 'menu',
+  plan_id text,
+  method_id text,
+  active_order_id text,
+  unread_by_admin int not null default 0,
+  last_message_at bigint not null
+);
+
+create table if not exists public.orders (
+  id text primary key,
+  customer_id uuid not null references public.customers (id) on delete cascade,
+  plan_id text not null,
+  plan_name text not null,
+  amount int not null,
+  method_name text not null,
+  status text not null,
+  created_at bigint not null,
+  expires_at bigint not null,
+  submitted_at bigint,
+  reviewed_at bigint,
+  screenshot text,
+  sender_name text,
+  reject_reason text
+);
+
+create table if not exists public.messages (
+  id text primary key,
+  customer_id uuid not null references public.customers (id) on delete cascade,
+  sender text not null check (sender in ('bot', 'customer', 'admin')),
+  kind text not null default 'text',
+  text text not null default '',
+  order_id text,
+  image text,
+  emailed_to text,
+  created_at bigint not null,
+  delivered_at bigint,
+  seen_at bigint
+);
+
+create table if not exists public.tickets (
+  id text primary key,
+  customer_id uuid not null references public.customers (id) on delete cascade,
+  kind text not null,
+  message text not null,
+  screenshot text,
+  order_id text,
+  status text not null default 'open',
+  created_at bigint not null
+);
+
+create table if not exists public.notifications (
+  id text primary key,
+  kind text not null,
+  title text not null,
+  body text not null,
+  customer_id uuid not null references public.customers (id) on delete cascade,
+  read boolean not null default false,
+  created_at bigint not null
+);
+
+create index if not exists messages_customer_idx on public.messages (customer_id, created_at);
+create index if not exists orders_customer_idx on public.orders (customer_id);
+create index if not exists tickets_customer_idx on public.tickets (customer_id);
+
+create or replace function public.protect_customer_flags()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    new.blocked := old.blocked;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_customer_flags on public.customers;
+create trigger protect_customer_flags
+before update on public.customers
+for each row execute function public.protect_customer_flags();
+
+alter table public.admins enable row level security;
+alter table public.store_config enable row level security;
+alter table public.customers enable row level security;
+alter table public.conversations enable row level security;
+alter table public.orders enable row level security;
+alter table public.messages enable row level security;
+alter table public.tickets enable row level security;
+alter table public.notifications enable row level security;
+
+drop policy if exists "admins read own row" on public.admins;
+create policy "admins read own row" on public.admins
+for select to authenticated using (user_id = auth.uid());
+
+drop policy if exists "anyone reads config" on public.store_config;
+create policy "anyone reads config" on public.store_config
+for select to anon, authenticated using (true);
+
+drop policy if exists "admin writes config" on public.store_config;
+create policy "admin writes config" on public.store_config
+for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "customer or admin reads customers" on public.customers;
+create policy "customer or admin reads customers" on public.customers
+for select to authenticated using (id = auth.uid() or public.is_admin());
+
+drop policy if exists "customer creates own profile" on public.customers;
+create policy "customer creates own profile" on public.customers
+for insert to authenticated with check (id = auth.uid());
+
+drop policy if exists "customer or admin updates customers" on public.customers;
+create policy "customer or admin updates customers" on public.customers
+for update to authenticated using (id = auth.uid() or public.is_admin()) with check (id = auth.uid() or public.is_admin());
+
+drop policy if exists "own or admin conversations" on public.conversations;
+create policy "own or admin conversations" on public.conversations
+for all to authenticated using (customer_id = auth.uid() or public.is_admin()) with check (customer_id = auth.uid() or public.is_admin());
+
+drop policy if exists "own or admin reads orders" on public.orders;
+create policy "own or admin reads orders" on public.orders
+for select to authenticated using (customer_id = auth.uid() or public.is_admin());
+
+drop policy if exists "customer creates own orders" on public.orders;
+create policy "customer creates own orders" on public.orders
+for insert to authenticated with check (customer_id = auth.uid());
+
+drop policy if exists "own or admin updates orders" on public.orders;
+create policy "own or admin updates orders" on public.orders
+for update to authenticated using (customer_id = auth.uid() or public.is_admin()) with check (customer_id = auth.uid() or public.is_admin());
+
+drop policy if exists "own or admin reads messages" on public.messages;
+create policy "own or admin reads messages" on public.messages
+for select to authenticated using (customer_id = auth.uid() or public.is_admin());
+
+drop policy if exists "customer or admin writes messages" on public.messages;
+create policy "customer or admin writes messages" on public.messages
+for insert to authenticated with check ((customer_id = auth.uid() and sender <> 'admin') or public.is_admin());
+
+drop policy if exists "own or admin updates messages" on public.messages;
+create policy "own or admin updates messages" on public.messages
+for update to authenticated using (customer_id = auth.uid() or public.is_admin()) with check (customer_id = auth.uid() or public.is_admin());
+
+drop policy if exists "admin deletes messages" on public.messages;
+create policy "admin deletes messages" on public.messages
+for delete to authenticated using (public.is_admin());
+
+drop policy if exists "own or admin reads tickets" on public.tickets;
+create policy "own or admin reads tickets" on public.tickets
+for select to authenticated using (customer_id = auth.uid() or public.is_admin());
+
+drop policy if exists "customer creates own tickets" on public.tickets;
+create policy "customer creates own tickets" on public.tickets
+for insert to authenticated with check (customer_id = auth.uid());
+
+drop policy if exists "admin updates tickets" on public.tickets;
+create policy "admin updates tickets" on public.tickets
+for update to authenticated using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "customer creates notifications" on public.notifications;
+create policy "customer creates notifications" on public.notifications
+for insert to authenticated with check (customer_id = auth.uid());
+
+drop policy if exists "admin reads notifications" on public.notifications;
+create policy "admin reads notifications" on public.notifications
+for select to authenticated using (public.is_admin());
+
+drop policy if exists "admin updates notifications" on public.notifications;
+create policy "admin updates notifications" on public.notifications
+for update to authenticated using (public.is_admin()) with check (public.is_admin());
+
+insert into storage.buckets (id, name, public)
+values ('screenshots', 'screenshots', false)
+on conflict (id) do nothing;
+
+drop policy if exists "customer uploads own screenshots" on storage.objects;
+create policy "customer uploads own screenshots" on storage.objects
+for insert to authenticated
+with check (bucket_id = 'screenshots' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "owner or admin reads screenshots" on storage.objects;
+create policy "owner or admin reads screenshots" on storage.objects
+for select to authenticated
+using (bucket_id = 'screenshots' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));
+
+drop policy if exists "admin deletes screenshots" on storage.objects;
+create policy "admin deletes screenshots" on storage.objects
+for delete to authenticated
+using (bucket_id = 'screenshots' and public.is_admin());
+
+do $$
+declare
+  table_name text;
+begin
+  foreach table_name in array array['store_config', 'customers', 'conversations', 'orders', 'messages', 'tickets', 'notifications']
+  loop
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = table_name
+    ) then
+      execute format('alter publication supabase_realtime add table public.%I', table_name);
+    end if;
+  end loop;
+end;
+$$;

@@ -51,7 +51,6 @@ export type Customer = {
   id: string;
   name: string;
   email: string;
-  pin: string;
   createdAt: number;
   lastSeenAt: number;
   blocked: boolean;
@@ -141,8 +140,15 @@ export type AdminNotification = {
   createdAt: number;
 };
 
+export type StoreConfig = {
+  settings: Settings;
+  plans: Plan[];
+  methods: PaymentMethod[];
+  faqs: Faq[];
+};
+
 export type AppState = {
-  version: number;
+  loaded: boolean;
   settings: Settings;
   plans: Plan[];
   methods: PaymentMethod[];
@@ -153,6 +159,4 @@ export type AppState = {
   orders: Order[];
   tickets: Ticket[];
   notifications: AdminNotification[];
-  nextOrderNumber: number;
-  nextTicketNumber: number;
 };

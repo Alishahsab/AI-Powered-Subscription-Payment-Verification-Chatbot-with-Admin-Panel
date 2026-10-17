@@ -12,21 +12,34 @@ Web chatbot and admin panel for selling premium subscription codes. Customers bu
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
 - Customer chatbot: http://localhost:3000
-- Admin panel: http://localhost:3000/admin (demo login `admin` / `admin123`)
+- Admin panel: http://localhost:3000/admin
 
-Open both in the same browser to see orders and messages sync live.
+## Supabase setup
+
+1. Create a Supabase project and copy the Project URL and publishable key into `.env.local`.
+2. Open SQL Editor, paste `supabase/schema.sql` and run it. It creates the tables, row level security, the private `screenshots` bucket and realtime.
+3. Authentication > Sign In / Providers > Email: turn off "Confirm email" so customers can sign in with email and PIN straight away.
+4. Authentication > Users > Add user: create the admin account (email + password).
+5. Give that user admin access in SQL Editor:
+
+```sql
+insert into public.admins (user_id)
+select id from auth.users where email = 'admin@example.com';
+```
 
 ## Environment variables
 
 | Name | Purpose |
 | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable (anon) key |
 | `APP_MODE` | `customer` serves only the chatbot (`/admin` returns 404), `admin` serves only the admin panel, empty serves both |
 | `NEXT_PUBLIC_CUSTOMER_URL` | Link used by "Open customer chat" in the admin sidebar |
-| `NEXT_PUBLIC_ADMIN_USER`, `NEXT_PUBLIC_ADMIN_PASSWORD` | Demo admin login |
 
 ## Folder structure
 
@@ -39,12 +52,21 @@ src/
     format.ts               Money, date and text helpers
     availability.ts         Working hours and admin status
     browser.ts              Image compression, clipboard, alert sound
-    demo/                   Demo seed data and sample receipt
+    defaults.ts             Default settings, plans, payment methods and FAQs
+    demo/                   Sample payment receipt for testing
     store/
-      state.ts              App state, saving and cross-tab sync
+      state.ts              In-memory app state used by the components
       helpers.ts            Shared helpers used by the actions
       customer.ts           Everything the customer can do
       admin.ts              Everything the admin can do
+    supabase/
+      client.ts             Supabase clients (separate sessions for customer and admin)
+      mappers.ts            Database rows to app objects and back
+      tables.ts             Which tables are synced and how
+      sync.ts               Loads data, saves changes and listens for realtime updates
+      screenshots.ts        Upload and signed URLs for the private screenshots bucket
+supabase/
+  schema.sql                Tables, security rules, storage bucket and realtime
   components/
     BrandIcon.tsx
     customer/
@@ -77,4 +99,6 @@ Each customer has one conversation with a `stage` (`menu`, `choose_plan`, `choos
 
 ## Data
 
-The demo keeps all data in `localStorage` (`lib/store/state.ts`). The actions in `lib/store/customer.ts` and `lib/store/admin.ts` are the only place that changes data, so moving to Supabase means replacing those functions without touching the components.
+Components read from one in-memory state (`lib/store/state.ts`). The actions in `lib/store/customer.ts` and `lib/store/admin.ts` are the only place that changes it. After every change, `lib/supabase/sync.ts` compares the old and new state and writes the changed rows to Supabase. Changes made by other people arrive through Supabase Realtime and update the same state, so the customer chat and the admin panel stay in sync on any device.
+
+Row level security makes sure a customer can only read and write their own customer row, conversation, orders, messages and tickets. Only users listed in the `admins` table can see everything.

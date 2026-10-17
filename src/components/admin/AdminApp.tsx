@@ -1,36 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuthUser } from "@/hooks/useAuthUser";
+import { adminSignOut, isSignedInAdmin } from "@/lib/store/admin";
+import { useAppState } from "@/lib/store/state";
+import { startSync, stopSync } from "@/lib/supabase/sync";
 import AdminShell from "./AdminShell";
 import LoginScreen from "./LoginScreen";
 
-const SESSION_KEY = "premium_store_admin";
-
-function isSignedIn() {
-  try {
-    return sessionStorage.getItem(SESSION_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
+type AccessCheck = { userId: string; allowed: boolean };
 
 export default function AdminApp() {
-  const [signedIn, setSignedIn] = useState(isSignedIn);
+  const state = useAppState();
+  const { user, checking } = useAuthUser("admin");
+  const [access, setAccess] = useState<AccessCheck | null>(null);
+  const allowed = Boolean(user && access?.userId === user.id && access.allowed);
 
-  const signIn = () => {
-    try {
-      sessionStorage.setItem(SESSION_KEY, "1");
-    } catch {}
-    setSignedIn(true);
+  useEffect(() => {
+    if (!user) return;
+    isSignedInAdmin().then((result) => setAccess({ userId: user.id, allowed: result }));
+  }, [user]);
+
+  useEffect(() => {
+    if (allowed) startSync("admin");
+  }, [allowed]);
+
+  const signOut = async () => {
+    await adminSignOut();
+    await stopSync();
   };
 
-  const signOut = () => {
-    try {
-      sessionStorage.removeItem(SESSION_KEY);
-    } catch {}
-    setSignedIn(false);
-  };
+  const waitingForAccess = user && access?.userId !== user.id;
+  if (checking || waitingForAccess || (allowed && !state.loaded)) {
+    return <div className="admin-app min-h-dvh grid place-items-center text-[14px] text-zinc-500">Loading admin panel…</div>;
+  }
 
-  if (!signedIn) return <LoginScreen onSignedIn={signIn} />;
+  if (!allowed) return <LoginScreen />;
   return <AdminShell onSignOut={signOut} />;
 }

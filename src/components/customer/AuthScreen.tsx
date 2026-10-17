@@ -16,12 +16,13 @@ const features = [
 const inputClass =
   "mt-1.5 w-full h-12 rounded-xl bg-[var(--bg)] border border-[var(--line)] px-4 text-[15.5px] outline-none placeholder:text-[#9aa1ab] focus:bg-[var(--surface)] focus:border-[var(--accent)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--accent)_12%,transparent)] transition";
 
-export default function AuthScreen({ onSignedIn }: { onSignedIn: (customerId: string) => void }) {
+export default function AuthScreen() {
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
   const switchMode = (next: Mode) => {
     setMode(next);
@@ -35,7 +36,7 @@ export default function AuthScreen({ onSignedIn }: { onSignedIn: (customerId: st
     return "";
   };
 
-  const submit = (event: React.FormEvent) => {
+  const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     const problem = validate();
     if (problem) {
@@ -43,9 +44,10 @@ export default function AuthScreen({ onSignedIn }: { onSignedIn: (customerId: st
       return;
     }
 
-    const result = mode === "signup" ? signUp(name, email, pin) : signIn(email, pin);
-    if ("error" in result) setError(result.error);
-    else onSignedIn(result.customerId);
+    setBusy(true);
+    const result = mode === "signup" ? await signUp(name, email, pin) : await signIn(email, pin);
+    setBusy(false);
+    if (result.error) setError(result.error);
   };
 
   return (
@@ -132,8 +134,11 @@ export default function AuthScreen({ onSignedIn }: { onSignedIn: (customerId: st
             )}
 
             <div className="mt-auto md:mt-7 pt-5 md:pt-0 md:mb-auto">
-              <button className="group w-full h-[52px] rounded-2xl bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-[16px] flex items-center justify-center gap-2 shadow-[0_12px_28px_-14px_var(--accent)] hover:brightness-110 transition">
-                {mode === "signin" ? "Sign in" : "Create account"}
+              <button
+                disabled={busy}
+                className="group w-full h-[52px] rounded-2xl bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-[16px] flex items-center justify-center gap-2 shadow-[0_12px_28px_-14px_var(--accent)] hover:brightness-110 transition disabled:opacity-60"
+              >
+                {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
                 <ArrowRight size={18} className="group-hover:translate-x-0.5 transition" />
               </button>
               <p className="mt-3.5 flex items-center justify-center gap-1.5 text-[12.5px] text-[var(--muted)]">

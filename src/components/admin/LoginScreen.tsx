@@ -2,29 +2,29 @@
 
 import { useState } from "react";
 import { Eye, EyeOff, Lock } from "lucide-react";
-
-const ADMIN_USERNAME = process.env.NEXT_PUBLIC_ADMIN_USER || "admin";
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin123";
+import { adminSignIn } from "@/lib/store/admin";
 
 const fieldClass =
   "mt-1.5 w-full h-12 rounded-xl border border-zinc-200 bg-zinc-50 px-4 text-[15px] outline-none focus:bg-white focus:border-[#0C2660] focus:ring-4 focus:ring-[#0C2660]/10 transition";
 
-export default function LoginScreen({ onSignedIn }: { onSignedIn: () => void }) {
-  const [username, setUsername] = useState("");
+export default function LoginScreen() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  const submit = (event: React.FormEvent) => {
+  const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!username.trim() || !password) {
-      setError("Enter your username and password.");
+    if (!email.trim() || !password) {
+      setError("Enter your email and password.");
       return;
     }
 
-    const validUser = username.trim().toLowerCase() === ADMIN_USERNAME.toLowerCase();
-    if (validUser && password === ADMIN_PASSWORD) onSignedIn();
-    else setError("Incorrect username or password.");
+    setBusy(true);
+    const problem = await adminSignIn(email, password);
+    setBusy(false);
+    if (problem) setError(problem);
   };
 
   return (
@@ -35,16 +35,17 @@ export default function LoginScreen({ onSignedIn }: { onSignedIn: () => void }) 
         <p className="text-[13.5px] text-zinc-500 mt-1">Premium Store management panel</p>
 
         <label className="block mt-6">
-          <span className="text-[13.5px] font-semibold text-zinc-800">Username</span>
+          <span className="text-[13.5px] font-semibold text-zinc-800">Email</span>
           <input
             autoFocus
+            type="email"
             autoComplete="username"
-            value={username}
+            value={email}
             onChange={(event) => {
-              setUsername(event.target.value);
+              setEmail(event.target.value);
               setError("");
             }}
-            placeholder="Enter username"
+            placeholder="admin@example.com"
             className={fieldClass}
           />
         </label>
@@ -76,8 +77,8 @@ export default function LoginScreen({ onSignedIn }: { onSignedIn: () => void }) 
 
         {error && <p className="text-[13px] text-red-600 mt-3">{error}</p>}
 
-        <button className="mt-6 w-full h-12 rounded-xl bg-[#0C2660] text-white text-[15.5px] font-semibold flex items-center justify-center gap-2 hover:brightness-125 transition">
-          <Lock size={16} /> Sign in
+        <button disabled={busy} className="mt-6 w-full h-12 rounded-xl bg-[#0C2660] text-white text-[15.5px] font-semibold flex items-center justify-center gap-2 hover:brightness-125 transition disabled:opacity-60">
+          <Lock size={16} /> {busy ? "Signing in…" : "Sign in"}
         </button>
       </form>
     </div>

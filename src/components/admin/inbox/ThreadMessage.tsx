@@ -1,4 +1,5 @@
 import { ImageIcon, Mail } from "lucide-react";
+import StoredImage from "@/components/StoredImage";
 import { classNames, formatMoney, formatTime } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import type { Message } from "@/lib/types";
@@ -72,7 +73,7 @@ function ImageMessage({ image, title, detail }: { image?: string; title: string;
     <div className="flex">
       <div className="w-[200px] rounded-xl overflow-hidden bg-white border border-zinc-200">
         {image ? (
-          <img src={image} alt={title} className="w-full h-32 object-cover object-top" />
+          <StoredImage path={image} alt={title} className="w-full h-32 object-cover object-top" />
         ) : (
           <div className="h-16 grid place-items-center text-[12px] text-zinc-400">
             <span className="flex items-center gap-1">

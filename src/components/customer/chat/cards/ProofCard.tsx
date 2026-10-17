@@ -1,4 +1,5 @@
 import { Check, ImageIcon } from "lucide-react";
+import StoredImage from "@/components/StoredImage";
 import { formatTime } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import type { Message } from "@/lib/types";
@@ -10,7 +11,7 @@ export default function ProofCard({ message }: { message: Message }) {
   return (
     <div className="w-[240px] md:w-[280px] rounded-2xl rounded-br-md overflow-hidden bg-[color-mix(in_srgb,var(--accent)_10%,var(--surface))] border border-[color-mix(in_srgb,var(--accent)_25%,transparent)]">
       {order?.screenshot ? (
-        <img src={order.screenshot} alt="Payment screenshot" className="w-full h-36 object-cover object-top" />
+        <StoredImage path={order.screenshot} alt="Payment screenshot" className="w-full h-36 object-cover object-top" />
       ) : (
         <div className="h-20 grid place-items-center text-[12px] text-[var(--muted)]">
           <span className="flex items-center gap-1.5">

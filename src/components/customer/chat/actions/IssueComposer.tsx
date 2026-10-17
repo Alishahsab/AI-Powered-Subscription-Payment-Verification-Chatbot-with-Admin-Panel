@@ -10,11 +10,13 @@ export default function IssueComposer({ customerId }: { customerId: string }) {
   const [description, setDescription] = useState("");
   const [screenshot, setScreenshot] = useState<string | null>(null);
   const [showPicker, setShowPicker] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const submit = () => {
+  const submit = async () => {
     const text = description.trim();
     if (!text) return;
-    submitSupportIssue(customerId, text, screenshot ?? undefined);
+    setBusy(true);
+    await submitSupportIssue(customerId, text, screenshot ?? undefined);
   };
 
   return (
@@ -38,10 +40,10 @@ export default function IssueComposer({ customerId }: { customerId: string }) {
 
       <button
         onClick={submit}
-        disabled={!description.trim()}
+        disabled={!description.trim() || busy}
         className="w-full h-12 rounded-xl bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50"
       >
-        <Send size={16} /> Send to our team
+        <Send size={16} /> {busy ? "Sending…" : "Send to our team"}
       </button>
       <BackToMenuButton customerId={customerId} />
     </div>

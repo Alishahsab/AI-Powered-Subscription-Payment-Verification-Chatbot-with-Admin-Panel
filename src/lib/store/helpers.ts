@@ -52,6 +52,20 @@ export function replyAsBot(customerId: string, reply: (state: AppState) => void)
   }, BOT_TYPING_DELAY);
 }
 
+function shortCode() {
+  const time = Date.now().toString(36).slice(-5);
+  const random = Math.floor(Math.random() * 36).toString(36);
+  return (time + random).toUpperCase();
+}
+
+export function createOrderNumber() {
+  return `PS-${shortCode()}`;
+}
+
+export function createTicketNumber() {
+  return `T-${shortCode()}`;
+}
+
 export function findCustomerName(state: AppState, customerId: string) {
   return state.customers.find((customer) => customer.id === customerId)?.name ?? "Customer";
 }

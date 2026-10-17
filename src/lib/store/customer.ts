@@ -1,36 +1,60 @@
+import type { User } from "@supabase/supabase-js";
 import { getEffectiveStatus } from "../availability";
-import { createId } from "../format";
+import { getSupabase } from "../supabase/client";
+import { uploadScreenshot } from "../supabase/screenshots";
 import type { AppState } from "../types";
-import { addMessage, canStillPay, fillPlaceholders, findCustomerName, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
+import { addMessage, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerName, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
 import { getState, updateState } from "./state";
 
 const MINUTE = 60_000;
 
-type AuthResult = { customerId: string } | { error: string };
+type AuthResult = { error: string | null };
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-export function signUp(name: string, email: string, pin: string): AuthResult {
-  const cleanEmail = normalizeEmail(email);
-  const exists = getState().customers.some((customer) => customer.email === cleanEmail);
-  if (exists) return { error: "An account with this email already exists. Please sign in." };
-
-  const customerId = "c" + createId();
-  updateState((state) => {
-    const now = Date.now();
-    state.customers.unshift({ id: customerId, name: name.trim(), email: cleanEmail, pin, createdAt: now, lastSeenAt: now, blocked: false });
-    state.conversations[customerId] = { customerId, stage: "menu", typing: false, unreadByAdmin: 0, lastMessageAt: now };
+export async function signUp(name: string, email: string, pin: string): Promise<AuthResult> {
+  const { data, error } = await getSupabase("customer").auth.signUp({
+    email: normalizeEmail(email),
+    password: pin,
+    options: { data: { name: name.trim() } },
   });
-  return { customerId };
+
+  if (error) {
+    const alreadyExists = error.message.toLowerCase().includes("already");
+    return { error: alreadyExists ? "An account with this email already exists. Please sign in." : error.message };
+  }
+  if (!data.session) return { error: "Please confirm your email address, then sign in." };
+  return { error: null };
 }
 
-export function signIn(email: string, pin: string): AuthResult {
-  const customer = getState().customers.find((item) => item.email === normalizeEmail(email));
-  if (!customer) return { error: "No account found with this email. Please create an account." };
-  if (customer.pin !== pin) return { error: "Incorrect PIN. Please try again." };
-  return { customerId: customer.id };
+export async function signIn(email: string, pin: string): Promise<AuthResult> {
+  const { error } = await getSupabase("customer").auth.signInWithPassword({ email: normalizeEmail(email), password: pin });
+  if (error) return { error: "Incorrect email or PIN. Please try again." };
+  return { error: null };
+}
+
+export async function signOut() {
+  await getSupabase("customer").auth.signOut();
+}
+
+export function ensureCustomerProfile(user: User) {
+  const state = getState();
+  const hasProfile = state.customers.some((customer) => customer.id === user.id);
+  const hasConversation = Boolean(state.conversations[user.id]);
+  if (hasProfile && hasConversation) return;
+
+  updateState((draft) => {
+    const now = Date.now();
+    if (!hasProfile) {
+      const name = String(user.user_metadata?.name ?? user.email?.split("@")[0] ?? "Customer");
+      draft.customers.push({ id: user.id, name, email: user.email ?? "", createdAt: now, lastSeenAt: now, blocked: false });
+    }
+    if (!hasConversation) {
+      draft.conversations[user.id] = { customerId: user.id, stage: "menu", typing: false, unreadByAdmin: 0, lastMessageAt: now };
+    }
+  });
 }
 
 export function openChat(customerId: string) {
@@ -39,17 +63,17 @@ export function openChat(customerId: string) {
     const conversation = state.conversations[customerId];
     if (!customer || !conversation) return;
 
+    const firstName = customer.name.split(" ")[0];
     const hasMessages = state.messages.some((message) => message.customerId === customerId);
     if (!hasMessages) {
-      addMessage(state, customerId, "bot", `Hi ${customer.name.split(" ")[0]}. ${state.settings.welcome}`);
+      addMessage(state, customerId, "bot", `Hi ${firstName}. ${state.settings.welcome}`);
       return;
     }
 
-    const lastActive = customer.lastSeenAt;
-    const wasAway = Date.now() - lastActive > state.settings.timers.inactiveMinutes * MINUTE;
+    const wasAway = Date.now() - customer.lastSeenAt > state.settings.timers.inactiveMinutes * MINUTE;
     if (wasAway && conversation.stage !== "awaiting_payment") {
       conversation.stage = "menu";
-      addMessage(state, customerId, "bot", `Welcome back, ${customer.name.split(" ")[0]}. How can we help you today?`);
+      addMessage(state, customerId, "bot", `Welcome back, ${firstName}. How can we help you today?`);
     }
   });
   recordPresence(customerId);
@@ -76,7 +100,7 @@ export function markMessagesSeen(customerId: string) {
   updateState((state) => {
     const now = Date.now();
     for (const message of state.messages) {
-      if (message.customerId === customerId && message.sender !== "customer" && !message.seenAt) {
+      if (message.customerId === customerId && message.sender === "admin" && !message.seenAt) {
         message.deliveredAt = message.deliveredAt ?? now;
         message.seenAt = now;
       }
@@ -188,7 +212,7 @@ export function createOrder(customerId: string) {
     if (!plan || !method) return;
 
     const now = Date.now();
-    const orderId = `PS-${state.nextOrderNumber++}`;
+    const orderId = createOrderNumber();
 
     state.orders.unshift({
       id: orderId,
@@ -227,7 +251,7 @@ export function cancelOrder(customerId: string) {
   });
 }
 
-export function submitPaymentProof(customerId: string, screenshot: string, senderName: string): string | null {
+export async function submitPaymentProof(customerId: string, screenshot: string, senderName: string): Promise<string | null> {
   const order = getActiveOrder(getState(), customerId);
   if (!order) return "No open order found.";
   if (!canStillPay(order)) return "This order has expired. Please create a new one.";
@@ -235,12 +259,19 @@ export function submitPaymentProof(customerId: string, screenshot: string, sende
   const name = senderName.trim();
   if (!/^[A-Za-z][A-Za-z .'-]{1,59}$/.test(name)) return "Please enter the sender account name using letters only.";
 
+  let screenshotPath: string;
+  try {
+    screenshotPath = await uploadScreenshot(customerId, screenshot);
+  } catch {
+    return "Could not upload the screenshot. Please check your internet and try again.";
+  }
+
   updateState((state) => {
     const current = state.orders.find((item) => item.id === order.id);
     if (!current) return;
 
     current.status = "pending_review";
-    current.screenshot = screenshot;
+    current.screenshot = screenshotPath;
     current.senderName = name;
     current.submittedAt = Date.now();
     current.rejectReason = undefined;
@@ -265,21 +296,31 @@ export function submitPaymentProof(customerId: string, screenshot: string, sende
   return null;
 }
 
-export function reportPaymentIssue(customerId: string, description: string, screenshot?: string) {
+async function uploadOptional(customerId: string, screenshot?: string) {
+  if (!screenshot) return undefined;
+  try {
+    return await uploadScreenshot(customerId, screenshot);
+  } catch {
+    return undefined;
+  }
+}
+
+export async function reportPaymentIssue(customerId: string, description: string, screenshot?: string) {
+  const screenshotPath = await uploadOptional(customerId, screenshot);
+  const text = description.trim() || "The payment is not going through to your account.";
+
   updateState((state) => {
     const order = getActiveOrder(state, customerId);
     const customer = state.customers.find((item) => item.id === customerId);
-    const ticketId = `T-${state.nextTicketNumber++}`;
     const retryMinutes = state.settings.timers.retryMinutes;
-    const text = description.trim() || "The payment is not going through to your account.";
 
     if (order) order.status = "issue_reported";
     if (customer) customer.paymentBlockedUntil = Date.now() + retryMinutes * MINUTE;
 
     addMessage(state, customerId, "customer", `Payment issue: ${text}`);
-    if (screenshot) addMessage(state, customerId, "customer", "Screenshot", { kind: "image", image: screenshot });
+    if (screenshotPath) addMessage(state, customerId, "customer", "Screenshot", { kind: "image", image: screenshotPath });
 
-    state.tickets.unshift({ id: ticketId, customerId, kind: "payment", message: text, screenshot, orderId: order?.id, status: "open", createdAt: Date.now() });
+    state.tickets.unshift({ id: createTicketNumber(), customerId, kind: "payment", message: text, screenshot: screenshotPath, orderId: order?.id, status: "open", createdAt: Date.now() });
     state.conversations[customerId].unreadByAdmin += 1;
     notifyAdmin(state, { kind: "payment_issue", title: "Payment issue reported", body: `${findCustomerName(state, customerId)} · ${text.slice(0, 70)}`, customerId });
   });
@@ -316,15 +357,15 @@ export function chooseOtherIssue(customerId: string) {
   });
 }
 
-export function submitSupportIssue(customerId: string, description: string, screenshot?: string) {
-  let ticketId = "";
+export async function submitSupportIssue(customerId: string, description: string, screenshot?: string) {
+  const screenshotPath = await uploadOptional(customerId, screenshot);
+  const ticketId = createTicketNumber();
 
   updateState((state) => {
-    ticketId = `T-${state.nextTicketNumber++}`;
     addMessage(state, customerId, "customer", description);
-    if (screenshot) addMessage(state, customerId, "customer", "Screenshot", { kind: "image", image: screenshot });
+    if (screenshotPath) addMessage(state, customerId, "customer", "Screenshot", { kind: "image", image: screenshotPath });
 
-    state.tickets.unshift({ id: ticketId, customerId, kind: "support", message: description, screenshot, status: "open", createdAt: Date.now() });
+    state.tickets.unshift({ id: ticketId, customerId, kind: "support", message: description, screenshot: screenshotPath, status: "open", createdAt: Date.now() });
     state.conversations[customerId].unreadByAdmin += 1;
     notifyAdmin(state, { kind: "support", title: "New support issue", body: `${findCustomerName(state, customerId)} · ${description.slice(0, 70)}`, customerId });
   });
@@ -358,13 +399,13 @@ export function backToMenu(customerId: string) {
 
 export function expireUnpaidOrders() {
   const now = Date.now();
-  const hasExpired = getState().orders.some((order) => (order.status === "awaiting_payment" || order.status === "rejected") && order.expiresAt <= now);
+  const isUnpaid = (status: string) => status === "awaiting_payment" || status === "rejected";
+  const hasExpired = getState().orders.some((order) => isUnpaid(order.status) && order.expiresAt <= now);
   if (!hasExpired) return;
 
   updateState((state) => {
     for (const order of state.orders) {
-      const unpaid = order.status === "awaiting_payment" || order.status === "rejected";
-      if (!unpaid || order.expiresAt > now) continue;
+      if (!isUnpaid(order.status) || order.expiresAt > now) continue;
 
       order.status = "expired";
       const conversation = state.conversations[order.customerId];

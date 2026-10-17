@@ -1,56 +1,17 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { createDemoState, STATE_VERSION } from "../demo/seed";
+import { createEmptyState } from "../defaults";
 import type { AppState } from "../types";
 
-const STORAGE_KEY = "premium_store_state";
+type ChangeHandler = (before: AppState, after: AppState) => void;
+
 const listeners = new Set<() => void>();
-let state: AppState | null = null;
-
-function loadState(): AppState {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved) as AppState;
-      if (parsed.version === STATE_VERSION) return parsed;
-    }
-  } catch {}
-
-  const fresh = createDemoState();
-  saveState(fresh);
-  return fresh;
-}
-
-function saveState(next: AppState) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  } catch (error) {
-    console.warn("Could not save state", error);
-  }
-}
+let state: AppState = createEmptyState();
+let changeHandler: ChangeHandler | null = null;
 
 function notifyListeners() {
   listeners.forEach((listener) => listener());
-}
-
-export function getState() {
-  if (!state) state = loadState();
-  return state;
-}
-
-export function updateState(change: (draft: AppState) => void) {
-  const draft = structuredClone(getState());
-  change(draft);
-  state = draft;
-  saveState(draft);
-  notifyListeners();
-}
-
-export function resetState() {
-  state = createDemoState();
-  saveState(state);
-  notifyListeners();
 }
 
 function subscribe(listener: () => void) {
@@ -58,16 +19,35 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
+export function getState() {
+  return state;
+}
+
 export function useAppState() {
   return useSyncExternalStore(subscribe, getState, getState);
 }
 
-if (typeof window !== "undefined") {
-  window.addEventListener("storage", (event) => {
-    if (event.key !== STORAGE_KEY || !event.newValue) return;
-    try {
-      state = JSON.parse(event.newValue);
-      notifyListeners();
-    } catch {}
-  });
+export function setChangeHandler(handler: ChangeHandler | null) {
+  changeHandler = handler;
+}
+
+export function updateState(change: (draft: AppState) => void) {
+  const before = state;
+  const draft = structuredClone(state);
+  change(draft);
+  state = draft;
+  notifyListeners();
+  changeHandler?.(before, draft);
+}
+
+export function applyRemoteChange(change: (draft: AppState) => void) {
+  const draft = structuredClone(state);
+  change(draft);
+  state = draft;
+  notifyListeners();
+}
+
+export function clearState() {
+  state = createEmptyState();
+  notifyListeners();
 }

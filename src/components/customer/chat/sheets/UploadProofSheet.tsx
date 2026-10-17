@@ -21,6 +21,7 @@ export default function UploadProofSheet({ customerId, onClose }: UploadProofShe
   const [screenshot, setScreenshot] = useState<string | null>(null);
   const [senderName, setSenderName] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
   const order = getActiveOrder(state, customerId);
   if (!order) return null;
@@ -35,12 +36,16 @@ export default function UploadProofSheet({ customerId, onClose }: UploadProofShe
     setScreenshot(createSampleReceipt(order.amount, name, order.methodName, now));
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (!screenshot) {
       setError("Please attach your payment screenshot.");
       return;
     }
-    const problem = submitPaymentProof(customerId, screenshot, senderName);
+
+    setBusy(true);
+    const problem = await submitPaymentProof(customerId, screenshot, senderName);
+    setBusy(false);
+
     if (problem) setError(problem);
     else onClose();
   };
@@ -62,8 +67,8 @@ export default function UploadProofSheet({ customerId, onClose }: UploadProofShe
 
       {error && <div className="mt-3 text-[13px] text-red-700 bg-red-500/10 rounded-lg px-3 py-2">{error}</div>}
 
-      <button onClick={submit} className="mt-5 w-full h-12 rounded-xl bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-[15px]">
-        Submit for verification
+      <button onClick={submit} disabled={busy} className="mt-5 w-full h-12 rounded-xl bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-[15px] disabled:opacity-60">
+        {busy ? "Uploading…" : "Submit for verification"}
       </button>
       <button onClick={fillSampleReceipt} className="mt-3 w-full text-[12px] text-[var(--muted)] hover:text-[var(--text)]">
         Use a sample receipt (demo)

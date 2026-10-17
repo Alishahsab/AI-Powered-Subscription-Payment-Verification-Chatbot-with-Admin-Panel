@@ -1,9 +1,36 @@
+import { getSupabase } from "../supabase/client";
+import { deleteScreenshots } from "../supabase/screenshots";
 import type { AdminStatus, AppState } from "../types";
 import { addMessage, findCustomerName } from "./helpers";
-import { getState, resetState, updateState } from "./state";
+import { getState, updateState } from "./state";
 
 const MINUTE = 60_000;
 const DAY = 24 * 60 * MINUTE;
+
+export async function isSignedInAdmin() {
+  const client = getSupabase("admin");
+  const { data } = await client.auth.getUser();
+  if (!data.user) return false;
+
+  const { data: adminRow } = await client.from("admins").select("user_id").eq("user_id", data.user.id).maybeSingle();
+  return Boolean(adminRow);
+}
+
+export async function adminSignIn(email: string, password: string): Promise<string | null> {
+  const client = getSupabase("admin");
+  const { error } = await client.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+  if (error) return "Incorrect email or password.";
+
+  if (!(await isSignedInAdmin())) {
+    await client.auth.signOut();
+    return "This account does not have admin access.";
+  }
+  return null;
+}
+
+export async function adminSignOut() {
+  await getSupabase("admin").auth.signOut();
+}
 
 export const rejectReasons = ["Screenshot is unclear", "Amount does not match", "Payment not received", "Sender name does not match"];
 
@@ -130,26 +157,27 @@ export function saveSettings(changes: EditableSettings) {
 
 export function deleteOldChats() {
   let removedMessages = 0;
-  let removedScreenshots = 0;
+  const removedPaths: string[] = [];
 
   updateState((state) => {
     const cutoff = Date.now() - state.settings.retentionDays * DAY;
-    const before = state.messages.length;
+    const oldMessages = state.messages.filter((message) => message.createdAt < cutoff);
+    removedMessages = oldMessages.length;
     state.messages = state.messages.filter((message) => message.createdAt >= cutoff);
-    removedMessages = before - state.messages.length;
+
+    for (const message of oldMessages) {
+      if (message.image) removedPaths.push(message.image);
+    }
 
     for (const order of state.orders) {
       const reviewedLongAgo = (order.reviewedAt ?? order.createdAt) < cutoff;
       if (order.screenshot && order.status !== "pending_review" && reviewedLongAgo) {
+        removedPaths.push(order.screenshot);
         order.screenshot = undefined;
-        removedScreenshots++;
       }
     }
   });
 
-  return { removedMessages, removedScreenshots };
-}
-
-export function resetDemoData() {
-  resetState();
+  deleteScreenshots(removedPaths);
+  return { removedMessages, removedScreenshots: removedPaths.length };
 }
