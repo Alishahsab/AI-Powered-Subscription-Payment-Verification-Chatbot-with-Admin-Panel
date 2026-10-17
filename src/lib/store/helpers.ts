@@ -75,6 +75,12 @@ export function getActiveOrder(state: AppState, customerId: string) {
   return state.orders.find((order) => order.id === orderId);
 }
 
+export function findOrderMethod(state: AppState, customerId: string) {
+  const order = getActiveOrder(state, customerId);
+  const methodId = state.conversations[customerId]?.methodId;
+  return state.methods.find((method) => method.id === methodId) ?? state.methods.find((method) => method.name === order?.methodName);
+}
+
 export function canStillPay(order: Order, now = Date.now()) {
   const waitingForPayment = order.status === "awaiting_payment" || order.status === "rejected";
   return waitingForPayment && order.expiresAt > now;

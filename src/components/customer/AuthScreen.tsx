@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { ArrowRight, History, Lock, ShieldCheck, Zap } from "lucide-react";
 import { classNames } from "@/lib/format";
-import { requestPinReset, signIn, signUp } from "@/lib/store/customer";
+import { logIn, requestPinReset } from "@/lib/store/customer";
 import { cleanDigits, cleanEmail, cleanLetters, limits, validateEmail, validateName, validatePin } from "@/lib/validation";
 
-type Mode = "signin" | "signup" | "forgot";
+type Mode = "login" | "forgot";
 
 const features = [
   { icon: <Zap size={17} />, title: "Code in minutes", text: "Pay, upload proof, get your code right in the chat." },
@@ -15,8 +15,7 @@ const features = [
 ];
 
 const titles: Record<Mode, { heading: string; text: string; button: string }> = {
-  signin: { heading: "Welcome back", text: "Sign in with your email and PIN.", button: "Sign in" },
-  signup: { heading: "Get started", text: "Create your account to open your private chat.", button: "Create account" },
+  login: { heading: "Welcome", text: "Enter your details to open your private chat.", button: "Continue" },
   forgot: { heading: "Reset your PIN", text: "Enter your email and we'll send you a link to set a new PIN.", button: "Send reset link" },
 };
 
@@ -24,7 +23,7 @@ const inputClass =
   "mt-1.5 w-full h-12 rounded-xl bg-[var(--bg)] border border-[var(--line)] px-4 text-[15.5px] outline-none placeholder:text-[#9aa1ab] focus:bg-[var(--surface)] focus:border-[var(--accent)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--accent)_12%,transparent)] transition";
 
 export default function AuthScreen() {
-  const [mode, setMode] = useState<Mode>("signin");
+  const [mode, setMode] = useState<Mode>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [pin, setPin] = useState("");
@@ -39,15 +38,8 @@ export default function AuthScreen() {
   };
 
   const validate = () => {
-    if (mode === "signup") {
-      const nameProblem = validateName(name, "Your name");
-      if (nameProblem) return nameProblem;
-    }
-    const emailProblem = validateEmail(email);
-    if (emailProblem) return emailProblem;
-    if (mode === "signup") return validatePin(pin);
-    if (mode === "signin" && pin.length !== limits.pinLength) return "Your PIN must be exactly 6 digits.";
-    return null;
+    if (mode === "forgot") return validateEmail(email);
+    return validateName(name, "Your name") ?? validateEmail(email) ?? validatePin(pin);
   };
 
   const submit = async (event: React.FormEvent) => {
@@ -59,6 +51,7 @@ export default function AuthScreen() {
       return;
     }
 
+    setError("");
     setBusy(true);
     if (mode === "forgot") {
       const result = await requestPinReset(email);
@@ -68,7 +61,7 @@ export default function AuthScreen() {
       return;
     }
 
-    const result = mode === "signup" ? await signUp(name, email, pin) : await signIn(email, pin);
+    const result = await logIn(name, email, pin);
     setBusy(false);
     if (result.error) setError(result.error);
   };
@@ -104,26 +97,12 @@ export default function AuthScreen() {
         <div className="relative flex-1 min-h-0 -mt-8 md:mt-0 bg-[var(--surface)] rounded-t-[28px] md:rounded-none flex flex-col">
           <form onSubmit={submit} noValidate className="flex-1 min-h-0 overflow-y-auto px-6 pt-7 pb-6 md:px-14 md:py-12 flex flex-col">
             <div className="md:mt-auto">
-              {mode !== "forgot" && (
-                <div className="inline-flex rounded-xl bg-[var(--bg)] p-1 mb-6">
-                  {(["signin", "signup"] as Mode[]).map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => switchMode(item)}
-                      className={classNames("h-9 px-4 rounded-lg text-[14px] font-semibold transition", mode === item ? "bg-[var(--surface)] shadow-sm text-[var(--text)]" : "text-[var(--muted)]")}
-                    >
-                      {titles[item].button}
-                    </button>
-                  ))}
-                </div>
-              )}
               <h2 className="font-[family-name:var(--font-display)] font-bold text-[26px] md:text-[32px] leading-tight">{copy.heading}</h2>
               <p className="mt-1 text-[14px] md:text-[15px] text-[var(--muted)]">{copy.text}</p>
             </div>
 
             <div className="mt-6 space-y-4">
-              {mode === "signup" && (
+              {mode === "login" && (
                 <label className="block">
                   <span className="text-[13.5px] font-semibold">Your name</span>
                   <input value={name} onChange={(event) => setName(cleanLetters(event.target.value))} placeholder="e.g. Abdul Manan" autoComplete="name" className={inputClass} />
@@ -133,7 +112,7 @@ export default function AuthScreen() {
                 <span className="text-[13.5px] font-semibold">Email</span>
                 <input value={email} onChange={(event) => setEmail(cleanEmail(event.target.value))} placeholder="you@example.com" inputMode="email" autoComplete="email" className={inputClass} />
               </label>
-              {mode !== "forgot" && (
+              {mode === "login" && (
                 <label className="block">
                   <span className="text-[13.5px] font-semibold">6-digit PIN</span>
                   <input
@@ -142,7 +121,7 @@ export default function AuthScreen() {
                     placeholder="••••••"
                     type="password"
                     inputMode="numeric"
-                    autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                    autoComplete="current-password"
                     className={classNames(inputClass, "tracking-[0.3em]")}
                   />
                 </label>
@@ -151,19 +130,12 @@ export default function AuthScreen() {
 
             {error && <p className="mt-3 text-[13px] text-red-600">{error}</p>}
             {notice && <p className="mt-3 text-[13px] text-emerald-700">{notice}</p>}
-            {!error && !notice && mode === "signup" && <p className="mt-3 text-[12.5px] text-[var(--muted)]">Your codes are also sent to this email.</p>}
+            {!error && !notice && mode === "login" && <p className="mt-3 text-[12.5px] text-[var(--muted)]">New here? Your account is created with this PIN. Your codes are also sent to this email.</p>}
 
             <div className="flex justify-between mt-3">
-              {mode === "signin" && (
-                <button type="button" onClick={() => switchMode("forgot")} className="text-[13px] font-medium text-[var(--accent)] hover:underline">
-                  Forgot PIN?
-                </button>
-              )}
-              {mode === "forgot" && (
-                <button type="button" onClick={() => switchMode("signin")} className="text-[13px] font-medium text-[var(--accent)] hover:underline">
-                  Back to sign in
-                </button>
-              )}
+              <button type="button" onClick={() => switchMode(mode === "login" ? "forgot" : "login")} className="text-[13px] font-medium text-[var(--accent)] hover:underline">
+                {mode === "login" ? "Forgot PIN?" : "Back to login"}
+              </button>
             </div>
 
             <div className="mt-auto md:mt-7 pt-5 md:pt-0 md:mb-auto">

@@ -1,15 +1,22 @@
-import { AlertTriangle, Upload, X } from "lucide-react";
+import { AlertTriangle, BookOpen, Upload, X } from "lucide-react";
 import { cancelOrder } from "@/lib/store/customer";
+import type { PaymentMethod } from "@/lib/types";
 import type { OpenSheet } from "../ChatScreen";
 
 type PaymentActionsProps = {
   customerId: string;
+  method?: PaymentMethod;
   onOpenSheet: (sheet: OpenSheet) => void;
 };
 
-export default function PaymentActions({ customerId, onOpenSheet }: PaymentActionsProps) {
+export default function PaymentActions({ customerId, method, onOpenSheet }: PaymentActionsProps) {
   return (
     <div className="space-y-2">
+      {method?.steps.trim() && (
+        <button onClick={() => onOpenSheet("steps")} className="w-full h-11 rounded-xl border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_6%,transparent)] text-[var(--accent)] text-[14px] font-semibold flex items-center justify-center gap-2">
+          <BookOpen size={16} /> How to pay with {method.name}
+        </button>
+      )}
       <button onClick={() => onOpenSheet("proof")} className="w-full h-12 rounded-xl bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-[15px] flex items-center justify-center gap-2">
         <Upload size={17} /> Upload payment proof
       </button>

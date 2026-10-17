@@ -15,24 +15,22 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-export async function signUp(name: string, email: string, pin: string): Promise<AuthResult> {
-  const { data, error } = await getSupabase("customer").auth.signUp({
+export async function logIn(name: string, email: string, pin: string): Promise<AuthResult> {
+  const auth = getSupabase("customer").auth;
+  const signIn = await auth.signInWithPassword({ email: normalizeEmail(email), password: pin });
+  if (!signIn.error) return { error: null };
+
+  const signUp = await auth.signUp({
     email: normalizeEmail(email),
     password: pin,
     options: { data: { name: name.trim() } },
   });
 
-  if (error) {
-    const alreadyExists = error.message.toLowerCase().includes("already");
-    return { error: alreadyExists ? "An account with this email already exists. Please sign in." : error.message };
+  if (signUp.error) {
+    const alreadyExists = signUp.error.message.toLowerCase().includes("already");
+    return { error: alreadyExists ? "Wrong PIN for this email. Try again or use Forgot PIN." : signUp.error.message };
   }
-  if (!data.session) return { error: "Please confirm your email address, then sign in." };
-  return { error: null };
-}
-
-export async function signIn(email: string, pin: string): Promise<AuthResult> {
-  const { error } = await getSupabase("customer").auth.signInWithPassword({ email: normalizeEmail(email), password: pin });
-  if (error) return { error: "Incorrect email or PIN. Please try again." };
+  if (!signUp.data.session) return { error: "Please confirm your email address, then log in." };
   return { error: null };
 }
 
@@ -242,10 +240,6 @@ export function createOrder(customerId: string) {
     });
 
     addMessage(state, customerId, "bot", `Order ${orderId} created for ${plan.name}.`, { kind: "payment", orderId });
-
-    if (method.steps.trim()) {
-      addMessage(state, customerId, "bot", fillPlaceholders(method.steps, state), { kind: "steps", orderId });
-    }
 
     conversation.activeOrderId = orderId;
     conversation.stage = "awaiting_payment";

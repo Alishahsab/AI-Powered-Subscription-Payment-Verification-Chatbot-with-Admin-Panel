@@ -1,5 +1,6 @@
 import { chooseMethod } from "@/lib/store/customer";
 import { useAppState } from "@/lib/store/state";
+import MethodLogo from "../MethodLogo";
 import BackToMenuButton from "./BackToMenuButton";
 import OptionButton from "./OptionButton";
 
@@ -12,7 +13,7 @@ export default function MethodOptions({ customerId }: { customerId: string }) {
       {methods.map((method) => (
         <OptionButton key={method.id} onClick={() => chooseMethod(customerId, method.id)}>
           <div className="flex items-center gap-3">
-            <span className="size-9 rounded-lg bg-[var(--surface-2)] grid place-items-center font-bold text-[13px]">{method.name[0]}</span>
+            <MethodLogo methodId={method.id} />
             <span className="font-semibold text-[14.5px]">{method.name}</span>
           </div>
         </OptionButton>

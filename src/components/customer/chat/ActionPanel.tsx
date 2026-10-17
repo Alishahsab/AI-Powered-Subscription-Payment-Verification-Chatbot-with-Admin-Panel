@@ -1,6 +1,6 @@
 "use client";
 
-import { canStillPay, getActiveOrder } from "@/lib/store/helpers";
+import { canStillPay, findOrderMethod, getActiveOrder } from "@/lib/store/helpers";
 import { getState } from "@/lib/store/state";
 import type { Conversation } from "@/lib/types";
 import type { OpenSheet } from "./ChatScreen";
@@ -43,7 +43,7 @@ function StageActions({ customerId, conversation, onOpenSheet }: ActionPanelProp
     case "awaiting_payment": {
       const order = getActiveOrder(getState(), customerId);
       if (!order || !canStillPay(order)) return <BackToMenuButton customerId={customerId} />;
-      return <PaymentActions customerId={customerId} onOpenSheet={onOpenSheet} />;
+      return <PaymentActions customerId={customerId} method={findOrderMethod(getState(), customerId)} onOpenSheet={onOpenSheet} />;
     }
     case "support":
       return <SupportOptions customerId={customerId} />;

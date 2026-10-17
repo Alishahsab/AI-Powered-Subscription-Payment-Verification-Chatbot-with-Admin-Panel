@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { markMessagesSeen, openChat } from "@/lib/store/customer";
+import { findOrderMethod } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { Customer } from "@/lib/types";
 import ActionPanel from "./ActionPanel";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
+import PaymentStepsSheet from "./sheets/PaymentStepsSheet";
 import ReportIssueSheet from "./sheets/ReportIssueSheet";
 import UploadProofSheet from "./sheets/UploadProofSheet";
 
-export type OpenSheet = "proof" | "issue" | null;
+export type OpenSheet = "proof" | "issue" | "steps" | null;
 
 type ChatScreenProps = {
   customer: Customer;
@@ -22,6 +24,7 @@ export default function ChatScreen({ customer, onSignOut }: ChatScreenProps) {
   const [sheet, setSheet] = useState<OpenSheet>(null);
   const conversation = state.conversations[customer.id];
   const messages = state.messages.filter((message) => message.customerId === customer.id);
+  const orderMethod = findOrderMethod(state, customer.id);
 
   useEffect(() => {
     openChat(customer.id);
@@ -48,6 +51,7 @@ export default function ChatScreen({ customer, onSignOut }: ChatScreenProps) {
 
       {sheet === "proof" && <UploadProofSheet customerId={customer.id} onClose={() => setSheet(null)} />}
       {sheet === "issue" && <ReportIssueSheet customerId={customer.id} onClose={() => setSheet(null)} />}
+      {sheet === "steps" && orderMethod && <PaymentStepsSheet method={orderMethod} onClose={() => setSheet(null)} />}
     </section>
   );
 }
