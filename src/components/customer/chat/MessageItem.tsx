@@ -1,0 +1,68 @@
+import BrandIcon from "@/components/BrandIcon";
+import { formatTime } from "@/lib/format";
+import type { Message } from "@/lib/types";
+import PaymentCard from "./cards/PaymentCard";
+import ProofCard from "./cards/ProofCard";
+import WalletStepsCard from "./cards/WalletStepsCard";
+
+type MessageItemProps = {
+  message: Message;
+  startsGroup: boolean;
+};
+
+export default function MessageItem({ message, startsGroup }: MessageItemProps) {
+  const fromCustomer = message.sender === "customer";
+
+  return (
+    <div className={`rise-in ${startsGroup ? "pt-2.5" : ""}`}>
+      {fromCustomer ? (
+        <div className="flex justify-end">
+          <div className="max-w-[82%] md:max-w-[68%]">
+            <MessageContent message={message} />
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-end gap-2">
+          <div className="w-7 shrink-0">{startsGroup && <BrandIcon size={28} className="rounded-lg" />}</div>
+          <div className="max-w-[82%] md:max-w-[68%] min-w-0">
+            {startsGroup && message.sender === "admin" && <div className="text-[11.5px] text-[var(--accent)] font-semibold mb-1 ml-1">Premium Store Team</div>}
+            <MessageContent message={message} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MessageContent({ message }: { message: Message }) {
+  if (message.kind === "payment") return <PaymentCard message={message} />;
+  if (message.kind === "steps") return <WalletStepsCard message={message} />;
+  if (message.kind === "proof") return <ProofCard message={message} />;
+  if (message.kind === "image") return <ImageBubble message={message} />;
+  return <TextBubble message={message} />;
+}
+
+function TextBubble({ message }: { message: Message }) {
+  const styles = {
+    customer: "bg-[var(--accent)] text-[var(--accent-ink)] rounded-br-md",
+    admin: "bg-[var(--surface-2)] border border-[color-mix(in_srgb,var(--accent)_25%,transparent)] rounded-bl-md",
+    bot: "bg-[var(--surface)] border border-[var(--line)] rounded-bl-md",
+  };
+  const timeColor = message.sender === "customer" ? "text-[var(--accent-ink)]/60" : "text-[var(--muted)]";
+
+  return (
+    <div className={`px-3.5 pt-2 pb-1.5 rounded-2xl text-[15.5px] md:text-[16px] leading-[1.55] whitespace-pre-line ${styles[message.sender]}`}>
+      {message.text}
+      <span className={`ml-2 inline-block translate-y-0.5 text-[10.5px] ${timeColor}`}>{formatTime(message.createdAt)}</span>
+    </div>
+  );
+}
+
+function ImageBubble({ message }: { message: Message }) {
+  return (
+    <div className="w-[240px] rounded-2xl rounded-br-md overflow-hidden border border-[var(--line)] bg-[var(--surface)]">
+      <img src={message.image} alt="Attached screenshot" className="w-full max-h-64 object-cover object-top" />
+      <div className="px-3 py-2 text-[11.5px] text-[var(--muted)]">Screenshot · {formatTime(message.createdAt)}</div>
+    </div>
+  );
+}

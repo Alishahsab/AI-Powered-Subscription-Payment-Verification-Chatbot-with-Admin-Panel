@@ -1,0 +1,95 @@
+"use client";
+
+import { useState } from "react";
+import { MessageSquare, Search, Users } from "lucide-react";
+import { useNow } from "@/hooks/useNow";
+import { formatMoney, timeAgo } from "@/lib/format";
+import { toggleCustomerBlocked } from "@/lib/store/admin";
+import { useAppState } from "@/lib/store/state";
+import type { Navigate } from "../navigation";
+import Avatar from "../ui/Avatar";
+import Badge from "../ui/Badge";
+import Button from "../ui/Button";
+import { Card } from "../ui/Card";
+import EmptyState from "../ui/EmptyState";
+import { inputClass } from "../ui/styles";
+
+export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
+  const state = useAppState();
+  const now = useNow(30_000);
+  const [query, setQuery] = useState("");
+  const search = query.trim().toLowerCase();
+
+  const rows = state.customers
+    .filter((customer) => !search || customer.name.toLowerCase().includes(search) || customer.email.includes(search))
+    .map((customer) => {
+      const completed = state.orders.filter((order) => order.customerId === customer.id && order.status === "completed");
+      return { customer, orderCount: completed.length, spent: completed.reduce((sum, order) => sum + order.amount, 0) };
+    })
+    .sort((a, b) => b.customer.lastSeenAt - a.customer.lastSeenAt);
+
+  return (
+    <div className="h-full overflow-y-auto">
+      <div className="max-w-[1200px] mx-auto p-4 lg:p-7 space-y-5">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-[22px] font-semibold tracking-tight">Customers</h1>
+            <p className="text-[13.5px] text-zinc-500 mt-0.5">{state.customers.length} customers. Each one sees only their own chat.</p>
+          </div>
+          <div className="relative w-full sm:w-72">
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Name or email" className={`${inputClass} pl-8`} />
+          </div>
+        </div>
+
+        <Card>
+          {rows.length === 0 ? (
+            <EmptyState icon={<Users size={20} />} title="No customers found" />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr className="text-left text-zinc-500 border-b border-zinc-100 bg-zinc-50/60">
+                    <th className="font-medium px-5 py-2.5">Customer</th>
+                    <th className="font-medium px-3 py-2.5">Email</th>
+                    <th className="font-medium px-3 py-2.5">Orders</th>
+                    <th className="font-medium px-3 py-2.5">Spent</th>
+                    <th className="font-medium px-3 py-2.5">Last active</th>
+                    <th className="px-5 py-2.5" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map(({ customer, orderCount, spent }) => (
+                    <tr key={customer.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/70">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar name={customer.name} size={30} />
+                          <span className="font-medium">{customer.name}</span>
+                          {customer.blocked && <Badge tone="red">Blocked</Badge>}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-zinc-600">{customer.email}</td>
+                      <td className="px-3 py-3 tabular-nums">{orderCount}</td>
+                      <td className="px-3 py-3 tabular-nums">{formatMoney(spent)}</td>
+                      <td className="px-3 py-3 text-zinc-500 whitespace-nowrap">{timeAgo(customer.lastSeenAt, now)}</td>
+                      <td className="px-5 py-3">
+                        <div className="flex justify-end gap-1.5">
+                          <Button size="sm" onClick={() => onNavigate({ section: "inbox", customerId: customer.id, tab: "general" })}>
+                            <MessageSquare size={13} /> Chat
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => toggleCustomerBlocked(customer.id)}>
+                            {customer.blocked ? "Unblock" : "Block"}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      </div>
+    </div>
+  );
+}

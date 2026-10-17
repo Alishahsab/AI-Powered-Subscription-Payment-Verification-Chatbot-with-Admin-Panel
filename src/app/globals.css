@@ -1,28 +1,26 @@
 @import "tailwindcss";
 
-/*
- * Neue Montreal (Pangram Pangram), licensed font, files are not committed.
- * Drop the font files into public/fonts/ with these names and the whole app
- * switches to it; until then it falls back to Inter Tight.
- */
 @font-face {
   font-family: "Neue Montreal";
   src: url("/fonts/NeueMontreal-Light.woff2") format("woff2"), url("/fonts/NeueMontreal-Light.otf") format("opentype");
   font-weight: 300;
   font-display: swap;
 }
+
 @font-face {
   font-family: "Neue Montreal";
   src: url("/fonts/NeueMontreal-Regular.woff2") format("woff2"), url("/fonts/NeueMontreal-Regular.otf") format("opentype");
   font-weight: 400;
   font-display: swap;
 }
+
 @font-face {
   font-family: "Neue Montreal";
   src: url("/fonts/NeueMontreal-Medium.woff2") format("woff2"), url("/fonts/NeueMontreal-Medium.otf") format("opentype");
   font-weight: 500 600;
   font-display: swap;
 }
+
 @font-face {
   font-family: "Neue Montreal";
   src: url("/fonts/NeueMontreal-Bold.woff2") format("woff2"), url("/fonts/NeueMontreal-Bold.otf") format("opentype");
@@ -52,8 +50,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ---------- customer app ---------- */
-.cust {
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(127, 127, 127, 0.25) transparent;
+}
+
+.customer-app {
   --page: #eceef2;
   --bg: #f6f7f9;
   --surface: #ffffff;
@@ -61,28 +63,19 @@ body {
   --line: rgba(15, 23, 42, 0.09);
   --text: #111827;
   --muted: #667085;
-  font-family: var(--font-brand);
   color: var(--text);
 }
 
-.cust ::selection {
+.customer-app ::selection {
   background: color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
-.scroll-thin::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-.scroll-thin::-webkit-scrollbar-thumb {
-  background: rgba(127, 127, 127, 0.25);
-  border-radius: 99px;
-}
-.scroll-thin {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(127, 127, 127, 0.25) transparent;
+.admin-app {
+  color: #15181d;
+  background: #f5f6f8;
 }
 
-@keyframes rise {
+@keyframes rise-in {
   from {
     opacity: 0;
     transform: translateY(6px);
@@ -92,11 +85,8 @@ body {
     transform: none;
   }
 }
-.rise {
-  animation: rise 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
 
-@keyframes sheet {
+@keyframes sheet-up {
   from {
     transform: translateY(100%);
   }
@@ -104,11 +94,8 @@ body {
     transform: none;
   }
 }
-.sheet {
-  animation: sheet 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
 
-@keyframes sheet-left {
+@keyframes slide-in-left {
   from {
     transform: translateX(-100%);
   }
@@ -116,11 +103,8 @@ body {
     transform: none;
   }
 }
-.sheet-left {
-  animation: sheet-left 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
 
-@keyframes fade {
+@keyframes fade-in {
   from {
     opacity: 0;
   }
@@ -128,11 +112,19 @@ body {
     opacity: 1;
   }
 }
-.fade {
-  animation: fade 0.2s ease both;
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-@keyframes dot {
+@keyframes typing {
   0%,
   80%,
   100% {
@@ -144,33 +136,35 @@ body {
     transform: translateY(-2px);
   }
 }
-.typing-dot {
-  animation: dot 1.2s infinite ease-in-out;
+
+.rise-in {
+  animation: rise-in 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
+
+.sheet-up {
+  animation: sheet-up 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.slide-in-left {
+  animation: slide-in-left 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.fade-in {
+  animation: fade-in 0.2s ease both;
+}
+
+.toast-in {
+  animation: toast-in 0.25s ease both;
+}
+
+.typing-dot {
+  animation: typing 1.2s infinite ease-in-out;
+}
+
 .typing-dot:nth-child(2) {
   animation-delay: 0.15s;
 }
+
 .typing-dot:nth-child(3) {
   animation-delay: 0.3s;
-}
-
-@keyframes toast {
-  from {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-.toast {
-  animation: toast 0.25s ease both;
-}
-
-/* ---------- admin ---------- */
-.adm {
-  font-family: var(--font-brand);
-  color: #15181d;
-  background: #f5f6f8;
 }

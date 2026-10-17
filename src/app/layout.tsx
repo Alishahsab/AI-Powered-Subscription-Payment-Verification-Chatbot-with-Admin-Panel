@@ -2,12 +2,11 @@ import type { Metadata, Viewport } from "next";
 import { Inter_Tight } from "next/font/google";
 import "./globals.css";
 
-// Fallback while the licensed Neue Montreal files are not in public/fonts (see globals.css)
-const fallback = Inter_Tight({ variable: "--font-heading", subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800"] });
+const fallbackFont = Inter_Tight({ variable: "--font-heading", subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800"] });
 
 export const metadata: Metadata = {
   title: "Premium Store",
-  description: "Buy your premium subscription, get support and view your order history.",
+  description: "Buy your premium subscription and get support in one private chat.",
 };
 
 export const viewport: Viewport = {
@@ -19,7 +18,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${fallback.variable} h-full`}>
+    <html lang="en" className={`${fallbackFont.variable} h-full`}>
       <body className="min-h-full">{children}</body>
     </html>
   );

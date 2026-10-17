@@ -11,12 +11,27 @@ export type Plan = {
 export type PaymentMethod = {
   id: string;
   name: string;
-  accountTitle: string;
-  accountNumber: string;
   active: boolean;
+  steps: string;
 };
 
-export type Faq = { id: string; q: string; a: string };
+export type BankAccount = {
+  bankName: string;
+  accountTitle: string;
+  accountNumber: string;
+};
+
+export type Faq = {
+  id: string;
+  question: string;
+  answer: string;
+};
+
+export type Timers = {
+  orderMinutes: number;
+  inactiveMinutes: number;
+  retryMinutes: number;
+};
 
 export type Settings = {
   storeName: string;
@@ -26,122 +41,107 @@ export type Settings = {
   statusMessages: Record<AdminStatus, string>;
   terms: string[];
   howItWorks: string;
-  accountTimerMin: number;
+  bank: BankAccount;
+  timers: Timers;
   retentionDays: number;
   accent: string;
-  supportCategories: string[];
 };
 
 export type Customer = {
   id: string;
   name: string;
-  phone: string;
-  email?: string;
+  email: string;
+  pin: string;
   createdAt: number;
   lastSeenAt: number;
   blocked: boolean;
+  paymentBlockedUntil?: number;
 };
 
-export type Topic = "menu" | "order" | "faq" | "support" | "general";
+export type MessageSender = "bot" | "customer" | "admin";
 
-export type MessageKind =
-  | "text"
-  | "account" // payment details for an order (rendered live from order state)
-  | "proof" // customer submitted payment proof
-  | "code" // delivered premium code
-  | "notice"; // small centered system line
+export type MessageKind = "text" | "payment" | "steps" | "proof" | "image";
 
 export type Message = {
   id: string;
   customerId: string;
-  from: "bot" | "user" | "admin";
+  sender: MessageSender;
   kind: MessageKind;
   text: string;
   orderId?: string;
-  topic: Topic;
+  image?: string;
+  emailedTo?: string;
   createdAt: number;
+  deliveredAt?: number;
+  seenAt?: number;
 };
 
 export type Stage =
   | "menu"
   | "choose_plan"
   | "choose_method"
-  | "other_bank"
   | "terms"
   | "awaiting_payment"
-  | "email_capture"
-  | "faq"
-  | "support_category"
-  | "support_describe"
+  | "support"
+  | "support_other"
   | "live";
 
 export type Conversation = {
   customerId: string;
   stage: Stage;
-  draft: { planId?: string; methodId?: string; supportCategory?: string };
+  planId?: string;
+  methodId?: string;
   activeOrderId?: string;
-  mode: "bot" | "human";
   typing: boolean;
-  unreadAdmin: number;
-  unreadCustomer: number;
+  unreadByAdmin: number;
   lastMessageAt: number;
 };
 
-export type OrderStatus = "awaiting_payment" | "pending_review" | "approved" | "rejected" | "expired" | "cancelled";
+export type OrderStatus = "awaiting_payment" | "pending_review" | "completed" | "rejected" | "issue_reported" | "expired" | "cancelled";
 
 export type Order = {
   id: string;
   customerId: string;
   planId: string;
   planName: string;
-  months: number;
-  methodId: string;
-  methodName: string;
   amount: number;
+  methodName: string;
   status: OrderStatus;
   createdAt: number;
   expiresAt: number;
   submittedAt?: number;
   reviewedAt?: number;
   screenshot?: string;
-  tid?: string;
-  email?: string;
-  code?: string;
+  senderName?: string;
   rejectReason?: string;
-  emailSent?: boolean;
 };
 
-export type Code = {
-  id: string;
-  value: string;
-  planId: string;
-  status: "available" | "assigned";
-  orderId?: string;
-  customerId?: string;
-  addedAt: number;
-  assignedAt?: number;
-};
+export type TicketKind = "support" | "payment";
 
 export type Ticket = {
   id: string;
   customerId: string;
-  category: string;
+  kind: TicketKind;
   message: string;
+  screenshot?: string;
+  orderId?: string;
   status: "open" | "resolved";
   createdAt: number;
 };
 
-export type Notification = {
+export type NotificationKind = "payment" | "payment_issue" | "support";
+
+export type AdminNotification = {
   id: string;
-  type: "order" | "ticket" | "chat" | "system";
+  kind: NotificationKind;
   title: string;
   body: string;
-  customerId?: string;
+  customerId: string;
   read: boolean;
   createdAt: number;
 };
 
-export type State = {
+export type AppState = {
   version: number;
   settings: Settings;
   plans: Plan[];
@@ -151,8 +151,8 @@ export type State = {
   conversations: Record<string, Conversation>;
   messages: Message[];
   orders: Order[];
-  codes: Code[];
   tickets: Ticket[];
-  notifications: Notification[];
-  seq: { order: number; ticket: number };
+  notifications: AdminNotification[];
+  nextOrderNumber: number;
+  nextTicketNumber: number;
 };
