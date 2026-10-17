@@ -2,7 +2,8 @@ import type { User } from "@supabase/supabase-js";
 import { getEffectiveStatus } from "../availability";
 import { getSupabase } from "../supabase/client";
 import { uploadScreenshot } from "../supabase/screenshots";
-import type { AppState } from "../types";
+import type { AppState, Stage } from "../types";
+import { validateName } from "../validation";
 import { addMessage, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerName, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
 import { getState, updateState } from "./state";
 
@@ -32,6 +33,20 @@ export async function signUp(name: string, email: string, pin: string): Promise<
 export async function signIn(email: string, pin: string): Promise<AuthResult> {
   const { error } = await getSupabase("customer").auth.signInWithPassword({ email: normalizeEmail(email), password: pin });
   if (error) return { error: "Incorrect email or PIN. Please try again." };
+  return { error: null };
+}
+
+export async function requestPinReset(email: string): Promise<AuthResult> {
+  const { error } = await getSupabase("customer").auth.resetPasswordForEmail(normalizeEmail(email), {
+    redirectTo: `${window.location.origin}/reset-pin`,
+  });
+  if (error) return { error: "We couldn't send the reset email right now. Please try again in a few minutes." };
+  return { error: null };
+}
+
+export async function updatePin(pin: string): Promise<AuthResult> {
+  const { error } = await getSupabase("customer").auth.updateUser({ password: pin });
+  if (error) return { error: "This reset link has expired. Please request a new one." };
   return { error: null };
 }
 
@@ -257,7 +272,8 @@ export async function submitPaymentProof(customerId: string, screenshot: string,
   if (!canStillPay(order)) return "This order has expired. Please create a new one.";
 
   const name = senderName.trim();
-  if (!/^[A-Za-z][A-Za-z .'-]{1,59}$/.test(name)) return "Please enter the sender account name using letters only.";
+  const nameProblem = validateName(name, "Sender account name");
+  if (nameProblem) return nameProblem;
 
   let screenshotPath: string;
   try {
@@ -380,6 +396,30 @@ export function sendCustomerMessage(customerId: string, text: string) {
   updateState((state) => {
     addMessage(state, customerId, "customer", text);
     state.conversations[customerId].unreadByAdmin += 1;
+  });
+}
+
+const previousStep: Partial<Record<Stage, { stage: Stage; prompt: string }>> = {
+  choose_method: { stage: "choose_plan", prompt: "No problem. Choose your plan again." },
+  terms: { stage: "choose_method", prompt: "No problem. How would you like to pay?" },
+  support_other: { stage: "support", prompt: "No problem. Pick a question below, or choose Other issues." },
+};
+
+export function goBack(customerId: string) {
+  const conversation = getState().conversations[customerId];
+  const step = conversation ? previousStep[conversation.stage] : undefined;
+  if (!step) {
+    backToMenu(customerId);
+    return;
+  }
+
+  updateState((state) => {
+    addMessage(state, customerId, "customer", "Back");
+  });
+
+  replyAsBot(customerId, (state) => {
+    addMessage(state, customerId, "bot", step.prompt);
+    state.conversations[customerId].stage = step.stage;
   });
 }
 

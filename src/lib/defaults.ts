@@ -41,6 +41,16 @@ export function createDefaultConfig(): StoreConfig {
       ],
       howItWorks:
         "1. Pick your plan and payment method.\n2. Create the order. Our account details appear for {timer} minutes.\n3. Send the exact amount and upload the payment screenshot with the sender account name.\n4. We verify your payment and send your premium code right here in the chat and to your email.",
+      codeInstructions: [
+        "How to activate your code:",
+        "1. Open the app and go to Profile, then Subscription, then Redeem Code.",
+        "2. Enter the code exactly as shown and tap Activate.",
+        "3. Stay logged in with the same email you used to activate the code.",
+        "",
+        "Important:",
+        "• Never send payment to any account without first creating an order in this chatbot.",
+        "• Always pay only to the account shown in your active order. Our account can change.",
+      ].join("\n"),
       bank: { bankName: "Meezan Bank", accountTitle: "Premium Store", accountNumber: "0123 4567 8901 2345" },
       timers: { orderMinutes: 15, inactiveMinutes: 20, retryMinutes: 30 },
       retentionDays: 15,

@@ -17,7 +17,7 @@ export default function MethodOptions({ customerId }: { customerId: string }) {
           </div>
         </OptionButton>
       ))}
-      <BackToMenuButton customerId={customerId} />
+      <BackToMenuButton customerId={customerId} showBack />
     </div>
   );
 }

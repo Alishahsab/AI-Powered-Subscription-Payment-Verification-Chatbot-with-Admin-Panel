@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { adminSignIn } from "@/lib/store/admin";
+import { cleanEmail, limits, validateEmail } from "@/lib/validation";
 
 const fieldClass =
   "mt-1.5 w-full h-12 rounded-xl border border-zinc-200 bg-zinc-50 px-4 text-[15px] outline-none focus:bg-white focus:border-[#0C2660] focus:ring-4 focus:ring-[#0C2660]/10 transition";
@@ -16,8 +17,13 @@ export default function LoginScreen() {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!email.trim() || !password) {
-      setError("Enter your email and password.");
+    const emailProblem = validateEmail(email);
+    if (emailProblem) {
+      setError(emailProblem);
+      return;
+    }
+    if (password.length < limits.passwordMin) {
+      setError(`Password must be at least ${limits.passwordMin} characters.`);
       return;
     }
 
@@ -29,7 +35,7 @@ export default function LoginScreen() {
 
   return (
     <div className="admin-app min-h-dvh grid place-items-center px-4 py-8">
-      <form onSubmit={submit} className="w-full max-w-[400px] bg-white rounded-2xl border border-zinc-200 shadow-sm p-7 md:p-8">
+      <form onSubmit={submit} noValidate className="w-full max-w-[400px] bg-white rounded-2xl border border-zinc-200 shadow-sm p-7 md:p-8">
         <img src="/logo-wordmark-dark.png" alt="Premium Store" className="h-12 w-auto select-none" draggable={false} />
         <h1 className="mt-6 font-[family-name:var(--font-display)] text-[21px] font-semibold tracking-tight">Admin sign in</h1>
         <p className="text-[13.5px] text-zinc-500 mt-1">Premium Store management panel</p>
@@ -42,7 +48,7 @@ export default function LoginScreen() {
             autoComplete="username"
             value={email}
             onChange={(event) => {
-              setEmail(event.target.value);
+              setEmail(cleanEmail(event.target.value));
               setError("");
             }}
             placeholder="admin@example.com"

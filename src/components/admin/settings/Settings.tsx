@@ -6,6 +6,7 @@ import { classNames } from "@/lib/format";
 import { saveSettings, type EditableSettings } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import type { AppState } from "@/lib/types";
+import { validateConfig } from "@/lib/validation";
 import Button from "../ui/Button";
 import AppearanceTab from "./tabs/AppearanceTab";
 import AvailabilityTab from "./tabs/AvailabilityTab";
@@ -53,6 +54,7 @@ export default function Settings() {
   const [draft, setDraft] = useState(() => pickEditable(state));
   const [savedSnapshot, setSavedSnapshot] = useState(() => snapshot(pickEditable(state)));
   const [justSaved, setJustSaved] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
 
   const liveSnapshot = snapshot(pickEditable(state));
   const hasChanges = snapshot(draft) !== liveSnapshot;
@@ -72,6 +74,10 @@ export default function Settings() {
 
   const save = () => {
     const clean = cleanDraft(draft);
+    const problems = validateConfig(clean);
+    setErrors(problems);
+    if (problems.length > 0) return;
+
     saveSettings(clean);
     setDraft(clean);
     setJustSaved(true);
@@ -120,6 +126,16 @@ export default function Settings() {
 
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-[1000px] mx-auto p-4 lg:p-7 space-y-5">
+          {errors.length > 0 && (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+              <div className="font-semibold mb-1">Please fix these before saving:</div>
+              <ul className="list-disc pl-5 space-y-0.5">
+                {errors.map((error) => (
+                  <li key={error}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           {tab === "availability" && <AvailabilityTab draft={draft} updateDraft={updateDraft} />}
           {tab === "payments" && <PaymentsTab draft={draft} updateDraft={updateDraft} />}
           {tab === "messages" && <MessagesTab draft={draft} updateDraft={updateDraft} />}

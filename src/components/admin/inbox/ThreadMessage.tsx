@@ -19,10 +19,11 @@ export default function ThreadMessage({ message }: { message: Message }) {
     );
   }
 
-  if (message.kind === "steps") {
+  if (message.kind === "steps" || message.kind === "instructions") {
+    const label = message.kind === "steps" ? "Wallet payment steps shown to customer" : "Code activation instructions sent to customer";
     return (
       <div className="flex justify-center">
-        <div className="text-[11.5px] text-zinc-500 bg-white border border-zinc-200 rounded-full px-3 py-1">Wallet payment steps shown to customer</div>
+        <div className="text-[11.5px] text-zinc-500 bg-white border border-zinc-200 rounded-full px-3 py-1">{label}</div>
       </div>
     );
   }

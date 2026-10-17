@@ -7,6 +7,7 @@ import { formatCountdown } from "@/lib/format";
 import { submitPaymentProof } from "@/lib/store/customer";
 import { getActiveOrder } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
+import { cleanLetters } from "@/lib/validation";
 import ImagePicker from "../ImagePicker";
 import Sheet from "./Sheet";
 
@@ -27,7 +28,8 @@ export default function UploadProofSheet({ customerId, onClose }: UploadProofShe
   if (!order) return null;
 
   const updateSenderName = (value: string) => {
-    setSenderName(value.replace(/[^A-Za-z .'-]/g, "").replace(/\s{2,}/g, " "));
+    setSenderName(cleanLetters(value));
+    setError("");
   };
 
   const fillSampleReceipt = () => {
@@ -62,7 +64,7 @@ export default function UploadProofSheet({ customerId, onClose }: UploadProofShe
           placeholder="Name on the account you paid from"
           className="mt-1.5 w-full h-12 rounded-xl bg-[var(--bg)] border border-[var(--line)] px-4 text-[15px] outline-none focus:border-[color-mix(in_srgb,var(--accent)_55%,transparent)] placeholder:text-[#9aa1ab]"
         />
-        <span className="text-[11.5px] text-[var(--muted)] mt-1 block">Letters only, exactly as shown on your receipt. Not the account number.</span>
+        <span className="text-[11.5px] text-[var(--muted)] mt-1 block">Letters and spaces only, exactly as shown on your receipt. Not the account number.</span>
       </label>
 
       {error && <div className="mt-3 text-[13px] text-red-700 bg-red-500/10 rounded-lg px-3 py-2">{error}</div>}

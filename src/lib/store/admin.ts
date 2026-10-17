@@ -1,4 +1,5 @@
 import { getSupabase } from "../supabase/client";
+import { sendEmailCopy } from "../supabase/email";
 import { deleteScreenshots } from "../supabase/screenshots";
 import type { AdminStatus, AppState } from "../types";
 import { addMessage, findCustomerName } from "./helpers";
@@ -41,14 +42,22 @@ export function setAdminStatus(status: AdminStatus) {
 }
 
 export function sendAdminMessage(customerId: string, text: string, emailCopy: boolean) {
+  const containsCode = extractCodes(text).length > 0;
+
   updateState((state) => {
     const customer = state.customers.find((item) => item.id === customerId);
     addMessage(state, customerId, "admin", text, { emailedTo: emailCopy ? customer?.email : undefined });
+    if (containsCode) addMessage(state, customerId, "bot", state.settings.codeInstructions, { kind: "instructions" });
 
     const conversation = state.conversations[customerId];
     conversation.unreadByAdmin = 0;
     if (conversation.stage !== "awaiting_payment") conversation.stage = "live";
   });
+
+  if (emailCopy) {
+    const instructions = containsCode ? getState().settings.codeInstructions : "";
+    sendEmailCopy(customerId, text, instructions);
+  }
 }
 
 function extractCodes(text: string) {

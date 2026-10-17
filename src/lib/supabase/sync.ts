@@ -11,6 +11,18 @@ let activeRole: AppRole | null = null;
 let channel: RealtimeChannel | null = null;
 let pushQueue: Promise<void> = Promise.resolve();
 
+const LOCAL_WRITE_WINDOW_MS = 5000;
+const recentLocalWrites = new Map<string, number>();
+
+function rememberLocalWrite(tableName: string, id: string) {
+  recentLocalWrites.set(`${tableName}:${id}`, Date.now());
+}
+
+function isOwnRecentWrite(tableName: string, id: string) {
+  const writtenAt = recentLocalWrites.get(`${tableName}:${id}`);
+  return writtenAt !== undefined && Date.now() - writtenAt < LOCAL_WRITE_WINDOW_MS;
+}
+
 export function getActiveClient() {
   if (!activeRole) throw new Error("Data sync has not started");
   return getSupabase(activeRole);
@@ -24,7 +36,14 @@ function rowsById(rows: Row[], key: string) {
   return new Map(rows.map((row) => [String(row[key]), JSON.stringify(row)]));
 }
 
-async function pushTableChanges(client: SupabaseClient, table: TableSync, before: AppState, after: AppState) {
+type TableChanges = {
+  table: TableSync;
+  inserted: Row[];
+  updated: Row[];
+  deletedIds: string[];
+};
+
+function findTableChanges(table: TableSync, before: AppState, after: AppState): TableChanges {
   const oldRows = rowsById(table.readRows(before), table.key);
   const newRows = table.readRows(after);
 
@@ -36,6 +55,12 @@ async function pushTableChanges(client: SupabaseClient, table: TableSync, before
 
   const newIds = new Set(newRows.map((row) => String(row[table.key])));
   const deletedIds = [...oldRows.keys()].filter((id) => !newIds.has(id));
+
+  return { table, inserted, updated, deletedIds };
+}
+
+async function writeTableChanges(client: SupabaseClient, changes: TableChanges) {
+  const { table, inserted, updated, deletedIds } = changes;
 
   if (inserted.length > 0) {
     const { error } = await client.from(table.name).insert(inserted);
@@ -53,18 +78,27 @@ async function pushTableChanges(client: SupabaseClient, table: TableSync, before
   }
 }
 
-async function pushChanges(before: AppState, after: AppState) {
-  const client = getActiveClient();
+function handleLocalChange(before: AppState, after: AppState) {
+  const changes = tables.map((table) => findTableChanges(table, before, after));
 
-  for (const table of tables) {
-    await pushTableChanges(client, table, before, after);
+  for (const change of changes) {
+    for (const row of [...change.inserted, ...change.updated]) {
+      rememberLocalWrite(change.table.name, String(row[change.table.key]));
+    }
   }
 
   const configChanged = JSON.stringify(pickConfig(before)) !== JSON.stringify(pickConfig(after));
-  if (configChanged && activeRole === "admin") {
-    const { error } = await client.from("store_config").upsert(configToRow(pickConfig(after)));
-    if (error) console.error("Saving settings failed", error.message);
-  }
+  const config = pickConfig(after);
+
+  pushQueue = pushQueue.then(async () => {
+    const client = getActiveClient();
+    for (const change of changes) await writeTableChanges(client, change);
+
+    if (configChanged && activeRole === "admin") {
+      const { error } = await client.from("store_config").upsert(configToRow(config));
+      if (error) console.error("Saving settings failed", error.message);
+    }
+  });
 }
 
 async function loadEverything(client: SupabaseClient) {
@@ -90,9 +124,12 @@ function listenForChanges(client: SupabaseClient) {
       if (payload.eventType === "DELETE") {
         const id = String((payload.old as Row)[table.key]);
         applyRemoteChange((draft) => table.remove(draft, id));
-      } else {
-        applyRemoteChange((draft) => table.apply(draft, payload.new as Row));
+        return;
       }
+
+      const row = payload.new as Row;
+      if (isOwnRecentWrite(table.name, String(row[table.key]))) return;
+      applyRemoteChange((draft) => table.apply(draft, row));
     });
   }
 
@@ -111,9 +148,7 @@ export async function startSync(role: AppRole) {
   activeRole = role;
   const client = getSupabase(role);
   await loadEverything(client);
-  setChangeHandler((before, after) => {
-    pushQueue = pushQueue.then(() => pushChanges(before, after));
-  });
+  setChangeHandler(handleLocalChange);
   listenForChanges(client);
 }
 

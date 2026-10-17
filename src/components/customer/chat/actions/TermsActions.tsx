@@ -10,7 +10,7 @@ export default function TermsActions({ customerId }: { customerId: string }) {
       <button onClick={() => showHowItWorks(customerId)} className="w-full h-11 rounded-xl bg-[var(--surface)] border border-[var(--line)] font-semibold text-[14px]">
         How does it work?
       </button>
-      <BackToMenuButton customerId={customerId} />
+      <BackToMenuButton customerId={customerId} showBack />
     </div>
   );
 }

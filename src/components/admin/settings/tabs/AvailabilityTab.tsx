@@ -1,6 +1,7 @@
 import { classNames } from "@/lib/format";
 import { setAdminStatus } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
+import { limits } from "@/lib/validation";
 import type { AdminStatus } from "@/lib/types";
 import Toggle from "../../ui/Toggle";
 import { inputClass, textareaClass } from "../../ui/styles";
@@ -69,7 +70,7 @@ export default function AvailabilityTab({ draft, updateDraft }: SettingsTabProps
         <div className="space-y-4">
           {(Object.keys(messageLabels) as AdminStatus[]).map((status) => (
             <Field key={status} label={messageLabels[status]}>
-              <textarea rows={2} value={statusMessages[status]} onChange={(event) => updateDraft((draft) => (draft.settings.statusMessages[status] = event.target.value))} className={textareaClass} />
+              <textarea rows={2} maxLength={limits.longTextMax} value={statusMessages[status]} onChange={(event) => updateDraft((draft) => (draft.settings.statusMessages[status] = event.target.value))} className={textareaClass} />
             </Field>
           ))}
         </div>

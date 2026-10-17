@@ -2,6 +2,7 @@ import BrandIcon from "@/components/BrandIcon";
 import StoredImage from "@/components/StoredImage";
 import { formatTime } from "@/lib/format";
 import type { Message } from "@/lib/types";
+import CodeInstructionsCard from "./cards/CodeInstructionsCard";
 import PaymentCard from "./cards/PaymentCard";
 import ProofCard from "./cards/ProofCard";
 import WalletStepsCard from "./cards/WalletStepsCard";
@@ -40,6 +41,7 @@ function MessageContent({ message }: { message: Message }) {
   if (message.kind === "steps") return <WalletStepsCard message={message} />;
   if (message.kind === "proof") return <ProofCard message={message} />;
   if (message.kind === "image") return <ImageBubble message={message} />;
+  if (message.kind === "instructions") return <CodeInstructionsCard message={message} />;
   return <TextBubble message={message} />;
 }
 

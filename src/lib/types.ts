@@ -41,6 +41,7 @@ export type Settings = {
   statusMessages: Record<AdminStatus, string>;
   terms: string[];
   howItWorks: string;
+  codeInstructions: string;
   bank: BankAccount;
   timers: Timers;
   retentionDays: number;
@@ -59,7 +60,7 @@ export type Customer = {
 
 export type MessageSender = "bot" | "customer" | "admin";
 
-export type MessageKind = "text" | "payment" | "steps" | "proof" | "image";
+export type MessageKind = "text" | "payment" | "steps" | "proof" | "image" | "instructions";
 
 export type Message = {
   id: string;

@@ -1,3 +1,4 @@
+import { createDefaultConfig } from "../defaults";
 import type { AdminNotification, Conversation, Customer, Message, Order, StoreConfig, Ticket } from "../types";
 
 type Row = Record<string, unknown>;
@@ -176,8 +177,9 @@ export function notificationToRow(notification: AdminNotification): Row {
 }
 
 export function configFromRow(row: Row): StoreConfig {
+  const defaults = createDefaultConfig();
   return {
-    settings: row.settings as StoreConfig["settings"],
+    settings: { ...defaults.settings, ...(row.settings as StoreConfig["settings"]) },
     plans: row.plans as StoreConfig["plans"],
     methods: row.methods as StoreConfig["methods"],
     faqs: row.faqs as StoreConfig["faqs"],

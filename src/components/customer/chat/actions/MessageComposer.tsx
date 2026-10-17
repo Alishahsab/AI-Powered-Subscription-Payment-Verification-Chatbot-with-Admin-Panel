@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { sendCustomerMessage } from "@/lib/store/customer";
+import { limits } from "@/lib/validation";
 import BackToMenuButton from "./BackToMenuButton";
 
 export default function MessageComposer({ customerId }: { customerId: string }) {
@@ -21,6 +22,7 @@ export default function MessageComposer({ customerId }: { customerId: string }) 
         <input
           autoFocus
           value={text}
+          maxLength={limits.messageMax}
           onChange={(event) => setText(event.target.value)}
           onKeyDown={(event) => event.key === "Enter" && send()}
           placeholder="Type a message"

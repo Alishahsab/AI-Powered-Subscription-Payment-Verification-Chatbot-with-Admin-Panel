@@ -1,3 +1,4 @@
+import { cleanAccountNumber, cleanDigits, cleanLetters, cleanLettersAndDigits, limits } from "@/lib/validation";
 import Toggle from "../../ui/Toggle";
 import { inputClass, textareaClass } from "../../ui/styles";
 import type { SettingsTabProps } from "../Settings";
@@ -13,14 +14,14 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
           {draft.plans.map((plan, index) => (
             <div key={plan.id} className="flex flex-wrap items-center gap-3 py-3">
               <div className="w-40">
-                <input value={plan.name} onChange={(event) => updateDraft((next) => (next.plans[index].name = event.target.value))} className={inputClass} />
+                <input value={plan.name} onChange={(event) => updateDraft((next) => (next.plans[index].name = cleanLettersAndDigits(event.target.value)))} className={inputClass} />
               </div>
               <div className="relative w-32">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-zinc-400">Rs</span>
                 <input
                   value={String(plan.price)}
                   inputMode="numeric"
-                  onChange={(event) => updateDraft((next) => (next.plans[index].price = Number(event.target.value.replace(/\D/g, "")) || 0))}
+                  onChange={(event) => updateDraft((next) => (next.plans[index].price = Number(cleanDigits(event.target.value, 6)) || 0))}
                   className={`${inputClass} pl-9`}
                 />
               </div>
@@ -36,13 +37,18 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
       <SettingsSection title="Bank account" description="The only account customers pay into, whichever method they choose. Change it here when a limit is reached.">
         <div className="grid sm:grid-cols-3 gap-3">
           <Field label="Bank name">
-            <input value={bank.bankName} onChange={(event) => updateDraft((next) => (next.settings.bank.bankName = event.target.value))} className={inputClass} />
+            <input value={bank.bankName} onChange={(event) => updateDraft((next) => (next.settings.bank.bankName = cleanLetters(event.target.value)))} className={inputClass} />
           </Field>
           <Field label="Account title">
-            <input value={bank.accountTitle} onChange={(event) => updateDraft((next) => (next.settings.bank.accountTitle = event.target.value))} className={inputClass} />
+            <input value={bank.accountTitle} onChange={(event) => updateDraft((next) => (next.settings.bank.accountTitle = cleanLetters(event.target.value)))} className={inputClass} />
           </Field>
-          <Field label="Account number">
-            <input value={bank.accountNumber} onChange={(event) => updateDraft((next) => (next.settings.bank.accountNumber = event.target.value))} className={`${inputClass} tabular-nums`} />
+          <Field label="Account number" hint={`${limits.accountNumberMin} to ${limits.accountNumberMax} digits`}>
+            <input
+              value={bank.accountNumber}
+              inputMode="numeric"
+              onChange={(event) => updateDraft((next) => (next.settings.bank.accountNumber = cleanAccountNumber(event.target.value)))}
+              className={`${inputClass} tabular-nums`}
+            />
           </Field>
         </div>
       </SettingsSection>
@@ -53,7 +59,7 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
             <div key={method.id} className="rounded-xl border border-zinc-200 p-3.5 space-y-2.5">
               <div className="flex items-center gap-3">
                 <div className="w-48">
-                  <input value={method.name} onChange={(event) => updateDraft((next) => (next.methods[index].name = event.target.value))} className={`${inputClass} font-medium`} />
+                  <input value={method.name} onChange={(event) => updateDraft((next) => (next.methods[index].name = cleanLetters(event.target.value, 20)))} className={`${inputClass} font-medium`} />
                 </div>
                 <div className="ml-auto">
                   <Toggle on={method.active} onChange={(value) => updateDraft((next) => (next.methods[index].active = value))} label={method.active ? "Shown" : "Hidden"} />
@@ -61,6 +67,7 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
               </div>
               <textarea
                 rows={method.steps ? 5 : 2}
+                maxLength={limits.longTextMax}
                 value={method.steps}
                 placeholder="No steps for this method"
                 onChange={(event) => updateDraft((next) => (next.methods[index].steps = event.target.value))}

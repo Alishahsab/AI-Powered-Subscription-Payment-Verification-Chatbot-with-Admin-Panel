@@ -73,6 +73,7 @@ export default function ReplyBox({ customerId, customerName, customerEmail }: Re
         </button>
         <textarea
           value={text}
+          maxLength={1000}
           onChange={(event) => {
             setText(event.target.value);
             setWarning("");

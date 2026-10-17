@@ -45,6 +45,7 @@ export default function ReportIssueSheet({ customerId, onClose }: ReportIssueShe
 
       <textarea
         value={details}
+        maxLength={300}
         onChange={(event) => setDetails(event.target.value)}
         placeholder="More details (optional)"
         rows={2}
