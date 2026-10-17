@@ -89,15 +89,23 @@ export function openChat(customerId: string) {
       addMessage(state, customerId, "bot", `Welcome back, ${firstName}. How can we help you today?`);
     }
   });
-  recordPresence(customerId);
+  recordActivity(customerId);
 }
 
-export function recordPresence(customerId: string) {
+export function recordActivity(customerId: string) {
+  updateState((state) => {
+    const customer = state.customers.find((item) => item.id === customerId);
+    if (customer) customer.lastSeenAt = Date.now();
+  });
+  markMessagesDelivered(customerId);
+}
+
+export function markMessagesDelivered(customerId: string) {
+  const hasUndelivered = getState().messages.some((message) => message.customerId === customerId && message.sender !== "customer" && !message.deliveredAt);
+  if (!hasUndelivered) return;
+
   updateState((state) => {
     const now = Date.now();
-    const customer = state.customers.find((item) => item.id === customerId);
-    if (customer) customer.lastSeenAt = now;
-
     for (const message of state.messages) {
       if (message.customerId === customerId && message.sender !== "customer" && !message.deliveredAt) {
         message.deliveredAt = now;
