@@ -1,3 +1,4 @@
+import { defaultBotMessages } from "./botMessages";
 import type { AppState, StoreConfig } from "./types";
 
 const walletSteps = (app: string) =>
@@ -64,8 +65,23 @@ export function createDefaultConfig(): StoreConfig {
         issueScreenshotRequired: true,
         problemScreenshotRequired: false,
       },
+      messages: { ...defaultBotMessages },
+      blocking: {
+        message: "Your access has been restricted. Please contact us on our official channel.",
+        channelLabel: "Contact us on WhatsApp",
+        channelUrl: "",
+        reasons: ["Fake payment screenshot", "Abusive messages", "Repeated cancelled orders", "Sharing codes with others"],
+      },
+      inboxTabs: [
+        { key: "pending", label: "Pending" },
+        { key: "issues", label: "App issues" },
+        { key: "completed", label: "Completed" },
+        { key: "unused", label: "Unused codes" },
+        { key: "blocked", label: "Blocked" },
+        { key: "bot", label: "Bot chat" },
+      ],
       bank: { bankName: "Meezan Bank", accountTitle: "Premium Store", accountNumber: "0123 4567 8901 2345" },
-      timers: { orderMinutes: 15, inactiveMinutes: 20, retryMinutes: 30, cancelCooldownMinutes: 30, issueInactiveHours: 24 },
+      timers: { orderMinutes: 15, inactiveMinutes: 20, retryMinutes: 30, cancelCooldownMinutes: 30, issueInactiveMinutes: 24 * 60 },
       limits: { cancelsBeforeCooldown: 2, repliesAfterRejection: 1 },
       accent: "#0C2660",
     },

@@ -1,8 +1,8 @@
 import { getSupabase } from "../supabase/client";
 import { sendEmailCopy } from "../supabase/email";
-import { deleteScreenshots } from "../supabase/screenshots";
+import { deleteScreenshots, uploadScreenshot } from "../supabase/screenshots";
 import type { AdminStatus, AppState } from "../types";
-import { addMessage, extractCodes, findCustomerEmail } from "./helpers";
+import { addMessage, botText, extractCodes, findCustomerEmail } from "./helpers";
 import { applyRemoteChange, getState, updateState } from "./state";
 
 
@@ -50,19 +50,38 @@ export function sendAdminMessage(customerId: string, text: string, emailCopy: bo
       if (order) order.code = codes.join(", ");
     }
 
-    const conversation = state.conversations[customerId];
-    conversation.unreadByAdmin = 0;
-    const hasOpenTicket = state.tickets.some((ticket) => ticket.customerId === customerId && ticket.status === "open");
-    const keepsStage = conversation.stage === "awaiting_payment" || conversation.stage === "rejected";
-    if (containsCode) conversation.stage = "menu";
-    else if (hasOpenTicket) conversation.stage = "agent_replied";
-    else if (!keepsStage) conversation.stage = "live";
+    updateStageAfterReply(state, customerId, containsCode);
   });
 
   if (emailCopy) {
     const instructions = containsCode ? getState().settings.codeInstructions : "";
     sendEmailCopy(customerId, text, instructions);
   }
+}
+
+function updateStageAfterReply(state: AppState, customerId: string, containsCode: boolean) {
+  const conversation = state.conversations[customerId];
+  conversation.unreadByAdmin = 0;
+  const hasOpenTicket = state.tickets.some((ticket) => ticket.customerId === customerId && ticket.status === "open");
+  const keepsStage = conversation.stage === "awaiting_payment" || conversation.stage === "rejected";
+  if (containsCode) conversation.stage = "menu";
+  else if (hasOpenTicket) conversation.stage = "agent_replied";
+  else if (!keepsStage) conversation.stage = "live";
+}
+
+export async function sendAdminImage(customerId: string, image: string): Promise<string | null> {
+  let path: string;
+  try {
+    path = await uploadScreenshot(customerId, image);
+  } catch {
+    return "Could not upload the image. Please try again.";
+  }
+
+  updateState((state) => {
+    addMessage(state, customerId, "admin", "Image", { kind: "image", image: path });
+    updateStageAfterReply(state, customerId, false);
+  });
+  return null;
 }
 
 function findOrderAwaitingCode(state: AppState, customerId: string) {
@@ -185,7 +204,7 @@ export function setTicketResolved(ticketId: string, resolved: boolean) {
     const conversation = state.conversations[ticket.customerId];
     const stillOpen = state.tickets.some((item) => item.customerId === ticket.customerId && item.status === "open");
     if (resolved && !stillOpen && conversation) {
-      addMessage(state, ticket.customerId, "bot", `Your request ${ticket.id} has been marked as resolved. If you need anything else, choose Customer Support from the menu.`);
+      addMessage(state, ticket.customerId, "bot", botText(state, "issueResolvedByAdmin", { ticket_id: ticket.id }));
       conversation.stage = "menu";
     }
   });
@@ -214,10 +233,21 @@ export function markAllNotificationsRead() {
   });
 }
 
-export function toggleCustomerBlocked(customerId: string) {
+export function blockCustomer(customerId: string, reason: string) {
   updateState((state) => {
     const customer = state.customers.find((item) => item.id === customerId);
-    if (customer) customer.blocked = !customer.blocked;
+    if (!customer) return;
+    customer.blocked = true;
+    customer.blockReason = reason;
+  });
+}
+
+export function unblockCustomer(customerId: string) {
+  updateState((state) => {
+    const customer = state.customers.find((item) => item.id === customerId);
+    if (!customer) return;
+    customer.blocked = false;
+    customer.blockReason = undefined;
   });
 }
 

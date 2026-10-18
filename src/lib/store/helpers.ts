@@ -1,6 +1,6 @@
 import { formatDuration, minutesUntilOpen, workingHoursLabel } from "../availability";
 import { createId } from "../format";
-import type { AdminNotification, AppState, BankAccount, Customer, Message, Order } from "../types";
+import type { AdminNotification, AppState, BankAccount, BotMessageKey, Customer, Message, Order } from "../types";
 import { updateState } from "./state";
 
 const BOT_TYPING_DELAY = 650;
@@ -14,6 +14,10 @@ export function fillPlaceholders(text: string, state: AppState, bank: BankAccoun
     .replaceAll("{bank}", bank.bankName)
     .replaceAll("{account}", bank.accountNumber)
     .replaceAll("{title}", bank.accountTitle);
+}
+
+export function botText(state: AppState, key: BotMessageKey, values: Record<string, string> = {}) {
+  return Object.entries(values).reduce((text, [name, value]) => text.replaceAll(`{${name}}`, value), fillPlaceholders(state.settings.messages[key], state));
 }
 
 export function stepLines(text: string) {

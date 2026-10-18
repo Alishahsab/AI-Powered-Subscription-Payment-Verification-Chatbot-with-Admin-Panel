@@ -29,6 +29,7 @@ create table if not exists public.customers (
   created_at bigint not null,
   last_seen_at bigint not null,
   blocked boolean not null default false,
+  block_reason text,
   payment_blocked_until bigint,
   cancel_count int not null default 0,
   cancel_cooldown_until bigint
@@ -116,6 +117,7 @@ begin
   new.customer_number := old.customer_number;
   if not public.is_admin() then
     new.blocked := old.blocked;
+    new.block_reason := old.block_reason;
   end if;
   return new;
 end;
@@ -243,6 +245,11 @@ drop policy if exists "customer uploads own screenshots" on storage.objects;
 create policy "customer uploads own screenshots" on storage.objects
 for insert to authenticated
 with check (bucket_id = 'screenshots' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "admin uploads screenshots" on storage.objects;
+create policy "admin uploads screenshots" on storage.objects
+for insert to authenticated
+with check (bucket_id = 'screenshots' and public.is_admin());
 
 drop policy if exists "owner or admin reads screenshots" on storage.objects;
 create policy "owner or admin reads screenshots" on storage.objects

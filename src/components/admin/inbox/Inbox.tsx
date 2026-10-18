@@ -6,12 +6,12 @@ import { useNow } from "@/hooks/useNow";
 import { classNames } from "@/lib/format";
 import { markConversationRead } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
-import type { InboxTab } from "../navigation";
+import type { InboxTab } from "@/lib/types";
 import EmptyState from "../ui/EmptyState";
 import ChatList from "./ChatList";
 import ChatThread from "./ChatThread";
 import CustomerPanel from "./CustomerPanel";
-import { buildInboxItems, countInboxTabs, type ChatFilter } from "./inboxItems";
+import { buildInboxItems, countBotFilters, countInboxTabs, type BotFilter } from "./inboxItems";
 
 const panelClass = "lg:rounded-2xl lg:border lg:border-zinc-200/70 lg:shadow-[0_1px_3px_rgba(16,24,40,0.06)]";
 
@@ -23,14 +23,15 @@ type InboxProps = {
 export default function Inbox({ initialTab, initialCustomerId }: InboxProps) {
   const state = useAppState();
   const now = useNow(15_000);
-  const [tab, setTab] = useState<InboxTab>(initialTab ?? "pending");
-  const [filter, setFilter] = useState<ChatFilter>("active");
+  const [tab, setTab] = useState<InboxTab>(initialTab ?? state.settings.inboxTabs[0]?.key ?? "pending");
+  const [botFilter, setBotFilter] = useState<BotFilter>("active_chats");
   const [chosenCustomerId, setChosenCustomerId] = useState(initialCustomerId);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [isWideScreen] = useState(() => window.innerWidth >= 1024);
 
-  const items = useMemo(() => buildInboxItems(state, tab, filter, now), [state, tab, filter, now]);
-  const counts = useMemo(() => countInboxTabs(state, now), [state, now]);
+  const items = useMemo(() => buildInboxItems(state, tab, botFilter, now), [state, tab, botFilter, now]);
+  const counts = useMemo(() => countInboxTabs(state), [state]);
+  const botCounts = useMemo(() => countBotFilters(state, now), [state, now]);
   const selectedCustomerId = chosenCustomerId ?? (isWideScreen ? items[0]?.customerId : undefined);
 
   useEffect(() => {
@@ -43,9 +44,10 @@ export default function Inbox({ initialTab, initialCustomerId }: InboxProps) {
         <ChatList
           tab={tab}
           onTabChange={setTab}
-          filter={filter}
-          onFilterChange={setFilter}
+          botFilter={botFilter}
+          onBotFilterChange={setBotFilter}
           counts={counts}
+          botCounts={botCounts}
           items={items}
           selectedCustomerId={selectedCustomerId}
           onSelect={setChosenCustomerId}

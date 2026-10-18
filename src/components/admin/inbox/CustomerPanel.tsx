@@ -1,11 +1,10 @@
 "use client";
 
-import { ShieldAlert } from "lucide-react";
 import { classNames, formatDate, formatMoney } from "@/lib/format";
-import { toggleCustomerBlocked } from "@/lib/store/admin";
 import { customerNumberLabel, findLatestCode } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import Avatar from "../ui/Avatar";
+import BlockCustomerButton from "../customers/BlockCustomerButton";
 import DeleteCustomerButton from "../customers/DeleteCustomerButton";
 import OrderReview from "./OrderReview";
 import TicketCard from "./TicketCard";
@@ -52,16 +51,14 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
         <TicketCard key={ticket.id} ticket={ticket} />
       ))}
 
+      {customer.blocked && (
+        <div className="rounded-xl bg-red-50 px-3.5 py-2.5 text-[12.5px] text-red-700">
+          <span className="font-semibold">Blocked:</span> {customer.blockReason ?? "No reason given"}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-2">
-        <button
-          onClick={() => toggleCustomerBlocked(customer.id)}
-          className={classNames(
-            "h-10 rounded-xl text-[13px] font-semibold flex items-center justify-center gap-1.5 transition border",
-            customer.blocked ? "bg-zinc-100 border-zinc-200 text-zinc-700 hover:bg-zinc-200" : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
-          )}
-        >
-          <ShieldAlert size={14} /> {customer.blocked ? "Unblock" : "Block"}
-        </button>
+        <BlockCustomerButton customer={customer} />
         <DeleteCustomerButton customerId={customer.id} email={customer.email} />
       </div>
     </div>

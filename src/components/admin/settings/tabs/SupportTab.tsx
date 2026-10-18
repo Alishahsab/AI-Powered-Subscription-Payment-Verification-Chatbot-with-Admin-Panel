@@ -2,7 +2,7 @@ import { cleanLetters, limits } from "@/lib/validation";
 import Toggle from "../../ui/Toggle";
 import { inputClass, textareaClass } from "../../ui/styles";
 import type { SettingsTabProps } from "../Settings";
-import { ChoiceButtons, Field, SettingsSection } from "../SettingsSection";
+import { Field, SettingsSection } from "../SettingsSection";
 import FaqsSection from "./FaqsSection";
 
 export default function SupportTab({ draft, updateDraft }: SettingsTabProps) {
@@ -38,10 +38,6 @@ export default function SupportTab({ draft, updateDraft }: SettingsTabProps) {
             <Field label="Button to close the request">
               <input value={support.resolvedLabel} maxLength={30} onChange={(event) => updateDraft((next) => (next.settings.support.resolvedLabel = event.target.value))} className={inputClass} />
             </Field>
-          </div>
-          <div>
-            <div className="text-[13px] font-medium text-zinc-700 mb-1.5">Close a request after no reply from the customer for</div>
-            <ChoiceButtons values={[6, 12, 24, 48]} value={draft.settings.timers.issueInactiveHours} unit="hours" onChange={(value) => updateDraft((next) => (next.settings.timers.issueInactiveHours = value))} />
           </div>
           <Field label="Message when a request is closed for inactivity">
             <textarea rows={2} maxLength={limits.longTextMax} value={support.expiredMessage} onChange={(event) => updateDraft((next) => (next.settings.support.expiredMessage = event.target.value))} className={textareaClass} />

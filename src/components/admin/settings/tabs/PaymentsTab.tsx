@@ -2,7 +2,7 @@ import { cleanAccountNumber, cleanDigits, cleanLetters, cleanLettersAndDigits, l
 import Toggle from "../../ui/Toggle";
 import { inputClass, textareaClass } from "../../ui/styles";
 import type { SettingsTabProps } from "../Settings";
-import { ChoiceButtons, Field, SettingsSection } from "../SettingsSection";
+import { Field, SettingsSection } from "../SettingsSection";
 import StepsEditor from "../StepsEditor";
 
 export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
@@ -94,10 +94,6 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
           <Field label="Reasons to choose from" hint="One per line">
             <textarea rows={4} maxLength={limits.longTextMax} value={draft.settings.rejectReasons.join("\n")} onChange={(event) => updateDraft((next) => (next.settings.rejectReasons = event.target.value.split("\n")))} className={textareaClass} />
           </Field>
-          <div>
-            <div className="text-[13px] font-medium text-zinc-700 mb-1.5">Replies allowed before waiting for you</div>
-            <ChoiceButtons values={[1, 2, 3]} value={draft.settings.limits.repliesAfterRejection} unit="reply" onChange={(value) => updateDraft((next) => (next.settings.limits.repliesAfterRejection = value))} />
-          </div>
           <Field label="Message while waiting for you">
             <textarea rows={2} maxLength={limits.longTextMax} value={draft.settings.waitForAdminMessage} onChange={(event) => updateDraft((next) => (next.settings.waitForAdminMessage = event.target.value))} className={textareaClass} />
           </Field>

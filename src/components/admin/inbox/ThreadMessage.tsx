@@ -30,7 +30,8 @@ export default function ThreadMessage({ message, showMeta }: ThreadMessageProps)
   }
 
   if (message.kind === "image") {
-    return <ImageMessage image={message.image} title="Screenshot" detail={formatTime(message.createdAt)} />;
+    const fromAdmin = message.sender === "admin";
+    return <ImageMessage image={message.image} title={fromAdmin ? "You sent an image" : "Screenshot"} detail={formatTime(message.createdAt)} alignRight={fromAdmin} />;
   }
 
   const fromCustomer = message.sender === "customer";
@@ -80,9 +81,16 @@ function SystemNote({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ImageMessage({ image, title, detail }: { image?: string; title: string; detail: string }) {
+type ImageMessageProps = {
+  image?: string;
+  title: string;
+  detail: string;
+  alignRight?: boolean;
+};
+
+function ImageMessage({ image, title, detail, alignRight = false }: ImageMessageProps) {
   return (
-    <div className="flex">
+    <div className={classNames("flex", alignRight && "justify-end")}>
       <div className="w-[220px] rounded-2xl rounded-bl-md overflow-hidden bg-white shadow-[0_1px_2px_rgba(16,24,40,0.06)]">
         {image ? (
           <StoredImage path={image} alt={title} className="w-full h-36 object-cover object-top" />

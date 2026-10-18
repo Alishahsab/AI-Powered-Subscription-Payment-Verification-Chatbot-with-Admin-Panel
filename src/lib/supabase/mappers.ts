@@ -1,5 +1,5 @@
 import { createDefaultConfig } from "../defaults";
-import type { AdminNotification, Conversation, Customer, Message, Order, StoreConfig, Ticket } from "../types";
+import type { AdminNotification, Conversation, Customer, InboxTabSetting, Message, Order, StoreConfig, Ticket } from "../types";
 
 type Row = Record<string, unknown>;
 
@@ -15,6 +15,7 @@ export function customerFromRow(row: Row): Customer {
     createdAt: Number(row.created_at),
     lastSeenAt: Number(row.last_seen_at),
     blocked: row.blocked as boolean,
+    blockReason: optional<string>(row.block_reason),
     paymentBlockedUntil: optionalNumber(row.payment_blocked_until),
     cancelCount: Number(row.cancel_count ?? 0),
     cancelCooldownUntil: optionalNumber(row.cancel_cooldown_until),
@@ -28,6 +29,7 @@ export function customerToRow(customer: Customer): Row {
     created_at: customer.createdAt,
     last_seen_at: customer.lastSeenAt,
     blocked: customer.blocked,
+    block_reason: nullable(customer.blockReason),
     payment_blocked_until: nullable(customer.paymentBlockedUntil),
     cancel_count: customer.cancelCount,
     cancel_cooldown_until: nullable(customer.cancelCooldownUntil),
@@ -191,6 +193,13 @@ export function notificationToRow(notification: AdminNotification): Row {
   };
 }
 
+function mergeInboxTabs(defaults: InboxTabSetting[], saved?: InboxTabSetting[]) {
+  if (!saved) return defaults;
+  const known = saved.filter((tab) => defaults.some((item) => item.key === tab.key));
+  const missing = defaults.filter((tab) => !known.some((item) => item.key === tab.key));
+  return [...known, ...missing];
+}
+
 export function configFromRow(row: Row): StoreConfig {
   const defaults = createDefaultConfig();
   const saved = row.settings as Partial<StoreConfig["settings"]>;
@@ -201,6 +210,9 @@ export function configFromRow(row: Row): StoreConfig {
       timers: { ...defaults.settings.timers, ...saved.timers },
       limits: { ...defaults.settings.limits, ...saved.limits },
       support: { ...defaults.settings.support, ...saved.support },
+      messages: { ...defaults.settings.messages, ...saved.messages },
+      blocking: { ...defaults.settings.blocking, ...saved.blocking },
+      inboxTabs: mergeInboxTabs(defaults.settings.inboxTabs, saved.inboxTabs),
     },
     plans: row.plans as StoreConfig["plans"],
     methods: row.methods as StoreConfig["methods"],

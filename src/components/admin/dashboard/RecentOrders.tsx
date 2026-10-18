@@ -35,7 +35,7 @@ export default function RecentOrders({ onNavigate }: { onNavigate: Navigate }) {
             {orders.map((order) => {
               const name = findCustomerEmail(state, order.customerId);
               const badge = orderStatusBadge[order.status];
-              const tab = order.status === "pending_review" ? "pending" : order.status === "completed" ? (order.codeUnused ? "unused" : "completed") : "general";
+              const tab = order.status === "pending_review" ? "pending" : order.status === "completed" ? (order.codeUnused ? "unused" : "completed") : "bot";
 
               return (
                 <tr key={order.id} onClick={() => onNavigate({ section: "inbox", customerId: order.customerId, tab })} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50 cursor-pointer">

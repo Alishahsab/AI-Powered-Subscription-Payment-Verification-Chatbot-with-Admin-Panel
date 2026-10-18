@@ -1,9 +1,8 @@
 import { formatMoney, timeAgo } from "@/lib/format";
 import { canStillPay, customerNumberLabel, findCustomerEmail } from "@/lib/store/helpers";
-import type { AppState, Message, Order, OrderStatus } from "@/lib/types";
-import type { InboxTab } from "../navigation";
+import type { AppState, InboxTab, Message, Order, OrderStatus } from "@/lib/types";
 
-export type ChatFilter = "active" | "inactive";
+export type BotFilter = "active_orders" | "cancelled" | "active_chats" | "inactive_chats";
 
 export type InboxItem = {
   key: string;
@@ -58,10 +57,10 @@ function orderItem(state: AppState, order: Order, time: number, subtitle: string
   };
 }
 
-function generalChatItems(state: AppState, filter: ChatFilter, now: number): InboxItem[] {
+function chatItems(state: AppState, active: boolean, now: number): InboxItem[] {
   return Object.values(state.conversations)
     .filter((conversation) => state.messages.some((message) => message.customerId === conversation.customerId))
-    .filter((conversation) => isCustomerActive(state, conversation.customerId, now) === (filter === "active"))
+    .filter((conversation) => isCustomerActive(state, conversation.customerId, now) === active)
     .sort((a, b) => b.lastMessageAt - a.lastMessageAt)
     .map((conversation) => {
       const lastMessage = state.messages.filter((message) => message.customerId === conversation.customerId).at(-1);
@@ -140,24 +139,53 @@ function issueItems(state: AppState): InboxItem[] {
     }));
 }
 
-export function buildInboxItems(state: AppState, tab: InboxTab, filter: ChatFilter, now: number) {
-  if (tab === "active") return activeItems(state, now);
-  if (tab === "pending") return pendingItems(state, now);
-  if (tab === "completed") return completedItems(state, false);
-  if (tab === "unused") return completedItems(state, true);
-  if (tab === "cancelled") return cancelledItems(state);
-  if (tab === "issues") return issueItems(state);
-  return generalChatItems(state, filter, now);
+function blockedItems(state: AppState): InboxItem[] {
+  return state.customers
+    .filter((customer) => customer.blocked)
+    .sort((a, b) => b.lastSeenAt - a.lastSeenAt)
+    .map((customer) => ({
+      key: customer.id,
+      customerId: customer.id,
+      title: customer.email,
+      tag: customerNumberLabel(customer),
+      subtitle: customer.blockReason ?? "No reason given",
+      time: customer.lastSeenAt,
+      unread: false,
+      badge: { label: "Blocked", tone: "red" },
+    }));
 }
 
-export function countInboxTabs(state: AppState, now: number): Record<InboxTab, number> {
+function botChatItems(state: AppState, filter: BotFilter, now: number): InboxItem[] {
+  if (filter === "active_orders") return activeItems(state, now);
+  if (filter === "cancelled") return cancelledItems(state);
+  return chatItems(state, filter === "active_chats", now);
+}
+
+export function buildInboxItems(state: AppState, tab: InboxTab, botFilter: BotFilter, now: number) {
+  if (tab === "pending") return pendingItems(state, now);
+  if (tab === "issues") return issueItems(state);
+  if (tab === "completed") return completedItems(state, false);
+  if (tab === "unused") return completedItems(state, true);
+  if (tab === "blocked") return blockedItems(state);
+  return botChatItems(state, botFilter, now);
+}
+
+export function countInboxTabs(state: AppState): Record<InboxTab, number> {
   return {
-    general: Object.values(state.conversations).filter((conversation) => conversation.unreadByAdmin > 0).length,
-    active: state.orders.filter((order) => canStillPay(order, now)).length,
     pending: state.orders.filter(isPending).length,
+    issues: state.tickets.filter((ticket) => ticket.status === "open").length,
     completed: 0,
     unused: state.orders.filter((order) => order.status === "completed" && order.codeUnused).length,
-    cancelled: 0,
-    issues: state.tickets.filter((ticket) => ticket.status === "open").length,
+    blocked: state.customers.filter((customer) => customer.blocked).length,
+    bot: Object.values(state.conversations).filter((conversation) => conversation.unreadByAdmin > 0).length,
+  };
+}
+
+export function countBotFilters(state: AppState, now: number): Record<BotFilter, number> {
+  return {
+    active_orders: activeItems(state, now).length,
+    cancelled: cancelledItems(state).length,
+    active_chats: chatItems(state, true, now).length,
+    inactive_chats: chatItems(state, false, now).length,
   };
 }

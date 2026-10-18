@@ -24,7 +24,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
     { label: "Revenue today", value: formatMoney(revenueToday), note: `${completedToday.length} orders completed`, icon: <Wallet size={17} /> },
     { label: "Pending review", value: String(pendingOrders.length), note: "Waiting for your approval", icon: <Clock size={17} />, highlight: pendingOrders.length > 0, tab: "pending" as const },
     { label: "Open issues", value: String(openIssues.length), note: "Support and payment issues", icon: <LifeBuoy size={17} />, tab: "issues" as const },
-    { label: "Active chats", value: String(activeChats.length), note: `Active in the last ${state.settings.timers.inactiveMinutes} min`, icon: <MessageCircle size={17} />, tab: "general" as const },
+    { label: "Active chats", value: String(activeChats.length), note: `Active in the last ${state.settings.timers.inactiveMinutes} min`, icon: <MessageCircle size={17} />, tab: "bot" as const },
   ];
 
   const hour = new Date(now).getHours();

@@ -1,0 +1,87 @@
+"use client";
+
+import { useState } from "react";
+import { Ban, ShieldCheck } from "lucide-react";
+import { classNames } from "@/lib/format";
+import { blockCustomer, unblockCustomer } from "@/lib/store/admin";
+import { useAppState } from "@/lib/store/state";
+import type { Customer } from "@/lib/types";
+import Modal from "../ui/Modal";
+import { inputClass } from "../ui/styles";
+
+const OTHER = "other";
+
+type BlockCustomerButtonProps = {
+  customer: Customer;
+  compact?: boolean;
+};
+
+export default function BlockCustomerButton({ customer, compact = false }: BlockCustomerButtonProps) {
+  const [open, setOpen] = useState(false);
+
+  const buttonClass = compact
+    ? "h-8 px-3 rounded-lg text-[12.5px] font-medium text-zinc-600 hover:bg-zinc-100 transition"
+    : "h-10 rounded-xl border border-zinc-200 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center justify-center gap-1.5 transition";
+
+  if (customer.blocked) {
+    return (
+      <button onClick={() => unblockCustomer(customer.id)} className={buttonClass}>
+        {!compact && <ShieldCheck size={14} />} Unblock
+      </button>
+    );
+  }
+
+  return (
+    <>
+      <button onClick={() => setOpen(true)} className={buttonClass}>
+        {!compact && <Ban size={14} />} Block
+      </button>
+      {open && <BlockDialog customer={customer} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
+function BlockDialog({ customer, onClose }: { customer: Customer; onClose: () => void }) {
+  const state = useAppState();
+  const reasons = state.settings.blocking.reasons;
+  const [choice, setChoice] = useState(reasons[0] ?? OTHER);
+  const [customReason, setCustomReason] = useState("");
+  const reason = choice === OTHER ? customReason.trim() : choice;
+
+  const block = () => {
+    if (!reason) return;
+    blockCustomer(customer.id, reason);
+    onClose();
+  };
+
+  return (
+    <Modal title="Block customer" description={`${customer.email} will see this reason`} onClose={onClose}>
+      <div className="space-y-1.5">
+        {[...reasons, OTHER].map((item) => (
+          <button
+            key={item}
+            onClick={() => setChoice(item)}
+            className={classNames(
+              "w-full text-left rounded-xl border px-3.5 py-2.5 text-[13.5px] font-medium transition flex items-center gap-2.5",
+              choice === item ? "border-red-300 bg-red-50 text-red-800" : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+            )}
+          >
+            <span className={classNames("size-4 shrink-0 rounded-full border-2", choice === item ? "border-red-600 bg-red-600 shadow-[inset_0_0_0_2px_white]" : "border-zinc-300")} />
+            {item === OTHER ? "Write a reason" : item}
+          </button>
+        ))}
+      </div>
+
+      {choice === OTHER && <input autoFocus value={customReason} maxLength={150} onChange={(event) => setCustomReason(event.target.value)} placeholder="Type the reason" className={`${inputClass} mt-2 h-10`} />}
+
+      <div className="mt-5 grid grid-cols-2 gap-2.5">
+        <button onClick={onClose} className="h-11 rounded-xl border border-zinc-200 text-[14px] font-semibold text-zinc-700 hover:bg-zinc-50 transition">
+          Cancel
+        </button>
+        <button onClick={block} disabled={!reason} className="h-11 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[14px] font-semibold flex items-center justify-center gap-1.5 transition disabled:opacity-40">
+          <Ban size={15} /> Block
+        </button>
+      </div>
+    </Modal>
+  );
+}

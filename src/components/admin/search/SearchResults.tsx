@@ -43,7 +43,7 @@ export default function SearchResults({ query, onNavigate }: SearchResultsProps)
 
         <ResultGroup title="Messages" icon={<MessageSquare size={15} />} count={messages.length}>
           {messages.slice(0, 50).map((message) => (
-            <ResultRow key={message.id} onClick={() => onNavigate({ section: "inbox", customerId: message.customerId, tab: "general" })}>
+            <ResultRow key={message.id} onClick={() => onNavigate({ section: "inbox", customerId: message.customerId, tab: "bot" })}>
               <div className="min-w-0">
                 <div className="text-[12px] text-zinc-500">
                   {findCustomerEmail(state, message.customerId)} · {roleLabel[message.sender]} · {formatDateTime(message.createdAt)}
@@ -58,7 +58,7 @@ export default function SearchResults({ query, onNavigate }: SearchResultsProps)
 
         <ResultGroup title="Customers" icon={<User size={15} />} count={customers.length}>
           {customers.map((customer) => (
-            <ResultRow key={customer.id} onClick={() => onNavigate({ section: "inbox", customerId: customer.id, tab: "general" })}>
+            <ResultRow key={customer.id} onClick={() => onNavigate({ section: "inbox", customerId: customer.id, tab: "bot" })}>
               <span className="font-bold text-[#0C2660]">
                 <Highlight text={customerNumberLabel(customer)} query={text} />
               </span>

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Mail, Send, Zap } from "lucide-react";
+import { useRef, useState } from "react";
+import { ImagePlus, Mail, Send, Zap } from "lucide-react";
+import { compressImage } from "@/lib/browser";
 import { classNames, formatDateTime } from "@/lib/format";
-import { findCodeSentToSomeoneElse, sendAdminMessage } from "@/lib/store/admin";
+import { findCodeSentToSomeoneElse, sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
 
 const quickReplies = [
   "Payment received, verifying now. Please wait a few minutes.",
@@ -22,6 +23,17 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
   const [emailCopy, setEmailCopy] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [warning, setWarning] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [imageError, setImageError] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  const sendImage = async (file?: File) => {
+    if (!file || !file.type.startsWith("image/")) return;
+    setUploading(true);
+    setImageError((await sendAdminImage(customerId, await compressImage(file))) ?? "");
+    setUploading(false);
+    if (fileInput.current) fileInput.current.value = "";
+  };
 
   const send = (message: string, skipDuplicateCheck = false) => {
     const content = message.trim();
@@ -70,6 +82,16 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
           >
             <Zap size={16} />
           </button>
+          <input ref={fileInput} type="file" accept="image/*" hidden onChange={(event) => sendImage(event.target.files?.[0])} />
+          <button
+            onClick={() => fileInput.current?.click()}
+            disabled={uploading}
+            className="size-9 shrink-0 grid place-items-center rounded-xl text-zinc-500 hover:bg-zinc-200/60 transition disabled:opacity-40"
+            aria-label="Send an image"
+            title="Send an image"
+          >
+            <ImagePlus size={16} />
+          </button>
           <textarea
             value={text}
             maxLength={1000}
@@ -84,7 +106,7 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
               }
             }}
             rows={1}
-            placeholder="Type a message or code…"
+            placeholder={uploading ? "Sending image…" : "Type a message or code…"}
             className="flex-1 resize-none min-h-9 max-h-32 bg-transparent px-1.5 py-2 text-[14px] outline-none placeholder:text-zinc-400"
           />
           <button
@@ -95,6 +117,8 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
             <Send size={14} /> Send
           </button>
         </div>
+
+        {imageError && <p className="mt-2 text-[12px] text-red-600">{imageError}</p>}
 
         <label className="mt-2 inline-flex items-center gap-2 text-[12px] text-zinc-500 cursor-pointer select-none">
           <input type="checkbox" checked={emailCopy} onChange={(event) => setEmailCopy(event.target.checked)} className="size-3.5 accent-[#0C2660]" />

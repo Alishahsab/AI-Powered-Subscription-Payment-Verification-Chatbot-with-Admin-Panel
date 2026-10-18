@@ -1,6 +1,8 @@
-export type Section = "dashboard" | "inbox" | "customers" | "settings" | "search";
+import type { InboxTab } from "@/lib/types";
 
-export type InboxTab = "general" | "active" | "pending" | "completed" | "unused" | "cancelled" | "issues";
+export type { InboxTab };
+
+export type Section = "dashboard" | "inbox" | "customers" | "settings" | "search";
 
 export type NavTarget = {
   section: Section;

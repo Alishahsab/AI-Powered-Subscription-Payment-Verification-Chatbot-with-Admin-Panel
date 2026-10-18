@@ -6,6 +6,7 @@ import { findOrderMethod } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { Customer } from "@/lib/types";
 import ActionPanel from "./ActionPanel";
+import BlockedNotice from "./BlockedNotice";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import PaymentStepsSheet from "./sheets/PaymentStepsSheet";
@@ -42,9 +43,7 @@ export default function ChatScreen({ customer, onSignOut }: ChatScreenProps) {
       <MessageList messages={messages} typing={conversation.typing} stage={conversation.stage} />
 
       {customer.blocked ? (
-        <div className="p-5 border-t border-[var(--line)] text-center text-[13px] text-[var(--muted)]">
-          Your access has been restricted. Please contact us on our official channel.
-        </div>
+        <BlockedNotice customer={customer} />
       ) : (
         !conversation.typing && <ActionPanel customerId={customer.id} conversation={conversation} onOpenSheet={setSheet} />
       )}

@@ -1,48 +1,64 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, Hourglass, Inbox as InboxIcon, MessageCircle, PackageX, ShoppingBag, XCircle } from "lucide-react";
+import { AlertTriangle, Ban, Bot, CheckCircle2, Hourglass, Inbox as InboxIcon, PackageX } from "lucide-react";
 import { classNames, timeAgo } from "@/lib/format";
-import type { InboxTab } from "../navigation";
+import { useAppState } from "@/lib/store/state";
+import type { InboxTab } from "@/lib/types";
 import Avatar from "../ui/Avatar";
 import Badge from "../ui/Badge";
 import EmptyState from "../ui/EmptyState";
-import type { ChatFilter, InboxItem } from "./inboxItems";
+import type { BotFilter, InboxItem } from "./inboxItems";
 
 const iconProps = { size: 15, strokeWidth: 2 };
 
-const tabs: { key: InboxTab; label: string; urgent: boolean; icon: React.ReactNode }[] = [
-  { key: "general", label: "Chats", urgent: true, icon: <MessageCircle {...iconProps} /> },
-  { key: "active", label: "Active orders", urgent: false, icon: <ShoppingBag {...iconProps} /> },
-  { key: "pending", label: "Payment pending", urgent: true, icon: <Hourglass {...iconProps} /> },
-  { key: "completed", label: "Completed", urgent: false, icon: <CheckCircle2 {...iconProps} /> },
-  { key: "unused", label: "Unused codes", urgent: false, icon: <PackageX {...iconProps} /> },
-  { key: "cancelled", label: "Cancelled", urgent: false, icon: <XCircle {...iconProps} /> },
-  { key: "issues", label: "App issues", urgent: true, icon: <AlertTriangle {...iconProps} /> },
+const tabIcons: Record<InboxTab, React.ReactNode> = {
+  pending: <Hourglass {...iconProps} />,
+  issues: <AlertTriangle {...iconProps} />,
+  completed: <CheckCircle2 {...iconProps} />,
+  unused: <PackageX {...iconProps} />,
+  blocked: <Ban {...iconProps} />,
+  bot: <Bot {...iconProps} />,
+};
+
+const urgentTabs: InboxTab[] = ["pending", "issues", "bot"];
+
+const botFilters: { key: BotFilter; label: string; dot: string }[] = [
+  { key: "active_orders", label: "Active orders", dot: "bg-sky-500" },
+  { key: "cancelled", label: "Cancelled", dot: "bg-zinc-400" },
+  { key: "active_chats", label: "Active chats", dot: "bg-emerald-500" },
+  { key: "inactive_chats", label: "Inactive chats", dot: "bg-zinc-300" },
 ];
 
-const emptyText: Record<InboxTab, string> = {
-  general: "No conversations here yet.",
-  active: "Orders waiting for the customer to pay show up here.",
+const emptyText: Record<InboxTab | BotFilter, string> = {
   pending: "New payment submissions and rejected payments show up here.",
+  issues: "No problems reported. All caught up.",
   completed: "Approved orders will show up here.",
   unused: "Move a completed order here when its code has not been used yet.",
+  blocked: "Customers you block show up here.",
+  bot: "No conversations here yet.",
+  active_orders: "Orders waiting for the customer to pay show up here.",
   cancelled: "Cancelled and expired orders show up here.",
-  issues: "No problems reported. All caught up.",
+  active_chats: "Customers active right now show up here.",
+  inactive_chats: "Customers who have gone quiet show up here.",
 };
 
 type ChatListProps = {
   tab: InboxTab;
   onTabChange: (tab: InboxTab) => void;
-  filter: ChatFilter;
-  onFilterChange: (filter: ChatFilter) => void;
+  botFilter: BotFilter;
+  onBotFilterChange: (filter: BotFilter) => void;
   counts: Record<InboxTab, number>;
+  botCounts: Record<BotFilter, number>;
   items: InboxItem[];
   selectedCustomerId?: string;
   onSelect: (customerId: string) => void;
   now: number;
 };
 
-export default function ChatList({ tab, onTabChange, filter, onFilterChange, counts, items, selectedCustomerId, onSelect, now }: ChatListProps) {
+export default function ChatList({ tab, onTabChange, botFilter, onBotFilterChange, counts, botCounts, items, selectedCustomerId, onSelect, now }: ChatListProps) {
+  const state = useAppState();
+  const tabs = state.settings.inboxTabs;
+
   return (
     <>
       <div className="px-5 pt-5">
@@ -50,7 +66,7 @@ export default function ChatList({ tab, onTabChange, filter, onFilterChange, cou
       </div>
 
       <div className="mt-3 px-4 grid grid-cols-2 gap-1.5 pb-3.5 border-b border-zinc-200/80">
-        {tabs.map((item, index) => {
+        {tabs.map((item) => {
           const selected = tab === item.key;
           return (
             <button
@@ -58,17 +74,16 @@ export default function ChatList({ tab, onTabChange, filter, onFilterChange, cou
               onClick={() => onTabChange(item.key)}
               className={classNames(
                 "h-9 px-2.5 rounded-lg border flex items-center gap-2 text-left transition",
-                index === tabs.length - 1 && "col-span-2",
                 selected ? "bg-[#0C2660] border-[#0C2660] text-white" : "bg-white border-zinc-200 text-zinc-800 hover:border-zinc-300 hover:bg-zinc-50"
               )}
             >
-              <span className={classNames("shrink-0", selected ? "text-white" : "text-zinc-900")}>{item.icon}</span>
+              <span className={classNames("shrink-0", selected ? "text-white" : "text-zinc-900")}>{tabIcons[item.key]}</span>
               <span className="flex-1 min-w-0 text-[12px] font-semibold truncate">{item.label}</span>
               {counts[item.key] > 0 && (
                 <span
                   className={classNames(
                     "text-[10.5px] font-bold rounded-full min-w-[20px] h-5 px-1.5 grid place-items-center shrink-0",
-                    selected ? "bg-white text-[#0C2660]" : item.urgent ? "bg-red-500 text-white" : "bg-zinc-200 text-zinc-700"
+                    selected ? "bg-white text-[#0C2660]" : urgentTabs.includes(item.key) ? "bg-red-500 text-white" : "bg-zinc-200 text-zinc-700"
                   )}
                 >
                   {counts[item.key]}
@@ -79,29 +94,27 @@ export default function ChatList({ tab, onTabChange, filter, onFilterChange, cou
         })}
       </div>
 
-      {tab === "general" && (
-        <div className="px-5 pt-3 pb-1">
-          <div className="inline-flex rounded-lg bg-zinc-100 p-0.5">
-            {(["active", "inactive"] as ChatFilter[]).map((option) => (
-              <button
-                key={option}
-                onClick={() => onFilterChange(option)}
-                className={classNames(
-                  "h-7 px-3 rounded-md text-[12.5px] font-semibold flex items-center gap-1.5 transition",
-                  filter === option ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-500 hover:text-zinc-700"
-                )}
-              >
-                <span className={classNames("size-1.5 rounded-full", option === "active" ? "bg-emerald-500" : "bg-zinc-400")} />
-                {option === "active" ? "Active" : "Non-active"}
-              </button>
-            ))}
-          </div>
+      {tab === "bot" && (
+        <div className="px-4 pt-3 pb-1 grid grid-cols-2 gap-1.5">
+          {botFilters.map((option) => (
+            <button
+              key={option.key}
+              onClick={() => onBotFilterChange(option.key)}
+              className={classNames(
+                "h-8 px-2.5 rounded-md text-[12px] font-semibold flex items-center gap-1.5 transition",
+                botFilter === option.key ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200/70"
+              )}
+            >
+              <span className={classNames("size-1.5 rounded-full shrink-0", option.dot)} />
+              <span className="flex-1 text-left truncate">{option.label}</span>
+              <span className="tabular-nums opacity-70">{botCounts[option.key]}</span>
+            </button>
+          ))}
         </div>
       )}
-
       <div className="flex-1 overflow-y-auto px-2.5 py-2">
         {items.length === 0 ? (
-          <EmptyState icon={<InboxIcon size={20} />} title="Nothing here" description={emptyText[tab]} />
+          <EmptyState icon={<InboxIcon size={20} />} title="Nothing here" description={emptyText[tab === "bot" ? botFilter : tab]} />
         ) : (
           items.map((item) => {
             const selected = selectedCustomerId === item.customerId;

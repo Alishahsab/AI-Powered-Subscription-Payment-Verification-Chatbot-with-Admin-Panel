@@ -4,7 +4,6 @@ import { useState } from "react";
 import { MessageSquare, Search, Users } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
 import { formatMoney, timeAgo } from "@/lib/format";
-import { toggleCustomerBlocked } from "@/lib/store/admin";
 import { customerNumberLabel, findLatestCode } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { Navigate } from "../navigation";
@@ -13,6 +12,7 @@ import Badge from "../ui/Badge";
 import Button from "../ui/Button";
 import { Card } from "../ui/Card";
 import EmptyState from "../ui/EmptyState";
+import BlockCustomerButton from "./BlockCustomerButton";
 import DeleteCustomerButton from "./DeleteCustomerButton";
 import { inputClass } from "../ui/styles";
 
@@ -96,12 +96,10 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
                       <td className="px-3 py-3 text-zinc-500 whitespace-nowrap">{timeAgo(customer.lastSeenAt, now)}</td>
                       <td className="px-5 py-3">
                         <div className="flex justify-end gap-1.5">
-                          <Button size="sm" onClick={() => onNavigate({ section: "inbox", customerId: customer.id, tab: "general" })}>
+                          <Button size="sm" onClick={() => onNavigate({ section: "inbox", customerId: customer.id, tab: "bot" })}>
                             <MessageSquare size={13} /> Chat
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={() => toggleCustomerBlocked(customer.id)}>
-                            {customer.blocked ? "Unblock" : "Block"}
-                          </Button>
+                          <BlockCustomerButton customer={customer} compact />
                           <DeleteCustomerButton customerId={customer.id} email={customer.email} compact />
                         </div>
                       </td>

@@ -62,10 +62,14 @@ function TextBubble({ message }: { message: Message }) {
 }
 
 function ImageBubble({ message }: { message: Message }) {
+  const fromTeam = message.sender === "admin";
+
   return (
-    <div className="w-[240px] rounded-2xl rounded-br-md overflow-hidden border border-[var(--line)] bg-[var(--surface)]">
-      {message.image && <StoredImage path={message.image} alt="Attached screenshot" className="w-full h-44 object-cover object-top" />}
-      <div className="px-3 py-2 text-[11.5px] text-[var(--muted)]">Screenshot · {formatTime(message.createdAt)}</div>
+    <div className={`w-[260px] rounded-2xl overflow-hidden border border-[var(--line)] bg-[var(--surface)] ${fromTeam ? "rounded-bl-md" : "rounded-br-md"}`}>
+      {message.image && <StoredImage path={message.image} alt={fromTeam ? "Image from our team" : "Attached screenshot"} className={`w-full ${fromTeam ? "max-h-80 object-contain bg-black/[0.03]" : "h-44 object-cover object-top"}`} />}
+      <div className="px-3 py-2 text-[11.5px] text-[var(--muted)]">
+        {fromTeam ? "Image" : "Screenshot"} · {formatTime(message.createdAt)}
+      </div>
     </div>
   );
 }

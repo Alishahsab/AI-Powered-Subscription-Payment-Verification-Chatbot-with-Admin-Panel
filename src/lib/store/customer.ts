@@ -4,7 +4,7 @@ import { getSupabase } from "../supabase/client";
 import { uploadScreenshot } from "../supabase/screenshots";
 import type { AppState, Customer, Stage } from "../types";
 import { validateName } from "../validation";
-import { addMessage, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
+import { addMessage, botText, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
 import { getState, updateState } from "./state";
 
 const MINUTE = 60_000;
@@ -79,7 +79,7 @@ export function openChat(customerId: string) {
     const wasAway = Date.now() - customer.lastSeenAt > state.settings.timers.inactiveMinutes * MINUTE;
     if (wasAway && conversation.stage !== "awaiting_payment") {
       conversation.stage = "menu";
-      addMessage(state, customerId, "bot", "Welcome back. How can we help you today?");
+      addMessage(state, customerId, "bot", botText(state, "welcomeBack"));
     }
   });
   recordActivity(customerId);
@@ -146,7 +146,7 @@ function startBuying(state: AppState, customerId: string) {
 
   const openOrder = getActiveOrder(state, customerId);
   if (openOrder && canStillPay(openOrder)) {
-    addMessage(state, customerId, "bot", `You already have an open order (${openOrder.id}). Complete the payment below or cancel it to start a new one.`);
+    addMessage(state, customerId, "bot", botText(state, "openOrderExists", { order_id: openOrder.id }));
     conversation.stage = "awaiting_payment";
     return;
   }
@@ -154,8 +154,7 @@ function startBuying(state: AppState, customerId: string) {
   const pause = findOrderPause(customer, now);
   if (pause) {
     const minutesLeft = Math.ceil((pause.until - now) / MINUTE);
-    const reason = pause.reason === "cancels" ? "You cancelled several orders in a row." : "We're still checking our payment account.";
-    addMessage(state, customerId, "bot", `${reason} You can create a new order in ${formatDuration(minutesLeft)}.`);
+    addMessage(state, customerId, "bot", botText(state, "ordersPaused", { time_left: formatDuration(minutesLeft) }));
     conversation.stage = "menu";
     return;
   }
@@ -166,7 +165,7 @@ function startBuying(state: AppState, customerId: string) {
     return;
   }
 
-  addMessage(state, customerId, "bot", "Choose your plan. All prices are in Pakistani Rupees.");
+  addMessage(state, customerId, "bot", botText(state, "choosePlan"));
   conversation.stage = "choose_plan";
 }
 
@@ -180,7 +179,7 @@ export function chooseMenuOption(customerId: string, option: MenuOption) {
       startBuying(state, customerId);
       return;
     }
-    addMessage(state, customerId, "bot", "How can we help? Pick a question below, or choose Other issues to contact our team.");
+    addMessage(state, customerId, "bot", botText(state, "supportIntro"));
     state.conversations[customerId].stage = "support";
   });
 }
@@ -195,7 +194,7 @@ export function choosePlan(customerId: string, planId: string) {
   });
 
   replyAsBot(customerId, (state) => {
-    addMessage(state, customerId, "bot", "How would you like to pay?");
+    addMessage(state, customerId, "bot", botText(state, "chooseMethod"));
     state.conversations[customerId].stage = "choose_method";
   });
 }
@@ -211,7 +210,7 @@ export function chooseMethod(customerId: string, methodId: string) {
 
   replyAsBot(customerId, (state) => {
     const terms = state.settings.terms.map((term) => "• " + fillPlaceholders(term, state)).join("\n");
-    addMessage(state, customerId, "bot", "Before you continue, please read our terms:\n" + terms);
+    addMessage(state, customerId, "bot", `${botText(state, "termsIntro")}\n${terms}`);
     state.conversations[customerId].stage = "terms";
   });
 }
@@ -255,7 +254,7 @@ export function createOrder(customerId: string) {
       expiresAt: now + state.settings.timers.orderMinutes * MINUTE,
     });
 
-    addMessage(state, customerId, "bot", `Order ${orderId} created for ${plan.name}.`, { kind: "payment", orderId });
+    addMessage(state, customerId, "bot", botText(state, "orderCreated", { order_id: orderId, plan: plan.name }), { kind: "payment", orderId });
 
     conversation.activeOrderId = orderId;
     conversation.stage = "awaiting_payment";
@@ -282,8 +281,8 @@ export function cancelOrder(customerId: string) {
 
   replyAsBot(customerId, (state) => {
     const message = cooldownStarted
-      ? `Your order has been cancelled. Because several orders were cancelled in a row, new orders are paused for ${formatDuration(state.settings.timers.cancelCooldownMinutes)}. Customer Support is still open.`
-      : "Your order has been cancelled. Anything else we can help with?";
+      ? botText(state, "ordersPausedAfterCancels", { time_left: formatDuration(state.settings.timers.cancelCooldownMinutes) })
+      : botText(state, "orderCancelled");
     addMessage(state, customerId, "bot", message);
     state.conversations[customerId].stage = "menu";
     state.conversations[customerId].activeOrderId = undefined;
@@ -369,8 +368,7 @@ export async function reportPaymentIssue(customerId: string, description: string
   });
 
   replyAsBot(customerId, (state) => {
-    const retryMinutes = state.settings.timers.retryMinutes;
-    addMessage(state, customerId, "bot", `Thanks for letting us know. Please don't send any payment right now, we're checking our account details. Please try again after ${retryMinutes} minutes. Our team will reply here.`);
+    addMessage(state, customerId, "bot", botText(state, "paymentIssueReceived", { time_left: formatDuration(state.settings.timers.retryMinutes) }));
     state.conversations[customerId].stage = "waiting_agent";
     state.conversations[customerId].activeOrderId = undefined;
   });
@@ -395,7 +393,7 @@ export function chooseOtherIssue(customerId: string) {
   });
 
   replyAsBot(customerId, (state) => {
-    addMessage(state, customerId, "bot", "Please describe your issue. You can also attach a screenshot.");
+    addMessage(state, customerId, "bot", botText(state, "describeIssue"));
     state.conversations[customerId].stage = "support_other";
   });
 }
@@ -414,7 +412,7 @@ export async function submitSupportIssue(customerId: string, description: string
   });
 
   replyAsBot(customerId, (state) => {
-    addMessage(state, customerId, "bot", `Thanks, your issue ${ticketId} has been sent to our team. An agent will join you shortly and reply right here. You can close this page and check back later.`);
+    addMessage(state, customerId, "bot", botText(state, "issueReceived", { ticket_id: ticketId }));
     state.conversations[customerId].stage = "waiting_agent";
   });
 }
@@ -438,7 +436,7 @@ export function isIssueExpired(state: AppState, customerId: string, now = Date.n
 
   const lastCustomerMessage = state.messages.filter((message) => message.customerId === customerId && message.sender === "customer").at(-1)?.createdAt ?? 0;
   const lastActivity = Math.max(ticket.createdAt, lastCustomerMessage);
-  return now - lastActivity > state.settings.timers.issueInactiveHours * 60 * MINUTE;
+  return now - lastActivity > state.settings.timers.issueInactiveMinutes * MINUTE;
 }
 
 export function continueIssue(customerId: string) {
@@ -457,7 +455,7 @@ export function confirmIssueResolved(customerId: string) {
   });
 
   replyAsBot(customerId, (state) => {
-    addMessage(state, customerId, "bot", "Glad it's sorted. Anything else we can help with?");
+    addMessage(state, customerId, "bot", botText(state, "issueResolvedByCustomer"));
     state.conversations[customerId].stage = "menu";
   });
 }
@@ -492,7 +490,7 @@ export function backToMenu(customerId: string) {
   });
 
   replyAsBot(customerId, (state) => {
-    addMessage(state, customerId, "bot", "What can we help you with?");
+    addMessage(state, customerId, "bot", botText(state, "menuPrompt"));
     const conversation = state.conversations[customerId];
     conversation.stage = "menu";
     conversation.planId = undefined;
@@ -535,7 +533,7 @@ export function expireUnpaidOrders() {
       const conversation = state.conversations[order.customerId];
       if (conversation?.activeOrderId !== order.id) continue;
 
-      addMessage(state, order.customerId, "bot", `Order ${order.id} has been cancelled because the payment time ran out. If you still want to buy, please start again from the main menu.`);
+      addMessage(state, order.customerId, "bot", botText(state, "orderExpired", { order_id: order.id }));
       conversation.activeOrderId = undefined;
       conversation.stage = "menu";
     }

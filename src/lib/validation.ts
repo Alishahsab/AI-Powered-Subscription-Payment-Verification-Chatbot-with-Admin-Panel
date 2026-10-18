@@ -83,6 +83,10 @@ export function validateConfig(config: StoreConfig) {
   if (settings.rejectReasons.length === 0) errors.push("Add at least one rejection reason.");
   if (!settings.support.waitingMessage.trim() || !settings.support.expiredMessage.trim()) errors.push("Support request messages cannot be empty.");
   if (!settings.support.stillFacingLabel.trim() || !settings.support.resolvedLabel.trim()) errors.push("Support button labels cannot be empty.");
+  if (Object.values(settings.messages).some((text) => !text.trim())) errors.push("Bot messages cannot be empty.");
+  if (settings.inboxTabs.some((tab) => !tab.label)) errors.push("Inbox tab names cannot be empty.");
+  if (!settings.blocking.message.trim()) errors.push("The blocked customer message cannot be empty.");
+  if (settings.blocking.channelUrl && !/^https?:\/\//.test(settings.blocking.channelUrl)) errors.push("The official channel link must start with https://");
 
   const longTexts = [
     settings.welcome,

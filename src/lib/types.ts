@@ -32,7 +32,39 @@ export type Timers = {
   inactiveMinutes: number;
   retryMinutes: number;
   cancelCooldownMinutes: number;
-  issueInactiveHours: number;
+  issueInactiveMinutes: number;
+};
+
+export type BotMessageKey =
+  | "welcomeBack"
+  | "menuPrompt"
+  | "choosePlan"
+  | "chooseMethod"
+  | "termsIntro"
+  | "orderCreated"
+  | "openOrderExists"
+  | "orderCancelled"
+  | "ordersPausedAfterCancels"
+  | "ordersPaused"
+  | "orderExpired"
+  | "paymentIssueReceived"
+  | "supportIntro"
+  | "describeIssue"
+  | "issueReceived"
+  | "issueResolvedByCustomer"
+  | "issueResolvedByAdmin";
+
+export type BotMessages = Record<BotMessageKey, string>;
+
+export type InboxTab = "pending" | "issues" | "completed" | "unused" | "blocked" | "bot";
+
+export type InboxTabSetting = { key: InboxTab; label: string };
+
+export type BlockingSettings = {
+  message: string;
+  channelLabel: string;
+  channelUrl: string;
+  reasons: string[];
 };
 
 export type SupportSettings = {
@@ -63,6 +95,9 @@ export type Settings = {
   waitForAdminMessage: string;
   rejectReasons: string[];
   support: SupportSettings;
+  messages: BotMessages;
+  blocking: BlockingSettings;
+  inboxTabs: InboxTabSetting[];
   bank: BankAccount;
   timers: Timers;
   limits: Limits;
@@ -76,6 +111,7 @@ export type Customer = {
   createdAt: number;
   lastSeenAt: number;
   blocked: boolean;
+  blockReason?: string;
   paymentBlockedUntil?: number;
   cancelCount: number;
   cancelCooldownUntil?: number;

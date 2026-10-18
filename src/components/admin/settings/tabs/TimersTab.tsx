@@ -1,3 +1,4 @@
+import DurationField from "../DurationField";
 import type { SettingsTabProps } from "../Settings";
 import { ChoiceButtons, SettingsSection } from "../SettingsSection";
 
@@ -6,29 +7,27 @@ export default function TimersTab({ draft, updateDraft }: SettingsTabProps) {
 
   return (
     <>
-      <SettingsSection title="Payment timer" description="After this time the bank details are hidden and the unpaid order is cancelled.">
-        <ChoiceButtons values={[5, 10, 15, 20, 30]} value={timers.orderMinutes} unit="min" onChange={(value) => updateDraft((next) => (next.settings.timers.orderMinutes = value))} />
-      </SettingsSection>
-
-      <SettingsSection title="Non-active chats" description="A chat moves from Active to Non-active after this much time without activity.">
-        <ChoiceButtons values={[10, 15, 20, 30]} value={timers.inactiveMinutes} unit="min" onChange={(value) => updateDraft((next) => (next.settings.timers.inactiveMinutes = value))} />
-      </SettingsSection>
-
-      <SettingsSection title="Cancel cooldown" description="After this many cancelled orders in a row, new orders are paused for the time below. A live countdown shows the customer when they can order again.">
-        <div className="space-y-4">
-          <div>
-            <div className="text-[13px] font-medium text-zinc-700 mb-1.5">Cancellations allowed</div>
-            <ChoiceButtons values={[1, 2, 3, 5]} value={limits.cancelsBeforeCooldown} unit="times" onChange={(value) => updateDraft((next) => (next.settings.limits.cancelsBeforeCooldown = value))} />
-          </div>
-          <div>
-            <div className="text-[13px] font-medium text-zinc-700 mb-1.5">Pause new orders for</div>
-            <ChoiceButtons values={[10, 15, 30, 60, 120]} value={timers.cancelCooldownMinutes} unit="min" onChange={(value) => updateDraft((next) => (next.settings.timers.cancelCooldownMinutes = value))} />
-          </div>
+      <SettingsSection title="Timers" description="Each timer can be set in minutes or hours. Changes apply to new orders and requests only.">
+        <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
+          <DurationField label="Payment card timer" minutes={timers.orderMinutes} onChange={(value) => updateDraft((next) => (next.settings.timers.orderMinutes = value))} />
+          <DurationField label="Chat becomes inactive after" minutes={timers.inactiveMinutes} onChange={(value) => updateDraft((next) => (next.settings.timers.inactiveMinutes = value))} />
+          <DurationField label="Pause new orders after cancellations for" minutes={timers.cancelCooldownMinutes} onChange={(value) => updateDraft((next) => (next.settings.timers.cancelCooldownMinutes = value))} />
+          <DurationField label="Wait after a payment problem" minutes={timers.retryMinutes} onChange={(value) => updateDraft((next) => (next.settings.timers.retryMinutes = value))} />
+          <DurationField label="Close a support request after no reply for" minutes={timers.issueInactiveMinutes} onChange={(value) => updateDraft((next) => (next.settings.timers.issueInactiveMinutes = value))} />
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Retry after payment issue" description="How long customers wait before buying again after reporting a payment issue.">
-        <ChoiceButtons values={[15, 30, 45, 60]} value={timers.retryMinutes} unit="min" onChange={(value) => updateDraft((next) => (next.settings.timers.retryMinutes = value))} />
+      <SettingsSection title="Limits" description="How many times a customer can do something before they have to wait.">
+        <div className="space-y-4">
+          <div>
+            <div className="text-[13px] font-medium text-zinc-700 mb-1.5">Cancellations allowed before new orders are paused</div>
+            <ChoiceButtons values={[1, 2, 3, 5]} value={limits.cancelsBeforeCooldown} unit="times" onChange={(value) => updateDraft((next) => (next.settings.limits.cancelsBeforeCooldown = value))} />
+          </div>
+          <div>
+            <div className="text-[13px] font-medium text-zinc-700 mb-1.5">Replies allowed after a payment is rejected</div>
+            <ChoiceButtons values={[1, 2, 3]} value={limits.repliesAfterRejection} unit="times" onChange={(value) => updateDraft((next) => (next.settings.limits.repliesAfterRejection = value))} />
+          </div>
+        </div>
       </SettingsSection>
     </>
   );
