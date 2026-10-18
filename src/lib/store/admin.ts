@@ -98,18 +98,6 @@ export function setCodeUnused(orderId: string, unused: boolean) {
   });
 }
 
-export type OrderCategory = "pending" | "completed" | "unused";
-
-export function moveOrderToCategory(orderId: string, category: OrderCategory) {
-  updateState((state) => {
-    const order = state.orders.find((item) => item.id === orderId);
-    if (!order) return;
-
-    order.status = category === "pending" ? "pending_review" : "completed";
-    order.codeUnused = category === "unused";
-    if (category !== "pending") order.reviewedAt = order.reviewedAt ?? Date.now();
-  });
-}
 
 export async function deleteCustomer(customerId: string): Promise<string | null> {
   const client = getSupabase("admin");
