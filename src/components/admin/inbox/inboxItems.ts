@@ -125,11 +125,9 @@ function cancelledItems(state: AppState): InboxItem[] {
 }
 
 function issueItems(state: AppState): InboxItem[] {
-  return [...state.tickets]
-    .sort((a, b) => {
-      if (a.status !== b.status) return a.status === "open" ? -1 : 1;
-      return b.createdAt - a.createdAt;
-    })
+  return state.tickets
+    .filter((ticket) => ticket.status === "open")
+    .sort((a, b) => b.createdAt - a.createdAt)
     .map((ticket) => ({
       key: ticket.id,
       customerId: ticket.customerId,
@@ -137,11 +135,8 @@ function issueItems(state: AppState): InboxItem[] {
       tag: customerTag(state, ticket.customerId),
       subtitle: ticket.message,
       time: ticket.createdAt,
-      unread: ticket.status === "open",
-      badge:
-        ticket.status === "open"
-          ? { label: ticket.kind === "payment" ? `Payment issue · ${ticket.id}` : `Open · ${ticket.id}`, tone: "red" }
-          : { label: "Resolved", tone: "gray" },
+      unread: true,
+      badge: { label: ticket.kind === "payment" ? `Payment issue · ${ticket.id}` : `Open · ${ticket.id}`, tone: "red" },
     }));
 }
 

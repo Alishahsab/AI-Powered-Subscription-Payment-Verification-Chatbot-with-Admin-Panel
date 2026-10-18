@@ -32,6 +32,16 @@ export type Timers = {
   inactiveMinutes: number;
   retryMinutes: number;
   cancelCooldownMinutes: number;
+  issueInactiveHours: number;
+};
+
+export type SupportSettings = {
+  waitingMessage: string;
+  expiredMessage: string;
+  stillFacingLabel: string;
+  resolvedLabel: string;
+  issueScreenshotRequired: boolean;
+  problemScreenshotRequired: boolean;
 };
 
 export type Limits = {
@@ -52,6 +62,7 @@ export type Settings = {
   rejectionMessage: string;
   waitForAdminMessage: string;
   rejectReasons: string[];
+  support: SupportSettings;
   bank: BankAccount;
   timers: Timers;
   limits: Limits;
@@ -97,6 +108,8 @@ export type Stage =
   | "support"
   | "support_other"
   | "rejected"
+  | "waiting_agent"
+  | "agent_replied"
   | "live";
 
 export type Conversation = {

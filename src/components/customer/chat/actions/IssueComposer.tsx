@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Paperclip, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { submitSupportIssue } from "@/lib/store/customer";
+import { useAppState } from "@/lib/store/state";
 import { limits, validateMessage } from "@/lib/validation";
 import ImagePicker from "../ImagePicker";
 import BackToMenuButton from "./BackToMenuButton";
+import { primaryButtonClass } from "./buttonStyles";
 
 export default function IssueComposer({ customerId }: { customerId: string }) {
+  const state = useAppState();
+  const screenshotRequired = state.settings.support.issueScreenshotRequired;
   const [description, setDescription] = useState("");
   const [screenshot, setScreenshot] = useState<string | null>(null);
-  const [showPicker, setShowPicker] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -20,12 +23,16 @@ export default function IssueComposer({ customerId }: { customerId: string }) {
       setError(problem);
       return;
     }
+    if (screenshotRequired && !screenshot) {
+      setError("Please attach a screenshot so our team can see the problem.");
+      return;
+    }
     setBusy(true);
     await submitSupportIssue(customerId, description.trim(), screenshot ?? undefined);
   };
 
   return (
-    <div className="space-y-2.5">
+    <div className="max-w-[560px] mx-auto space-y-2.5">
       <textarea
         autoFocus
         value={description}
@@ -39,6 +46,8 @@ export default function IssueComposer({ customerId }: { customerId: string }) {
         className="w-full resize-none rounded-2xl bg-[var(--surface)] border border-[var(--line)] px-4 py-3 text-[14.5px] outline-none focus:border-[color-mix(in_srgb,var(--accent)_55%,transparent)] placeholder:text-[#9aa1ab]"
       />
 
+      <ImagePicker image={screenshot} onChange={setScreenshot} label={screenshotRequired ? "Attach a screenshot" : "Attach a screenshot (optional)"} />
+
       <div className="flex justify-between text-[12px]">
         <span className="text-red-600">{error}</span>
         <span className="text-[var(--muted)]">
@@ -46,19 +55,7 @@ export default function IssueComposer({ customerId }: { customerId: string }) {
         </span>
       </div>
 
-      {showPicker ? (
-        <ImagePicker image={screenshot} onChange={setScreenshot} label="Attach a screenshot (optional)" />
-      ) : (
-        <button onClick={() => setShowPicker(true)} className="text-[13px] font-medium text-[var(--accent)] flex items-center gap-1.5">
-          <Paperclip size={14} /> Attach a screenshot (optional)
-        </button>
-      )}
-
-      <button
-        onClick={submit}
-        disabled={busy}
-        className="w-full h-12 rounded-xl bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50"
-      >
+      <button onClick={submit} disabled={busy} className={`${primaryButtonClass} disabled:opacity-50`}>
         <Send size={16} /> {busy ? "Sending…" : "Send to our team"}
       </button>
       <BackToMenuButton customerId={customerId} showBack />

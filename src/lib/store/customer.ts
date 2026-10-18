@@ -350,7 +350,7 @@ async function uploadOptional(customerId: string, screenshot?: string) {
 
 export async function reportPaymentIssue(customerId: string, description: string, screenshot?: string) {
   const screenshotPath = await uploadOptional(customerId, screenshot);
-  const text = description.trim() || "The payment is not going through to your account.";
+  const text = description.trim();
 
   updateState((state) => {
     const order = getActiveOrder(state, customerId);
@@ -371,7 +371,7 @@ export async function reportPaymentIssue(customerId: string, description: string
   replyAsBot(customerId, (state) => {
     const retryMinutes = state.settings.timers.retryMinutes;
     addMessage(state, customerId, "bot", `Thanks for letting us know. Please don't send any payment right now, we're checking our account details. Please try again after ${retryMinutes} minutes. Our team will reply here.`);
-    state.conversations[customerId].stage = "live";
+    state.conversations[customerId].stage = "waiting_agent";
     state.conversations[customerId].activeOrderId = undefined;
   });
 }
@@ -415,14 +415,50 @@ export async function submitSupportIssue(customerId: string, description: string
 
   replyAsBot(customerId, (state) => {
     addMessage(state, customerId, "bot", `Thanks, your issue ${ticketId} has been sent to our team. An agent will join you shortly and reply right here. You can close this page and check back later.`);
-    state.conversations[customerId].stage = "live";
+    state.conversations[customerId].stage = "waiting_agent";
   });
 }
 
 export function sendCustomerMessage(customerId: string, text: string) {
   updateState((state) => {
     addMessage(state, customerId, "customer", text);
-    state.conversations[customerId].unreadByAdmin += 1;
+    const conversation = state.conversations[customerId];
+    conversation.unreadByAdmin += 1;
+    if (findOpenTicket(state, customerId)) conversation.stage = "waiting_agent";
+  });
+}
+
+export function findOpenTicket(state: AppState, customerId: string) {
+  return state.tickets.find((ticket) => ticket.customerId === customerId && ticket.status === "open");
+}
+
+export function isIssueExpired(state: AppState, customerId: string, now = Date.now()) {
+  const ticket = findOpenTicket(state, customerId);
+  if (!ticket) return false;
+
+  const lastCustomerMessage = state.messages.filter((message) => message.customerId === customerId && message.sender === "customer").at(-1)?.createdAt ?? 0;
+  const lastActivity = Math.max(ticket.createdAt, lastCustomerMessage);
+  return now - lastActivity > state.settings.timers.issueInactiveHours * 60 * MINUTE;
+}
+
+export function continueIssue(customerId: string) {
+  updateState((state) => {
+    addMessage(state, customerId, "customer", state.settings.support.stillFacingLabel);
+    state.conversations[customerId].stage = "live";
+  });
+}
+
+export function confirmIssueResolved(customerId: string) {
+  updateState((state) => {
+    addMessage(state, customerId, "customer", state.settings.support.resolvedLabel);
+    for (const ticket of state.tickets) {
+      if (ticket.customerId === customerId && ticket.status === "open") ticket.status = "resolved";
+    }
+  });
+
+  replyAsBot(customerId, (state) => {
+    addMessage(state, customerId, "bot", "Glad it's sorted. Anything else we can help with?");
+    state.conversations[customerId].stage = "menu";
   });
 }
 

@@ -1,11 +1,13 @@
 "use client";
 
+import { isIssueExpired } from "@/lib/store/customer";
 import { canStillPay, findOrderMethod, getActiveOrder } from "@/lib/store/helpers";
 import { getState } from "@/lib/store/state";
 import type { Conversation } from "@/lib/types";
 import type { OpenSheet } from "./ChatScreen";
 import BackToMenuButton from "./actions/BackToMenuButton";
 import IssueComposer from "./actions/IssueComposer";
+import IssueStatus from "./actions/IssueStatus";
 import MenuOptions from "./actions/MenuOptions";
 import MessageComposer from "./actions/MessageComposer";
 import MethodOptions from "./actions/MethodOptions";
@@ -52,7 +54,12 @@ function StageActions({ customerId, conversation, onOpenSheet }: ActionPanelProp
       return <IssueComposer customerId={customerId} />;
     case "rejected":
       return <RejectionReply customerId={customerId} />;
+    case "waiting_agent":
+      return <IssueStatus customerId={customerId} agentReplied={false} />;
+    case "agent_replied":
+      return <IssueStatus customerId={customerId} agentReplied />;
     case "live":
+      if (isIssueExpired(getState(), customerId)) return <IssueStatus customerId={customerId} agentReplied={false} />;
       return <MessageComposer customerId={customerId} />;
   }
 }

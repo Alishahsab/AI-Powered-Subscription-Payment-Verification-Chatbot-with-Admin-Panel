@@ -200,6 +200,7 @@ export function configFromRow(row: Row): StoreConfig {
       ...saved,
       timers: { ...defaults.settings.timers, ...saved.timers },
       limits: { ...defaults.settings.limits, ...saved.limits },
+      support: { ...defaults.settings.support, ...saved.support },
     },
     plans: row.plans as StoreConfig["plans"],
     methods: row.methods as StoreConfig["methods"],

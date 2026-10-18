@@ -52,8 +52,11 @@ export function sendAdminMessage(customerId: string, text: string, emailCopy: bo
 
     const conversation = state.conversations[customerId];
     conversation.unreadByAdmin = 0;
+    const hasOpenTicket = state.tickets.some((ticket) => ticket.customerId === customerId && ticket.status === "open");
     const keepsStage = conversation.stage === "awaiting_payment" || conversation.stage === "rejected";
-    if (!keepsStage) conversation.stage = containsCode ? "menu" : "live";
+    if (containsCode) conversation.stage = "menu";
+    else if (hasOpenTicket) conversation.stage = "agent_replied";
+    else if (!keepsStage) conversation.stage = "live";
   });
 
   if (emailCopy) {
@@ -73,6 +76,19 @@ export function setCodeUnused(orderId: string, unused: boolean) {
   updateState((state) => {
     const order = state.orders.find((item) => item.id === orderId);
     if (order) order.codeUnused = unused;
+  });
+}
+
+export type OrderCategory = "pending" | "completed" | "unused";
+
+export function moveOrderToCategory(orderId: string, category: OrderCategory) {
+  updateState((state) => {
+    const order = state.orders.find((item) => item.id === orderId);
+    if (!order) return;
+
+    order.status = category === "pending" ? "pending_review" : "completed";
+    order.codeUnused = category === "unused";
+    if (category !== "pending") order.reviewedAt = order.reviewedAt ?? Date.now();
   });
 }
 
@@ -163,7 +179,15 @@ export function rejectOrder(orderId: string, reason: string) {
 export function setTicketResolved(ticketId: string, resolved: boolean) {
   updateState((state) => {
     const ticket = state.tickets.find((item) => item.id === ticketId);
-    if (ticket) ticket.status = resolved ? "resolved" : "open";
+    if (!ticket) return;
+    ticket.status = resolved ? "resolved" : "open";
+
+    const conversation = state.conversations[ticket.customerId];
+    const stillOpen = state.tickets.some((item) => item.customerId === ticket.customerId && item.status === "open");
+    if (resolved && !stillOpen && conversation) {
+      addMessage(state, ticket.customerId, "bot", `Your request ${ticket.id} has been marked as resolved. If you need anything else, choose Customer Support from the menu.`);
+      conversation.stage = "menu";
+    }
   });
 }
 
