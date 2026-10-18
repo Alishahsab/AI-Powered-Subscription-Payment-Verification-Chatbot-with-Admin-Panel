@@ -28,7 +28,7 @@ export default function Inbox({ initialTab, initialCustomerId }: InboxProps) {
   const [isWideScreen] = useState(() => window.innerWidth >= 1024);
 
   const items = useMemo(() => buildInboxItems(state, tab, filter, now), [state, tab, filter, now]);
-  const counts = useMemo(() => countInboxTabs(state), [state]);
+  const counts = useMemo(() => countInboxTabs(state, now), [state, now]);
   const selectedCustomerId = chosenCustomerId ?? (isWideScreen ? items[0]?.customerId : undefined);
 
   useEffect(() => {

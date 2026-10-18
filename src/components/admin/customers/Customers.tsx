@@ -5,6 +5,7 @@ import { MessageSquare, Search, Users } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
 import { formatMoney, timeAgo } from "@/lib/format";
 import { toggleCustomerBlocked } from "@/lib/store/admin";
+import { customerNumberLabel, findLatestCode } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { Navigate } from "../navigation";
 import Avatar from "../ui/Avatar";
@@ -12,6 +13,7 @@ import Badge from "../ui/Badge";
 import Button from "../ui/Button";
 import { Card } from "../ui/Card";
 import EmptyState from "../ui/EmptyState";
+import DeleteCustomerButton from "./DeleteCustomerButton";
 import { inputClass } from "../ui/styles";
 
 export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
@@ -21,10 +23,15 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
   const search = query.trim().toLowerCase();
 
   const rows = state.customers
-    .filter((customer) => !search || customer.name.toLowerCase().includes(search) || customer.email.includes(search))
+    .filter((customer) => !search || customer.email.includes(search) || customerNumberLabel(customer).includes(search))
     .map((customer) => {
       const completed = state.orders.filter((order) => order.customerId === customer.id && order.status === "completed");
-      return { customer, orderCount: completed.length, spent: completed.reduce((sum, order) => sum + order.amount, 0) };
+      return {
+        customer,
+        orderCount: completed.length,
+        spent: completed.reduce((sum, order) => sum + order.amount, 0),
+        code: findLatestCode(state, customer.id),
+      };
     })
     .sort((a, b) => b.customer.lastSeenAt - a.customer.lastSeenAt);
 
@@ -38,7 +45,7 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
           </div>
           <div className="relative w-full sm:w-72">
             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Name or email" className={`${inputClass} pl-8`} />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Email or customer ID" className={`${inputClass} pl-8`} />
           </div>
         </div>
 
@@ -50,8 +57,9 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
               <table className="w-full text-[13px]">
                 <thead>
                   <tr className="text-left text-zinc-500 border-b border-zinc-100 bg-zinc-50/60">
-                    <th className="font-medium px-5 py-2.5">Customer</th>
+                    <th className="font-medium px-5 py-2.5">ID</th>
                     <th className="font-medium px-3 py-2.5">Email</th>
+                    <th className="font-medium px-3 py-2.5">Current code</th>
                     <th className="font-medium px-3 py-2.5">Orders</th>
                     <th className="font-medium px-3 py-2.5">Spent</th>
                     <th className="font-medium px-3 py-2.5">Last active</th>
@@ -59,16 +67,30 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map(({ customer, orderCount, spent }) => (
+                  {rows.map(({ customer, orderCount, spent, code }) => (
                     <tr key={customer.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/70">
                       <td className="px-5 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <Avatar name={customer.name} size={30} />
-                          <span className="font-medium">{customer.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[#0C2660] tabular-nums">{customerNumberLabel(customer)}</span>
                           {customer.blocked && <Badge tone="red">Blocked</Badge>}
                         </div>
                       </td>
-                      <td className="px-3 py-3 text-zinc-600">{customer.email}</td>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar name={customer.email} size={28} />
+                          <span className="font-medium text-zinc-800">{customer.email}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3">
+                        {code?.code ? (
+                          <span className="flex items-center gap-1.5">
+                            <span className="font-semibold tabular-nums">{code.code}</span>
+                            {code.codeUnused && <Badge tone="amber">Unused</Badge>}
+                          </span>
+                        ) : (
+                          <span className="text-zinc-400">None</span>
+                        )}
+                      </td>
                       <td className="px-3 py-3 tabular-nums">{orderCount}</td>
                       <td className="px-3 py-3 tabular-nums">{formatMoney(spent)}</td>
                       <td className="px-3 py-3 text-zinc-500 whitespace-nowrap">{timeAgo(customer.lastSeenAt, now)}</td>
@@ -80,6 +102,7 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
                           <Button size="sm" variant="ghost" onClick={() => toggleCustomerBlocked(customer.id)}>
                             {customer.blocked ? "Unblock" : "Block"}
                           </Button>
+                          <DeleteCustomerButton customerId={customer.id} email={customer.email} compact />
                         </div>
                       </td>
                     </tr>

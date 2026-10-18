@@ -8,17 +8,23 @@ import Badge from "../ui/Badge";
 import EmptyState from "../ui/EmptyState";
 import type { ChatFilter, InboxItem } from "./inboxItems";
 
-const tabs: { key: InboxTab; label: string }[] = [
-  { key: "general", label: "Chats" },
-  { key: "pending", label: "Pending" },
-  { key: "completed", label: "Completed" },
-  { key: "issues", label: "Issues" },
+const tabs: { key: InboxTab; label: string; urgent: boolean }[] = [
+  { key: "general", label: "Chats", urgent: true },
+  { key: "active", label: "Active orders", urgent: false },
+  { key: "pending", label: "Payment pending", urgent: true },
+  { key: "completed", label: "Completed", urgent: false },
+  { key: "unused", label: "Unused codes", urgent: false },
+  { key: "cancelled", label: "Cancelled", urgent: false },
+  { key: "issues", label: "App issues", urgent: true },
 ];
 
 const emptyText: Record<InboxTab, string> = {
   general: "No conversations here yet.",
+  active: "Orders waiting for the customer to pay show up here.",
   pending: "New payment submissions will appear here instantly.",
   completed: "Approved orders will show up here.",
+  unused: "Move a completed order here when its code has not been used yet.",
+  cancelled: "Cancelled, expired and rejected orders show up here.",
   issues: "No problems reported. All caught up.",
 };
 
@@ -41,19 +47,27 @@ export default function ChatList({ tab, onTabChange, filter, onFilterChange, cou
         <h1 className="text-[20px] font-bold tracking-tight text-zinc-900">Inbox</h1>
       </div>
 
-      <div className="mt-3 px-5 flex gap-5 border-b border-zinc-200/80">
+      <div className="mt-3 px-5 flex flex-wrap gap-1.5 pb-3 border-b border-zinc-200/80">
         {tabs.map((item) => (
           <button
             key={item.key}
             onClick={() => onTabChange(item.key)}
             className={classNames(
-              "relative pb-2.5 text-[13.5px] font-semibold flex items-center gap-1.5 transition",
-              tab === item.key ? "text-[#0C2660]" : "text-zinc-400 hover:text-zinc-700"
+              "h-8 px-3 rounded-full text-[12.5px] font-semibold flex items-center gap-1.5 transition",
+              tab === item.key ? "bg-[#0C2660] text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200/70"
             )}
           >
             {item.label}
-            {counts[item.key] > 0 && <span className="text-[10.5px] font-bold rounded-full min-w-[18px] h-[18px] px-1 grid place-items-center bg-red-500 text-white">{counts[item.key]}</span>}
-            {tab === item.key && <span className="absolute inset-x-0 -bottom-px h-[2.5px] rounded-full bg-[#0C2660]" />}
+            {counts[item.key] > 0 && (
+              <span
+                className={classNames(
+                  "text-[10.5px] font-bold rounded-full min-w-[18px] h-[18px] px-1 grid place-items-center",
+                  tab === item.key ? "bg-white/20 text-white" : item.urgent ? "bg-red-500 text-white" : "bg-zinc-300 text-zinc-700"
+                )}
+              >
+                {counts[item.key]}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -93,7 +107,10 @@ export default function ChatList({ tab, onTabChange, filter, onFilterChange, cou
                 <Avatar name={item.title} size={40} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <span className={classNames("text-[14px] truncate", item.unread ? "font-bold text-zinc-900" : "font-semibold text-zinc-800")}>{item.title}</span>
+                    <span className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-[11px] font-bold text-[#0C2660] bg-[#0C2660]/[0.07] rounded px-1.5 py-0.5 shrink-0">{item.tag}</span>
+                      <span className={classNames("text-[13.5px] truncate", item.unread ? "font-bold text-zinc-900" : "font-semibold text-zinc-800")}>{item.title}</span>
+                    </span>
                     <span className={classNames("text-[11.5px] shrink-0", item.unread ? "text-[#0C2660] font-semibold" : "text-zinc-400")}>{timeAgo(item.time, now)}</span>
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">

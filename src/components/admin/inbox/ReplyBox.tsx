@@ -14,11 +14,10 @@ const quickReplies = [
 
 type ReplyBoxProps = {
   customerId: string;
-  customerName: string;
   customerEmail: string;
 };
 
-export default function ReplyBox({ customerId, customerName, customerEmail }: ReplyBoxProps) {
+export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
   const [text, setText] = useState("");
   const [emailCopy, setEmailCopy] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(false);
@@ -30,7 +29,7 @@ export default function ReplyBox({ customerId, customerName, customerEmail }: Re
 
     const duplicate = findCodeSentToSomeoneElse(customerId, content);
     if (duplicate && !skipDuplicateCheck) {
-      setWarning(`Code ${duplicate.code} was already sent to ${duplicate.customerName} on ${formatDateTime(duplicate.sentAt)}.`);
+      setWarning(`Code ${duplicate.code} was already sent to ${duplicate.customerEmail} on ${formatDateTime(duplicate.sentAt)}.`);
       return;
     }
 
@@ -85,7 +84,7 @@ export default function ReplyBox({ customerId, customerName, customerEmail }: Re
               }
             }}
             rows={1}
-            placeholder={`Message ${customerName.split(" ")[0]} or paste the code…`}
+            placeholder="Message the customer or paste the code…"
             className="flex-1 resize-none min-h-9 max-h-32 bg-transparent px-1.5 py-2 text-[14px] outline-none placeholder:text-zinc-400"
           />
           <button

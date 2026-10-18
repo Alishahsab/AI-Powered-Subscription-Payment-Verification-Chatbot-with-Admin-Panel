@@ -57,7 +57,6 @@ export function validateEmail(email: string) {
 
 export function validatePin(pin: string) {
   if (!/^\d{6}$/.test(pin)) return "Your PIN must be exactly 6 digits.";
-  if (/^(\d)\1{5}$/.test(pin) || pin === "123456" || pin === "654321") return "This PIN is too easy to guess. Please choose another.";
   return null;
 }
 

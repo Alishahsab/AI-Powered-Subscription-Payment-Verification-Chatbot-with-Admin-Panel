@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { ArrowLeft, PanelRight } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
+import { customerNumberLabel } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { Message } from "@/lib/types";
 import Avatar from "../ui/Avatar";
@@ -45,12 +46,14 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
           <ArrowLeft size={18} />
         </button>
         <div className="relative">
-          <Avatar name={customer.name} size={38} />
+          <Avatar name={customer.email} size={38} />
           {active && <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-500 ring-2 ring-white" />}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[15px] font-bold text-zinc-900 truncate">{customer.name}</div>
-          <div className="text-[12px] text-zinc-500 truncate">{active ? "Active now" : "Away from chat"}</div>
+          <div className="text-[15px] font-bold text-zinc-900 truncate">{customer.email}</div>
+          <div className="text-[12px] text-zinc-500 truncate">
+            {customerNumberLabel(customer)} · {active ? "Active now" : "Away from chat"}
+          </div>
         </div>
         <button onClick={onShowDetails} className="xl:hidden h-9 px-3 flex items-center gap-1.5 rounded-lg text-[13px] font-medium text-zinc-600 hover:bg-zinc-100" aria-label="Show details">
           <PanelRight size={16} /> Details
@@ -72,7 +75,7 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
         </div>
       </div>
 
-      <ReplyBox customerId={customerId} customerName={customer.name} customerEmail={customer.email} />
+      <ReplyBox customerId={customerId} customerEmail={customer.email} />
     </div>
   );
 }

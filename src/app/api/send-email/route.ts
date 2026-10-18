@@ -9,14 +9,14 @@ function escapeHtml(text: string) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function buildHtml(name: string, message: string, instructions: string) {
+function buildHtml(message: string, instructions: string) {
   const paragraphs = [message, instructions]
     .filter(Boolean)
     .map((text) => `<p style="margin:0 0 16px;white-space:pre-line">${escapeHtml(text)}</p>`)
     .join("");
 
   return `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#111827;max-width:520px">
-    <p style="margin:0 0 16px">Hi ${escapeHtml(name)},</p>
+    <p style="margin:0 0 16px">Hi there,</p>
     ${paragraphs}
     <p style="margin:0;color:#6b7280">Premium Store</p>
   </div>`;
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     return new Response("Invalid message", { status: 400 });
   }
 
-  const { data: customer } = await supabase.from("customers").select("name, email").eq("id", customerId).maybeSingle();
+  const { data: customer } = await supabase.from("customers").select("email").eq("id", customerId).maybeSingle();
   if (!customer) return new Response("Customer not found", { status: 404 });
 
   const response = await fetch("https://api.resend.com/emails", {
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       from: fromAddress,
       to: customer.email,
       subject: "Your Premium Store code",
-      html: buildHtml(customer.name, message, typeof instructions === "string" ? instructions : ""),
+      html: buildHtml(message, typeof instructions === "string" ? instructions : ""),
     }),
   });
 

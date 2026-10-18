@@ -1,6 +1,6 @@
 import { formatMoney, timeAgo } from "@/lib/format";
-import { findCustomerName } from "@/lib/store/helpers";
-import type { AppState, Message } from "@/lib/types";
+import { canStillPay, customerNumberLabel, findCustomerEmail } from "@/lib/store/helpers";
+import type { AppState, Message, Order, OrderStatus } from "@/lib/types";
 import type { InboxTab } from "../navigation";
 
 export type ChatFilter = "active" | "inactive";
@@ -9,10 +9,17 @@ export type InboxItem = {
   key: string;
   customerId: string;
   title: string;
+  tag: string;
   subtitle: string;
   time: number;
   unread: boolean;
   badge?: { label: string; tone: "green" | "amber" | "red" | "blue" | "gray" };
+};
+
+const cancelledLabels: Partial<Record<OrderStatus, string>> = {
+  cancelled: "Cancelled by customer",
+  expired: "Expired before payment",
+  rejected: "Rejected, not re-sent",
 };
 
 function describeMessage(message: Message) {
@@ -23,10 +30,32 @@ function describeMessage(message: Message) {
   return message.text;
 }
 
+function customerTag(state: AppState, customerId: string) {
+  return customerNumberLabel(state.customers.find((customer) => customer.id === customerId));
+}
+
 export function isCustomerActive(state: AppState, customerId: string, now: number) {
   const customer = state.customers.find((item) => item.id === customerId);
   if (!customer) return false;
   return now - customer.lastSeenAt < state.settings.timers.inactiveMinutes * 60_000;
+}
+
+function isCancelled(order: Order, now: number) {
+  if (order.status === "cancelled" || order.status === "expired") return true;
+  return order.status === "rejected" && !canStillPay(order, now);
+}
+
+function orderItem(state: AppState, order: Order, time: number, subtitle: string, badge?: InboxItem["badge"], unread = false): InboxItem {
+  return {
+    key: order.id,
+    customerId: order.customerId,
+    title: findCustomerEmail(state, order.customerId),
+    tag: customerTag(state, order.customerId),
+    subtitle,
+    time,
+    unread,
+    badge,
+  };
 }
 
 function generalChatItems(state: AppState, filter: ChatFilter, now: number): InboxItem[] {
@@ -40,7 +69,8 @@ function generalChatItems(state: AppState, filter: ChatFilter, now: number): Inb
       return {
         key: conversation.customerId,
         customerId: conversation.customerId,
-        title: findCustomerName(state, conversation.customerId),
+        title: findCustomerEmail(state, conversation.customerId),
+        tag: customerTag(state, conversation.customerId),
         subtitle: lastMessage ? prefix + describeMessage(lastMessage) : "",
         time: conversation.lastMessageAt,
         unread: conversation.unreadByAdmin > 0,
@@ -48,34 +78,48 @@ function generalChatItems(state: AppState, filter: ChatFilter, now: number): Inb
     });
 }
 
+function activeItems(state: AppState, now: number): InboxItem[] {
+  return state.orders
+    .filter((order) => canStillPay(order, now))
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .map((order) =>
+      orderItem(state, order, order.createdAt, `${order.planName} · ${formatMoney(order.amount)} · ${order.methodName}`, {
+        label: `${Math.max(0, Math.ceil((order.expiresAt - now) / 60_000))} min left to pay`,
+        tone: "blue",
+      })
+    );
+}
+
 function pendingItems(state: AppState, now: number): InboxItem[] {
   return state.orders
     .filter((order) => order.status === "pending_review")
     .sort((a, b) => (a.submittedAt ?? 0) - (b.submittedAt ?? 0))
-    .map((order) => ({
-      key: order.id,
-      customerId: order.customerId,
-      title: findCustomerName(state, order.customerId),
-      subtitle: `${order.planName} · ${formatMoney(order.amount)} · ${order.methodName}`,
-      time: order.submittedAt ?? order.createdAt,
-      unread: true,
-      badge: { label: `waiting ${timeAgo(order.submittedAt ?? order.createdAt, now).replace(" ago", "")}`, tone: "amber" },
-    }));
+    .map((order) => {
+      const submitted = order.submittedAt ?? order.createdAt;
+      return orderItem(state, order, submitted, `${order.planName} · ${formatMoney(order.amount)} · ${order.methodName}`, { label: `waiting ${timeAgo(submitted, now).replace(" ago", "")}`, tone: "amber" }, true);
+    });
 }
 
-function completedItems(state: AppState): InboxItem[] {
+function completedItems(state: AppState, unused: boolean): InboxItem[] {
   return state.orders
-    .filter((order) => order.status === "completed")
+    .filter((order) => order.status === "completed" && order.codeUnused === unused)
     .sort((a, b) => (b.reviewedAt ?? 0) - (a.reviewedAt ?? 0))
-    .map((order) => ({
-      key: order.id,
-      customerId: order.customerId,
-      title: findCustomerName(state, order.customerId),
-      subtitle: `${order.planName} · ${formatMoney(order.amount)}`,
-      time: order.reviewedAt ?? order.createdAt,
-      unread: false,
-      badge: { label: "Completed", tone: "green" },
-    }));
+    .map((order) =>
+      orderItem(
+        state,
+        order,
+        order.reviewedAt ?? order.createdAt,
+        order.code ? `${order.planName} · ${order.code}` : `${order.planName} · code not sent yet`,
+        unused ? { label: "Code not used", tone: "amber" } : { label: "Completed", tone: "green" }
+      )
+    );
+}
+
+function cancelledItems(state: AppState, now: number): InboxItem[] {
+  return state.orders
+    .filter((order) => isCancelled(order, now))
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .map((order) => orderItem(state, order, order.createdAt, `${order.planName} · ${formatMoney(order.amount)}`, { label: cancelledLabels[order.status] ?? "Cancelled", tone: "gray" }));
 }
 
 function issueItems(state: AppState): InboxItem[] {
@@ -87,7 +131,8 @@ function issueItems(state: AppState): InboxItem[] {
     .map((ticket) => ({
       key: ticket.id,
       customerId: ticket.customerId,
-      title: findCustomerName(state, ticket.customerId),
+      title: findCustomerEmail(state, ticket.customerId),
+      tag: customerTag(state, ticket.customerId),
       subtitle: ticket.message,
       time: ticket.createdAt,
       unread: ticket.status === "open",
@@ -99,17 +144,23 @@ function issueItems(state: AppState): InboxItem[] {
 }
 
 export function buildInboxItems(state: AppState, tab: InboxTab, filter: ChatFilter, now: number) {
+  if (tab === "active") return activeItems(state, now);
   if (tab === "pending") return pendingItems(state, now);
-  if (tab === "completed") return completedItems(state);
+  if (tab === "completed") return completedItems(state, false);
+  if (tab === "unused") return completedItems(state, true);
+  if (tab === "cancelled") return cancelledItems(state, now);
   if (tab === "issues") return issueItems(state);
   return generalChatItems(state, filter, now);
 }
 
-export function countInboxTabs(state: AppState): Record<InboxTab, number> {
+export function countInboxTabs(state: AppState, now: number): Record<InboxTab, number> {
   return {
     general: Object.values(state.conversations).filter((conversation) => conversation.unreadByAdmin > 0).length,
+    active: state.orders.filter((order) => canStillPay(order, now)).length,
     pending: state.orders.filter((order) => order.status === "pending_review").length,
     completed: 0,
+    unused: state.orders.filter((order) => order.status === "completed" && order.codeUnused).length,
+    cancelled: 0,
     issues: state.tickets.filter((ticket) => ticket.status === "open").length,
   };
 }

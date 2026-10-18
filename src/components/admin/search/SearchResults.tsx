@@ -2,7 +2,7 @@
 
 import { MessageSquare, Receipt, Search, User } from "lucide-react";
 import { formatDateTime, formatMoney } from "@/lib/format";
-import { findCustomerName } from "@/lib/store/helpers";
+import { customerNumberLabel, findCustomerEmail } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { Navigate } from "../navigation";
 import { Card } from "../ui/Card";
@@ -18,8 +18,10 @@ export default function SearchResults({ query, onNavigate }: SearchResultsProps)
   const text = query.trim();
   const lower = text.toLowerCase();
 
-  const customers = text ? state.customers.filter((customer) => customer.name.toLowerCase().includes(lower) || customer.email.includes(lower)) : [];
-  const orders = text ? state.orders.filter((order) => order.id.toLowerCase().includes(lower) || order.senderName?.toLowerCase().includes(lower)) : [];
+  const customers = text ? state.customers.filter((customer) => customer.email.includes(lower) || customerNumberLabel(customer).includes(lower)) : [];
+  const orders = text
+    ? state.orders.filter((order) => order.id.toLowerCase().includes(lower) || order.senderName?.toLowerCase().includes(lower) || order.code?.toLowerCase().includes(lower))
+    : [];
   const messages = text ? state.messages.filter((message) => message.kind === "text" && message.text.toLowerCase().includes(lower)) : [];
   const total = customers.length + orders.length + messages.length;
 
@@ -44,7 +46,7 @@ export default function SearchResults({ query, onNavigate }: SearchResultsProps)
             <ResultRow key={message.id} onClick={() => onNavigate({ section: "inbox", customerId: message.customerId, tab: "general" })}>
               <div className="min-w-0">
                 <div className="text-[12px] text-zinc-500">
-                  {findCustomerName(state, message.customerId)} · {roleLabel[message.sender]} · {formatDateTime(message.createdAt)}
+                  {findCustomerEmail(state, message.customerId)} · {roleLabel[message.sender]} · {formatDateTime(message.createdAt)}
                 </div>
                 <div className="text-zinc-800 truncate">
                   <Highlight text={message.text} query={text} />
@@ -57,10 +59,10 @@ export default function SearchResults({ query, onNavigate }: SearchResultsProps)
         <ResultGroup title="Customers" icon={<User size={15} />} count={customers.length}>
           {customers.map((customer) => (
             <ResultRow key={customer.id} onClick={() => onNavigate({ section: "inbox", customerId: customer.id, tab: "general" })}>
-              <span className="font-medium">
-                <Highlight text={customer.name} query={text} />
+              <span className="font-bold text-[#0C2660]">
+                <Highlight text={customerNumberLabel(customer)} query={text} />
               </span>
-              <span className="text-zinc-500 ml-auto">
+              <span className="text-zinc-700 ml-auto">
                 <Highlight text={customer.email} query={text} />
               </span>
             </ResultRow>
@@ -74,7 +76,7 @@ export default function SearchResults({ query, onNavigate }: SearchResultsProps)
                 <Highlight text={order.id} query={text} />
               </span>
               <span className="text-zinc-500">
-                {findCustomerName(state, order.customerId)} · {order.planName} · {formatMoney(order.amount)}
+                {findCustomerEmail(state, order.customerId)} · {order.planName} · {formatMoney(order.amount)}
               </span>
             </ResultRow>
           ))}

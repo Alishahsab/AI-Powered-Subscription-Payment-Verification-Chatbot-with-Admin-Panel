@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Info, X } from "lucide-react";
+import { Check, Info, PackageX, X } from "lucide-react";
 import StoredImage from "@/components/StoredImage";
 import { formatDateTime, formatMoney, formatTime } from "@/lib/format";
-import { approveOrder, rejectOrder, rejectReasons } from "@/lib/store/admin";
+import { approveOrder, rejectOrder, rejectReasons, setCodeUnused } from "@/lib/store/admin";
 import type { Order } from "@/lib/types";
 import Badge from "../ui/Badge";
 import { orderStatusBadge } from "../ui/orderStatus";
@@ -29,6 +29,7 @@ export default function OrderReview({ order }: { order: Order }) {
         <Row label="Amount" value={formatMoney(order.amount)} strong />
         <Row label="Method" value={order.methodName} />
         {order.senderName && <Row label="Sender name" value={order.senderName} />}
+        {order.code && <Row label="Code" value={order.code} strong />}
         <Row label="Created" value={formatDateTime(order.createdAt)} />
         {order.submittedAt && <Row label="Proof sent" value={formatTime(order.submittedAt)} />}
       </dl>
@@ -62,10 +63,24 @@ export default function OrderReview({ order }: { order: Order }) {
         </div>
       )}
 
-      {order.status === "completed" && (
+      {order.status === "completed" && !order.code && (
         <div className="mx-4 mb-4 rounded-xl bg-emerald-50 px-3 py-2.5 text-[12.5px] text-emerald-800 flex gap-2">
           <Info size={15} className="shrink-0 mt-0.5" />
           <span>Approved {formatDateTime(order.reviewedAt ?? order.createdAt)}. Type the premium code in the chat to send it.</span>
+        </div>
+      )}
+
+      {order.status === "completed" && order.code && (
+        <div className="px-4 pb-4">
+          {order.codeUnused ? (
+            <button onClick={() => setCodeUnused(order.id, false)} className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
+              <Check size={15} /> Code used, move to Completed
+            </button>
+          ) : (
+            <button onClick={() => setCodeUnused(order.id, true)} className="w-full h-10 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
+              <PackageX size={15} /> Code not used, move to Unused
+            </button>
+          )}
         </div>
       )}
 

@@ -22,7 +22,7 @@ npm run dev
 ## Supabase setup
 
 1. Create a Supabase project and copy the Project URL and publishable key into `.env.local`.
-2. Open SQL Editor, paste `supabase/schema.sql` and run it. It creates the tables, row level security, the private `screenshots` bucket and realtime.
+2. Open SQL Editor, paste `supabase/schema.sql` and run it. It creates the tables, row level security, the private `screenshots` bucket and realtime. Projects created before an update also run the matching file in `supabase/updates/`.
 3. Authentication > Sign In / Providers > Email: turn off "Confirm email" so customers can sign in with email and PIN straight away.
 4. Authentication > Users > Add user: create the admin account (email + password).
 5. Give that user admin access in SQL Editor:
@@ -67,6 +67,7 @@ src/
       screenshots.ts        Upload and signed URLs for the private screenshots bucket
 supabase/
   schema.sql                Tables, security rules, storage bucket and realtime
+  updates/                  One-off SQL changes for projects that already ran schema.sql
   components/
     BrandIcon.tsx
     customer/

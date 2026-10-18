@@ -5,6 +5,7 @@ import BrandIcon from "@/components/BrandIcon";
 import { useNow } from "@/hooks/useNow";
 import { getEffectiveStatus, statusDetails, workingHoursLabel } from "@/lib/availability";
 import { formatDate } from "@/lib/format";
+import { customerNumberLabel, findLatestCode } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { Customer } from "@/lib/types";
 
@@ -23,6 +24,7 @@ export default function Sidebar({ customer, onSignOut }: SidebarProps) {
   const pendingOrder = orders.find((order) => order.status === "pending_review");
   const latestCompleted = orders.filter((order) => order.status === "completed").sort((a, b) => (b.reviewedAt ?? 0) - (a.reviewedAt ?? 0))[0];
   const activePlans = state.plans.filter((plan) => plan.active);
+  const latestCode = findLatestCode(state, customer.id);
 
   return (
     <aside className="w-[320px] lg:w-[350px] shrink-0 border-r border-[var(--line)] bg-[var(--surface)] flex flex-col">
@@ -40,12 +42,22 @@ export default function Sidebar({ customer, onSignOut }: SidebarProps) {
 
       <div className="flex-1 overflow-y-auto px-4 py-5">
         <div className="px-2">
-          <div className="text-[13px] text-[var(--muted)]">Welcome back</div>
-          <div className="font-[family-name:var(--font-display)] text-[22px] font-bold tracking-tight">{customer.name}</div>
-          <div className="mt-1 flex items-center gap-1.5 text-[13px] text-[var(--muted)]">
-            <Mail size={13} /> {customer.email}
+          <div className="text-[13px] text-[var(--muted)]">Customer ID</div>
+          <div className="font-[family-name:var(--font-display)] text-[22px] font-bold tracking-tight">{customerNumberLabel(customer)}</div>
+          <div className="mt-1 flex items-center gap-1.5 text-[13px] text-[var(--muted)] min-w-0">
+            <Mail size={13} className="shrink-0" /> <span className="truncate">{customer.email}</span>
           </div>
         </div>
+
+        {latestCode?.code && (
+          <div className="mt-6">
+            <SectionTitle>Your current code</SectionTitle>
+            <div className="rounded-2xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3">
+              <div className="font-bold text-[16px] tracking-wide break-all">{latestCode.code}</div>
+              <div className="text-[12.5px] text-[var(--muted)] mt-0.5">{latestCode.planName}</div>
+            </div>
+          </div>
+        )}
 
         {(pendingOrder || latestCompleted) && (
           <div className="mt-6">

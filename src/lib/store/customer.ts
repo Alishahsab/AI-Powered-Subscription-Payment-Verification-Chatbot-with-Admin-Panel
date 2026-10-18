@@ -4,7 +4,7 @@ import { getSupabase } from "../supabase/client";
 import { uploadScreenshot } from "../supabase/screenshots";
 import type { AppState, Stage } from "../types";
 import { validateName } from "../validation";
-import { addMessage, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerName, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
+import { addMessage, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
 import { getState, updateState } from "./state";
 
 const MINUTE = 60_000;
@@ -15,22 +15,25 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-export async function logIn(name: string, email: string, pin: string): Promise<AuthResult> {
-  const auth = getSupabase("customer").auth;
-  const signIn = await auth.signInWithPassword({ email: normalizeEmail(email), password: pin });
-  if (!signIn.error) return { error: null };
+export async function isEmailRegistered(email: string): Promise<boolean | null> {
+  const { data, error } = await getSupabase("customer").rpc("email_registered", { check_email: normalizeEmail(email) });
+  if (error) return null;
+  return Boolean(data);
+}
 
-  const signUp = await auth.signUp({
-    email: normalizeEmail(email),
-    password: pin,
-    options: { data: { name: name.trim() } },
-  });
+export async function signIn(email: string, pin: string): Promise<AuthResult> {
+  const { error } = await getSupabase("customer").auth.signInWithPassword({ email: normalizeEmail(email), password: pin });
+  if (error) return { error: "Wrong PIN. Try again or use Forgot PIN." };
+  return { error: null };
+}
 
-  if (signUp.error) {
-    const alreadyExists = signUp.error.message.toLowerCase().includes("already");
-    return { error: alreadyExists ? "Wrong PIN for this email. Try again or use Forgot PIN." : signUp.error.message };
+export async function signUp(email: string, pin: string): Promise<AuthResult> {
+  const { data, error } = await getSupabase("customer").auth.signUp({ email: normalizeEmail(email), password: pin });
+  if (error) {
+    const alreadyExists = error.message.toLowerCase().includes("already");
+    return { error: alreadyExists ? "This email already has an account. Please go back and log in." : error.message };
   }
-  if (!signUp.data.session) return { error: "Please confirm your email address, then log in." };
+  if (!data.session) return { error: "Please confirm your email address, then log in." };
   return { error: null };
 }
 
@@ -61,8 +64,7 @@ export function ensureCustomerProfile(user: User) {
   updateState((draft) => {
     const now = Date.now();
     if (!hasProfile) {
-      const name = String(user.user_metadata?.name ?? user.email?.split("@")[0] ?? "Customer");
-      draft.customers.push({ id: user.id, name, email: user.email ?? "", createdAt: now, lastSeenAt: now, blocked: false });
+      draft.customers.push({ id: user.id, email: user.email ?? "", createdAt: now, lastSeenAt: now, blocked: false });
     }
     if (!hasConversation) {
       draft.conversations[user.id] = { customerId: user.id, stage: "menu", typing: false, unreadByAdmin: 0, lastMessageAt: now };
@@ -76,17 +78,16 @@ export function openChat(customerId: string) {
     const conversation = state.conversations[customerId];
     if (!customer || !conversation) return;
 
-    const firstName = customer.name.split(" ")[0];
     const hasMessages = state.messages.some((message) => message.customerId === customerId);
     if (!hasMessages) {
-      addMessage(state, customerId, "bot", `Hi ${firstName}. ${state.settings.welcome}`);
+      addMessage(state, customerId, "bot", `Hi there. ${state.settings.welcome}`);
       return;
     }
 
     const wasAway = Date.now() - customer.lastSeenAt > state.settings.timers.inactiveMinutes * MINUTE;
     if (wasAway && conversation.stage !== "awaiting_payment") {
       conversation.stage = "menu";
-      addMessage(state, customerId, "bot", `Welcome back, ${firstName}. How can we help you today?`);
+      addMessage(state, customerId, "bot", "Welcome back. How can we help you today?");
     }
   });
   recordActivity(customerId);
@@ -243,6 +244,7 @@ export function createOrder(customerId: string) {
       amount: plan.price,
       methodName: method.name,
       status: "awaiting_payment",
+      codeUnused: false,
       createdAt: now,
       expiresAt: now + state.settings.timers.orderMinutes * MINUTE,
     });
@@ -299,7 +301,7 @@ export async function submitPaymentProof(customerId: string, screenshot: string,
     notifyAdmin(state, {
       kind: "payment",
       title: "Payment submitted",
-      body: `${findCustomerName(state, customerId)} · ${current.planName} · Rs ${current.amount.toLocaleString()}`,
+      body: `${findCustomerEmail(state, customerId)} · ${current.planName} · Rs ${current.amount.toLocaleString()}`,
       customerId,
     });
   });
@@ -340,7 +342,7 @@ export async function reportPaymentIssue(customerId: string, description: string
 
     state.tickets.unshift({ id: createTicketNumber(), customerId, kind: "payment", message: text, screenshot: screenshotPath, orderId: order?.id, status: "open", createdAt: Date.now() });
     state.conversations[customerId].unreadByAdmin += 1;
-    notifyAdmin(state, { kind: "payment_issue", title: "Payment issue reported", body: `${findCustomerName(state, customerId)} · ${text.slice(0, 70)}`, customerId });
+    notifyAdmin(state, { kind: "payment_issue", title: "Payment issue reported", body: `${findCustomerEmail(state, customerId)} · ${text.slice(0, 70)}`, customerId });
   });
 
   replyAsBot(customerId, (state) => {
@@ -385,7 +387,7 @@ export async function submitSupportIssue(customerId: string, description: string
 
     state.tickets.unshift({ id: ticketId, customerId, kind: "support", message: description, screenshot: screenshotPath, status: "open", createdAt: Date.now() });
     state.conversations[customerId].unreadByAdmin += 1;
-    notifyAdmin(state, { kind: "support", title: "New support issue", body: `${findCustomerName(state, customerId)} · ${description.slice(0, 70)}`, customerId });
+    notifyAdmin(state, { kind: "support", title: "New support issue", body: `${findCustomerEmail(state, customerId)} · ${description.slice(0, 70)}`, customerId });
   });
 
   replyAsBot(customerId, (state) => {

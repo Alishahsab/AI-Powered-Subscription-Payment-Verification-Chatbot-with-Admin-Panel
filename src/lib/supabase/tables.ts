@@ -23,6 +23,7 @@ export type TableSync = {
   apply: (state: AppState, row: Row) => void;
   remove: (state: AppState, id: string) => void;
   replaceAll: (state: AppState, rows: Row[]) => void;
+  applyServerFields?: (state: AppState, row: Row) => void;
 };
 
 function upsertById<T extends { id: string }>(list: T[], item: T) {
@@ -42,6 +43,10 @@ export const tables: TableSync[] = [
     },
     replaceAll: (state, rows) => {
       state.customers = rows.map(customerFromRow);
+    },
+    applyServerFields: (state, row) => {
+      const customer = state.customers.find((item) => item.id === row.id);
+      if (customer && row.customer_number != null) customer.number = Number(row.customer_number);
     },
   },
   {

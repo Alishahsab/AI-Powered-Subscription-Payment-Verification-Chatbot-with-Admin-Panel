@@ -50,7 +50,7 @@ export type Settings = {
 
 export type Customer = {
   id: string;
-  name: string;
+  number?: number;
   email: string;
   createdAt: number;
   lastSeenAt: number;
@@ -114,6 +114,8 @@ export type Order = {
   screenshot?: string;
   senderName?: string;
   rejectReason?: string;
+  code?: string;
+  codeUnused: boolean;
 };
 
 export type TicketKind = "support" | "payment";

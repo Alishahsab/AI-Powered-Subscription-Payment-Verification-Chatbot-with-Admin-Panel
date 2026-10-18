@@ -1,6 +1,6 @@
 import { workingHoursLabel } from "../availability";
 import { createId } from "../format";
-import type { AdminNotification, AppState, Message, Order } from "../types";
+import type { AdminNotification, AppState, Customer, Message, Order } from "../types";
 import { updateState } from "./state";
 
 const BOT_TYPING_DELAY = 650;
@@ -66,8 +66,21 @@ export function createTicketNumber() {
   return `T-${shortCode()}`;
 }
 
-export function findCustomerName(state: AppState, customerId: string) {
-  return state.customers.find((customer) => customer.id === customerId)?.name ?? "Customer";
+export function findCustomerEmail(state: AppState, customerId: string) {
+  return state.customers.find((customer) => customer.id === customerId)?.email ?? "Customer";
+}
+
+export function customerNumberLabel(customer?: Customer) {
+  return customer?.number ? `#${customer.number}` : "New";
+}
+
+export function findLatestCode(state: AppState, customerId: string) {
+  return state.orders.filter((order) => order.customerId === customerId && order.code).sort((a, b) => (b.reviewedAt ?? 0) - (a.reviewedAt ?? 0))[0];
+}
+
+export function extractCodes(text: string) {
+  const words = text.match(/[A-Z0-9-]{6,}/gi) ?? [];
+  return words.filter((word) => /\d/.test(word));
 }
 
 export function getActiveOrder(state: AppState, customerId: string) {

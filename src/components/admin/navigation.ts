@@ -1,6 +1,6 @@
 export type Section = "dashboard" | "inbox" | "customers" | "settings" | "search";
 
-export type InboxTab = "general" | "pending" | "completed" | "issues";
+export type InboxTab = "general" | "active" | "pending" | "completed" | "unused" | "cancelled" | "issues";
 
 export type NavTarget = {
   section: Section;

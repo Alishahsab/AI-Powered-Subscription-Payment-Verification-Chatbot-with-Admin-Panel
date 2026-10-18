@@ -10,7 +10,7 @@ const optionalNumber = (value: unknown) => (value === null || value === undefine
 export function customerFromRow(row: Row): Customer {
   return {
     id: row.id as string,
-    name: row.name as string,
+    number: optionalNumber(row.customer_number),
     email: row.email as string,
     createdAt: Number(row.created_at),
     lastSeenAt: Number(row.last_seen_at),
@@ -22,7 +22,6 @@ export function customerFromRow(row: Row): Customer {
 export function customerToRow(customer: Customer): Row {
   return {
     id: customer.id,
-    name: customer.name,
     email: customer.email,
     created_at: customer.createdAt,
     last_seen_at: customer.lastSeenAt,
@@ -72,6 +71,8 @@ export function orderFromRow(row: Row): Order {
     screenshot: optional<string>(row.screenshot),
     senderName: optional<string>(row.sender_name),
     rejectReason: optional<string>(row.reject_reason),
+    code: optional<string>(row.code),
+    codeUnused: Boolean(row.code_unused),
   };
 }
 
@@ -91,6 +92,8 @@ export function orderToRow(order: Order): Row {
     screenshot: nullable(order.screenshot),
     sender_name: nullable(order.senderName),
     reject_reason: nullable(order.rejectReason),
+    code: nullable(order.code),
+    code_unused: order.codeUnused,
   };
 }
 

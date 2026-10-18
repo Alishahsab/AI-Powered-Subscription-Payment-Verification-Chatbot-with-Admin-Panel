@@ -128,7 +128,10 @@ function listenForChanges(client: SupabaseClient) {
       }
 
       const row = payload.new as Row;
-      if (isOwnRecentWrite(table.name, String(row[table.key]))) return;
+      if (isOwnRecentWrite(table.name, String(row[table.key]))) {
+        if (table.applyServerFields) applyRemoteChange((draft) => table.applyServerFields?.(draft, row));
+        return;
+      }
       applyRemoteChange((draft) => table.apply(draft, row));
     });
   }

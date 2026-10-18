@@ -2,8 +2,8 @@ import { getSupabase } from "../supabase/client";
 import { sendEmailCopy } from "../supabase/email";
 import { deleteScreenshots } from "../supabase/screenshots";
 import type { AdminStatus, AppState } from "../types";
-import { addMessage, findCustomerName } from "./helpers";
-import { getState, updateState } from "./state";
+import { addMessage, extractCodes, findCustomerEmail } from "./helpers";
+import { applyRemoteChange, getState, updateState } from "./state";
 
 const MINUTE = 60_000;
 const DAY = 24 * 60 * MINUTE;
@@ -42,12 +42,17 @@ export function setAdminStatus(status: AdminStatus) {
 }
 
 export function sendAdminMessage(customerId: string, text: string, emailCopy: boolean) {
-  const containsCode = extractCodes(text).length > 0;
+  const codes = extractCodes(text);
+  const containsCode = codes.length > 0;
 
   updateState((state) => {
     const customer = state.customers.find((item) => item.id === customerId);
     addMessage(state, customerId, "admin", text, { emailedTo: emailCopy ? customer?.email : undefined });
-    if (containsCode) addMessage(state, customerId, "bot", state.settings.codeInstructions, { kind: "instructions" });
+    if (containsCode) {
+      addMessage(state, customerId, "bot", state.settings.codeInstructions, { kind: "instructions" });
+      const order = findOrderAwaitingCode(state, customerId);
+      if (order) order.code = codes.join(", ");
+    }
 
     const conversation = state.conversations[customerId];
     conversation.unreadByAdmin = 0;
@@ -60,9 +65,37 @@ export function sendAdminMessage(customerId: string, text: string, emailCopy: bo
   }
 }
 
-function extractCodes(text: string) {
-  const words = text.match(/[A-Z0-9-]{6,}/gi) ?? [];
-  return words.filter((word) => /\d/.test(word));
+function findOrderAwaitingCode(state: AppState, customerId: string) {
+  const completed = state.orders
+    .filter((order) => order.customerId === customerId && order.status === "completed")
+    .sort((a, b) => (b.reviewedAt ?? 0) - (a.reviewedAt ?? 0));
+  return completed.find((order) => !order.code) ?? completed[0];
+}
+
+export function setCodeUnused(orderId: string, unused: boolean) {
+  updateState((state) => {
+    const order = state.orders.find((item) => item.id === orderId);
+    if (order) order.codeUnused = unused;
+  });
+}
+
+export async function deleteCustomer(customerId: string): Promise<string | null> {
+  const client = getSupabase("admin");
+  const { data: files } = await client.storage.from("screenshots").list(customerId, { limit: 1000 });
+  if (files && files.length > 0) await deleteScreenshots(files.map((file) => `${customerId}/${file.name}`));
+
+  const { error } = await client.rpc("delete_customer", { target: customerId });
+  if (error) return error.message;
+
+  applyRemoteChange((state) => {
+    state.customers = state.customers.filter((customer) => customer.id !== customerId);
+    delete state.conversations[customerId];
+    state.messages = state.messages.filter((message) => message.customerId !== customerId);
+    state.orders = state.orders.filter((order) => order.customerId !== customerId);
+    state.tickets = state.tickets.filter((ticket) => ticket.customerId !== customerId);
+    state.notifications = state.notifications.filter((notification) => notification.customerId !== customerId);
+  });
+  return null;
 }
 
 export function findCodeSentToSomeoneElse(customerId: string, text: string) {
@@ -75,7 +108,7 @@ export function findCodeSentToSomeoneElse(customerId: string, text: string) {
 
     const repeated = codes.find((code) => extractCodes(message.text).includes(code));
     if (repeated) {
-      return { code: repeated, customerName: findCustomerName(state, message.customerId), sentAt: message.createdAt };
+      return { code: repeated, customerEmail: findCustomerEmail(state, message.customerId), sentAt: message.createdAt };
     }
   }
   return null;

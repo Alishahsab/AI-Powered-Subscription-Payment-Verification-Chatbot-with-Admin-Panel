@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Lock } from "lucide-react";
 import { useAuthUser } from "@/hooks/useAuthUser";
-import { updatePin } from "@/lib/store/customer";
+import { signOut, updatePin } from "@/lib/store/customer";
 import { cleanDigits, limits, validatePin } from "@/lib/validation";
 
 const inputClass =
@@ -32,9 +32,14 @@ export default function ResetPinScreen() {
 
     setBusy(true);
     const result = await updatePin(pin);
+    if (result.error) {
+      setBusy(false);
+      setError(result.error);
+      return;
+    }
+    await signOut();
     setBusy(false);
-    if (result.error) setError(result.error);
-    else setDone(true);
+    setDone(true);
   };
 
   return (
@@ -42,17 +47,18 @@ export default function ResetPinScreen() {
       <div className="w-full max-w-[420px] bg-white rounded-2xl border border-black/10 shadow-sm p-7">
         <img src="/logo-wordmark-dark.png" alt="Premium Store" className="h-11 w-auto" />
 
-        {checking ? (
-          <p className="mt-6 text-[14px] text-zinc-500">Checking your reset link…</p>
-        ) : done ? (
+        {done ? (
           <div className="mt-6">
             <div className="flex items-center gap-2 text-emerald-700 font-semibold">
               <CheckCircle2 size={18} /> Your PIN has been changed
             </div>
+            <p className="mt-1.5 text-[14px] text-zinc-500">Log in again with your email and new PIN.</p>
             <Link href="/" className="mt-5 w-full h-12 rounded-xl bg-[#0C2660] text-white font-semibold grid place-items-center">
-              Open my chat
+              Back to login
             </Link>
           </div>
+        ) : checking ? (
+          <p className="mt-6 text-[14px] text-zinc-500">Checking your reset link…</p>
         ) : !user ? (
           <div className="mt-6 text-[14px] text-zinc-600">
             This reset link is invalid or has expired.
