@@ -114,6 +114,7 @@ export type Order = {
   amount: number;
   methodName: string;
   bank?: BankAccount;
+  paymentSteps?: string;
   status: OrderStatus;
   createdAt: number;
   expiresAt: number;

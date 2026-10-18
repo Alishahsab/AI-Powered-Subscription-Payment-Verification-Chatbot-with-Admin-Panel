@@ -248,6 +248,7 @@ export function createOrder(customerId: string) {
       amount: plan.price,
       methodName: method.name,
       bank: { ...state.settings.bank },
+      paymentSteps: method.steps,
       status: "awaiting_payment",
       codeUnused: false,
       createdAt: now,

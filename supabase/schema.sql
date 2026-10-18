@@ -54,6 +54,7 @@ create table if not exists public.orders (
   bank_name text,
   account_title text,
   account_number text,
+  payment_steps text,
   status text not null,
   created_at bigint not null,
   expires_at bigint not null,

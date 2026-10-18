@@ -1,4 +1,4 @@
-import { fillPlaceholders, getActiveOrder, orderBank, stepLines } from "@/lib/store/helpers";
+import { orderSteps } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { PaymentMethod } from "@/lib/types";
 import MethodLogo from "../MethodLogo";
@@ -12,8 +12,7 @@ type PaymentStepsSheetProps = {
 
 export default function PaymentStepsSheet({ customerId, method, onClose }: PaymentStepsSheetProps) {
   const state = useAppState();
-  const bank = orderBank(state, getActiveOrder(state, customerId));
-  const steps = stepLines(fillPlaceholders(method.steps, state, bank));
+  const steps = orderSteps(state, customerId);
 
   return (
     <Sheet title={`How to pay with ${method.name}`} subtitle="Follow these steps in your app" onClose={onClose}>

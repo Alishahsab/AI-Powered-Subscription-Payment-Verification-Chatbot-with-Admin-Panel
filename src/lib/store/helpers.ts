@@ -27,6 +27,12 @@ export function orderBank(state: AppState, order?: Order) {
   return order?.bank ?? state.settings.bank;
 }
 
+export function orderSteps(state: AppState, customerId: string) {
+  const order = getActiveOrder(state, customerId);
+  const steps = order?.paymentSteps ?? findOrderMethod(state, customerId)?.steps ?? "";
+  return stepLines(fillPlaceholders(steps, state, orderBank(state, order)));
+}
+
 export function addMessage(state: AppState, customerId: string, sender: Message["sender"], text: string, extra: Partial<Message> = {}) {
   const message: Message = {
     id: createId(),

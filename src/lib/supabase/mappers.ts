@@ -70,6 +70,7 @@ export function orderFromRow(row: Row): Order {
     bank: row.account_number
       ? { bankName: String(row.bank_name ?? ""), accountTitle: String(row.account_title ?? ""), accountNumber: String(row.account_number) }
       : undefined,
+    paymentSteps: optional<string>(row.payment_steps),
     status: row.status as Order["status"],
     createdAt: Number(row.created_at),
     expiresAt: Number(row.expires_at),
@@ -94,6 +95,7 @@ export function orderToRow(order: Order): Row {
     bank_name: nullable(order.bank?.bankName),
     account_title: nullable(order.bank?.accountTitle),
     account_number: nullable(order.bank?.accountNumber),
+    payment_steps: nullable(order.paymentSteps),
     status: order.status,
     created_at: order.createdAt,
     expires_at: order.expiresAt,

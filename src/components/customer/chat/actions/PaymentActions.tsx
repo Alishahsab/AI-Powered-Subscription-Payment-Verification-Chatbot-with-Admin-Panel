@@ -1,6 +1,8 @@
 import { AlertTriangle, BookOpen, Upload, X } from "lucide-react";
 import { classNames } from "@/lib/format";
 import { cancelOrder } from "@/lib/store/customer";
+import { orderSteps } from "@/lib/store/helpers";
+import { useAppState } from "@/lib/store/state";
 import type { PaymentMethod } from "@/lib/types";
 import type { OpenSheet } from "../ChatScreen";
 import { primaryButtonClass, secondaryButtonClass } from "./buttonStyles";
@@ -12,7 +14,8 @@ type PaymentActionsProps = {
 };
 
 export default function PaymentActions({ customerId, method, onOpenSheet }: PaymentActionsProps) {
-  const hasSteps = Boolean(method?.steps.trim());
+  const state = useAppState();
+  const hasSteps = Boolean(method) && orderSteps(state, customerId).length > 0;
 
   return (
     <div className="max-w-[560px] mx-auto space-y-2">
