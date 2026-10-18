@@ -53,7 +53,9 @@ export default function Sidebar({ customer, onSignOut }: SidebarProps) {
           <div className="mt-6">
             <SectionTitle>Your current code</SectionTitle>
             <div className="rounded-2xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3">
-              <div className="font-bold text-[16px] tracking-wide break-all">{latestCode.code}</div>
+              <div className="font-bold text-[16px] tracking-wide truncate" title={latestCode.code}>
+                {latestCode.code}
+              </div>
               <div className="text-[12.5px] text-[var(--muted)] mt-0.5">{latestCode.planName}</div>
             </div>
           </div>

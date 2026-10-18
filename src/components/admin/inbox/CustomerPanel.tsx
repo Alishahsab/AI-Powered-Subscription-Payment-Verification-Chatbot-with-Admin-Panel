@@ -37,7 +37,9 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
 
       <div className="rounded-xl bg-[#f5f6f8] px-3.5 py-3">
         <div className="text-[11.5px] text-zinc-500">Current code</div>
-        <div className="font-bold text-[14.5px] text-zinc-900 break-all mt-0.5">{latestCode?.code ?? "No code sent yet"}</div>
+        <div className="font-bold text-[14.5px] text-zinc-900 truncate mt-0.5" title={latestCode?.code}>
+          {latestCode?.code ?? "No code sent yet"}
+        </div>
         {latestCode && (
           <div className={classNames("text-[11.5px] mt-0.5 font-medium", latestCode.codeUnused ? "text-amber-700" : "text-zinc-500")}>
             {latestCode.planName} · {latestCode.codeUnused ? "Not used yet" : "Used"}

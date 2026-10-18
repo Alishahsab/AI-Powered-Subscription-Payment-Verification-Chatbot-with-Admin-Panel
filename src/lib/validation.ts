@@ -15,6 +15,7 @@ export const limits = {
   shortTextMax: 40,
   longTextMax: 800,
   questionMax: 150,
+  codeMax: 40,
 };
 
 const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -36,6 +37,10 @@ export function cleanDigits(value: string, max: number) {
 export function cleanAccountNumber(value: string) {
   const digits = cleanDigits(value, limits.accountNumberMax);
   return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+}
+
+export function cleanCode(value: string) {
+  return value.replace(/[^A-Za-z0-9-]/g, "").slice(0, limits.codeMax);
 }
 
 export function cleanEmail(value: string) {

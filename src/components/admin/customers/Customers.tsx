@@ -83,8 +83,10 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
                       </td>
                       <td className="px-3 py-3">
                         {code?.code ? (
-                          <span className="flex items-center gap-1.5">
-                            <span className="font-semibold tabular-nums">{code.code}</span>
+                          <span className="flex items-center gap-1.5 max-w-[220px]">
+                            <span className="font-semibold tabular-nums truncate" title={code.code}>
+                              {code.code}
+                            </span>
                             {code.codeUnused && <Badge tone="amber">Unused</Badge>}
                           </span>
                         ) : (

@@ -6,6 +6,7 @@ import { formatDateTime } from "@/lib/format";
 import { approveOrder, findCodeSentToSomeoneElse } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import type { Order } from "@/lib/types";
+import { cleanCode } from "@/lib/validation";
 import Modal from "../ui/Modal";
 import { inputClass } from "../ui/styles";
 
@@ -34,17 +35,18 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
   return (
     <Modal title="Approve payment" description={`${order.id} · ${order.planName} · ${customerEmail}`} onClose={onClose}>
       <label className="block">
-        <span className="text-[13px] font-medium text-zinc-700">Premium code</span>
+        <span className="text-[13px] font-medium text-zinc-700">
+          Premium code <span className="text-zinc-400 font-normal">· only the code, the message is added for you</span>
+        </span>
         <input
           autoFocus
           value={code}
-          maxLength={120}
           onChange={(event) => {
-            setCode(event.target.value);
+            setCode(cleanCode(event.target.value));
             setConfirmedDuplicate(false);
           }}
           onKeyDown={(event) => event.key === "Enter" && approve()}
-          placeholder="Paste the code"
+          placeholder="e.g. ABCD-1234-EFGH"
           className={`${inputClass} mt-1.5 h-11 text-[15px] font-semibold tracking-wide`}
         />
       </label>
