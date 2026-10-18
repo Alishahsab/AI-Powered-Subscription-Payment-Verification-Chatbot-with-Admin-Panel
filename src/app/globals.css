@@ -1,40 +1,12 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: "Neue Montreal";
-  src: url("/fonts/NeueMontreal-Light.woff2") format("woff2"), url("/fonts/NeueMontreal-Light.otf") format("opentype");
-  font-weight: 300;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Neue Montreal";
-  src: url("/fonts/NeueMontreal-Regular.woff2") format("woff2"), url("/fonts/NeueMontreal-Regular.otf") format("opentype");
-  font-weight: 400;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Neue Montreal";
-  src: url("/fonts/NeueMontreal-Medium.woff2") format("woff2"), url("/fonts/NeueMontreal-Medium.otf") format("opentype");
-  font-weight: 500 600;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Neue Montreal";
-  src: url("/fonts/NeueMontreal-Bold.woff2") format("woff2"), url("/fonts/NeueMontreal-Bold.otf") format("opentype");
-  font-weight: 700 900;
-  font-display: swap;
-}
-
 @theme inline {
   --font-sans: var(--font-brand);
   --font-display: var(--font-brand);
 }
 
 :root {
-  --font-brand: "Neue Montreal", var(--font-heading), system-ui, sans-serif;
+  --font-brand: var(--font-heading), system-ui, sans-serif;
   --accent: #0c2660;
   --accent-ink: #ffffff;
   --gold: #c9a45c;
