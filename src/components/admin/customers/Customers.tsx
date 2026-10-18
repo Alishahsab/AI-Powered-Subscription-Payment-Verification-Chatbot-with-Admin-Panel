@@ -36,9 +36,9 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
     .sort((a, b) => b.customer.lastSeenAt - a.customer.lastSeenAt);
 
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="max-w-[1200px] mx-auto p-4 lg:p-7 space-y-5">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className="h-full">
+      <div className="h-full max-w-[1200px] mx-auto p-4 lg:p-7 flex flex-col gap-5">
+        <div className="shrink-0 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-[22px] font-semibold tracking-tight">Customers</h1>
             <p className="text-[13.5px] text-zinc-500 mt-0.5">{state.customers.length} customers. Each one sees only their own chat.</p>
@@ -49,13 +49,13 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
           </div>
         </div>
 
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden flex-1 min-h-0 flex flex-col">
           {rows.length === 0 ? (
             <EmptyState icon={<Users size={20} />} title="No customers found" />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="flex-1 min-h-0 overflow-auto">
               <table className="w-full text-[13px]">
-                <thead>
+                <thead className="sticky top-0 z-10">
                   <tr className="text-left text-white bg-[linear-gradient(90deg,#0c2660_0%,#14327a_100%)]">
                     <th className="font-medium px-5 py-2.5">ID</th>
                     <th className="font-medium px-3 py-2.5">Email</th>

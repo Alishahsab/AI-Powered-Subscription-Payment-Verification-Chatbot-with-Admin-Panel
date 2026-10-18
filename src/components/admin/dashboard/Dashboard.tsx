@@ -59,14 +59,14 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
               key={stat.label}
               disabled={!stat.tab}
               onClick={() => stat.tab && onNavigate({ section: "inbox", tab: stat.tab })}
-              className="text-left bg-white rounded-xl border border-zinc-200/80 p-4 hover:border-zinc-300 transition disabled:hover:border-zinc-200/80"
+              className="text-left bg-white rounded-xl border border-zinc-200/80 px-3.5 py-3 hover:border-zinc-300 transition disabled:hover:border-zinc-200/80"
             >
               <div className="flex items-center justify-between text-zinc-500">
-                <span className="text-[12.5px] font-medium">{stat.label}</span>
-                <span className={classNames("size-8 rounded-lg grid place-items-center", stat.highlight ? "bg-amber-100 text-amber-700" : "bg-zinc-100 text-zinc-600")}>{stat.icon}</span>
+                <span className="text-[12px] font-medium">{stat.label}</span>
+                <span className={classNames("size-7 rounded-lg grid place-items-center", stat.highlight ? "bg-amber-100 text-amber-700" : "bg-zinc-100 text-zinc-600")}>{stat.icon}</span>
               </div>
-              <div className="text-[24px] font-semibold tracking-tight mt-2 tabular-nums">{stat.value}</div>
-              <div className="text-[12px] text-zinc-500 mt-0.5">{stat.note}</div>
+              <div className="text-[20px] font-semibold tracking-tight mt-1 tabular-nums">{stat.value}</div>
+              <div className="text-[11.5px] text-zinc-500">{stat.note}</div>
             </button>
           ))}
         </div>

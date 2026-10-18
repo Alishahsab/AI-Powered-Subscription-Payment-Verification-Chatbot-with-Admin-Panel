@@ -15,16 +15,15 @@ export default function RecentOrders({ onNavigate }: { onNavigate: Navigate }) {
   const now = useNow(30_000);
   const orders = state.orders
     .filter((order) => order.status !== "cancelled")
-    .sort((a, b) => b.createdAt - a.createdAt)
-    .slice(0, 7);
+    .sort((a, b) => b.createdAt - a.createdAt);
 
   return (
-    <Card>
-      <CardHeader title="Recent orders" description="Latest activity across all customers" />
-      <div className="overflow-x-auto">
+    <Card className="overflow-hidden">
+      <CardHeader title="Recent orders" description={`${orders.length} orders across all customers`} />
+      <div className="overflow-auto max-h-[460px]">
         <table className="w-full text-[13px]">
-          <thead>
-            <tr className="text-left text-zinc-500 border-y border-zinc-100 bg-zinc-50/60">
+          <thead className="sticky top-0 z-10">
+            <tr className="text-left text-zinc-500 border-y border-zinc-100 bg-zinc-50">
               <th className="font-medium px-5 py-2">Customer</th>
               <th className="font-medium px-3 py-2">Plan</th>
               <th className="font-medium px-3 py-2">Amount</th>

@@ -8,16 +8,16 @@ import Badge from "../ui/Badge";
 import EmptyState from "../ui/EmptyState";
 import type { ChatFilter, InboxItem } from "./inboxItems";
 
-const iconProps = { size: 16, fill: "currentColor", fillOpacity: 0.28, strokeWidth: 2.2 };
+const iconProps = { size: 15, strokeWidth: 2 };
 
-const tabs: { key: InboxTab; label: string; urgent: boolean; icon: React.ReactNode; tint: string }[] = [
-  { key: "general", label: "Chats", urgent: true, icon: <MessageCircle {...iconProps} />, tint: "bg-[linear-gradient(135deg,#38bdf8,#0284c7)]" },
-  { key: "active", label: "Active orders", urgent: false, icon: <ShoppingBag {...iconProps} />, tint: "bg-[linear-gradient(135deg,#818cf8,#4f46e5)]" },
-  { key: "pending", label: "Payment pending", urgent: true, icon: <Hourglass {...iconProps} />, tint: "bg-[linear-gradient(135deg,#fbbf24,#d97706)]" },
-  { key: "completed", label: "Completed", urgent: false, icon: <CheckCircle2 {...iconProps} />, tint: "bg-[linear-gradient(135deg,#34d399,#059669)]" },
-  { key: "unused", label: "Unused codes", urgent: false, icon: <PackageX {...iconProps} />, tint: "bg-[linear-gradient(135deg,#fb923c,#ea580c)]" },
-  { key: "cancelled", label: "Cancelled", urgent: false, icon: <XCircle {...iconProps} />, tint: "bg-[linear-gradient(135deg,#a1a1aa,#52525b)]" },
-  { key: "issues", label: "App issues", urgent: true, icon: <AlertTriangle {...iconProps} />, tint: "bg-[linear-gradient(135deg,#f87171,#dc2626)]" },
+const tabs: { key: InboxTab; label: string; urgent: boolean; icon: React.ReactNode }[] = [
+  { key: "general", label: "Chats", urgent: true, icon: <MessageCircle {...iconProps} /> },
+  { key: "active", label: "Active orders", urgent: false, icon: <ShoppingBag {...iconProps} /> },
+  { key: "pending", label: "Payment pending", urgent: true, icon: <Hourglass {...iconProps} /> },
+  { key: "completed", label: "Completed", urgent: false, icon: <CheckCircle2 {...iconProps} /> },
+  { key: "unused", label: "Unused codes", urgent: false, icon: <PackageX {...iconProps} /> },
+  { key: "cancelled", label: "Cancelled", urgent: false, icon: <XCircle {...iconProps} /> },
+  { key: "issues", label: "App issues", urgent: true, icon: <AlertTriangle {...iconProps} /> },
 ];
 
 const emptyText: Record<InboxTab, string> = {
@@ -49,7 +49,7 @@ export default function ChatList({ tab, onTabChange, filter, onFilterChange, cou
         <h1 className="text-[20px] font-bold tracking-tight text-zinc-900">Inbox</h1>
       </div>
 
-      <div className="mt-3 px-4 grid grid-cols-2 gap-2 pb-4 border-b border-zinc-200/80">
+      <div className="mt-3 px-4 grid grid-cols-2 gap-1.5 pb-3.5 border-b border-zinc-200/80">
         {tabs.map((item, index) => {
           const selected = tab === item.key;
           return (
@@ -57,13 +57,13 @@ export default function ChatList({ tab, onTabChange, filter, onFilterChange, cou
               key={item.key}
               onClick={() => onTabChange(item.key)}
               className={classNames(
-                "h-11 pl-1.5 pr-2.5 rounded-xl border flex items-center gap-2 text-left transition",
+                "h-9 px-2.5 rounded-lg border flex items-center gap-2 text-left transition",
                 index === tabs.length - 1 && "col-span-2",
-                selected ? "bg-[#0C2660] border-[#0C2660] text-white shadow-[0_8px_18px_-10px_#0C2660]" : "bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
+                selected ? "bg-[#0C2660] border-[#0C2660] text-white" : "bg-white border-zinc-200 text-zinc-800 hover:border-zinc-300 hover:bg-zinc-50"
               )}
             >
-              <span className={classNames("size-8 rounded-lg grid place-items-center shrink-0 text-white shadow-sm", item.tint, selected && "ring-2 ring-white/40")}>{item.icon}</span>
-              <span className="flex-1 min-w-0 text-[12.5px] font-semibold truncate">{item.label}</span>
+              <span className={classNames("shrink-0", selected ? "text-white" : "text-zinc-900")}>{item.icon}</span>
+              <span className="flex-1 min-w-0 text-[12px] font-semibold truncate">{item.label}</span>
               {counts[item.key] > 0 && (
                 <span
                   className={classNames(
