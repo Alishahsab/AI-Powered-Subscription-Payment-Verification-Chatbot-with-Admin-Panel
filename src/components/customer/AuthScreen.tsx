@@ -73,10 +73,10 @@ export default function AuthScreen() {
         <div className="relative shrink-0 md:w-[46%] bg-[linear-gradient(160deg,#0c2660_0%,#061639_70%)] text-white px-6 pt-7 pb-14 md:p-12 flex flex-col">
           <img src="/logo-wordmark.png" alt="Premium Store" className="h-11 md:h-14 w-auto self-start select-none" draggable={false} />
 
-          <h1 className="mt-6 md:mt-auto md:pt-8 font-[family-name:var(--font-display)] font-extrabold tracking-[-0.02em] text-[30px] leading-[1.08] md:text-[46px]">
-            Premium access,
+          <h1 className="mt-6 md:mt-auto md:pt-8 font-[family-name:var(--font-display)] font-bold tracking-[-0.02em] text-[30px] leading-[1.08] md:text-[46px]">
+            Premium Access,
             <br />
-            <span className="text-[var(--gold)]">delivered in minutes.</span>
+            <span className="text-[var(--gold)]">Delivered In Minutes.</span>
           </h1>
 
           <div className="hidden md:block mt-9 space-y-4">
