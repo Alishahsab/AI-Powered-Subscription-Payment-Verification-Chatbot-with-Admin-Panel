@@ -28,14 +28,14 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
   ];
 
   const hour = new Date(now).getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-[1200px] mx-auto p-4 lg:p-7 space-y-5">
         <div>
-          <h1 className="text-[22px] font-semibold tracking-tight">{greeting}</h1>
-          <p className="text-[13.5px] text-zinc-500 mt-0.5">Here&apos;s what&apos;s happening in your store today.</p>
+          <h1 className="text-[30px] lg:text-[34px] font-bold tracking-tight text-zinc-900">{greeting}</h1>
+          <p className="text-[14.5px] text-zinc-500 mt-1">Here&apos;s What&apos;s Happening In Your Store Today.</p>
         </div>
 
         {pendingOrders.length > 0 && (

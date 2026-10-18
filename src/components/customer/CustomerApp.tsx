@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { useOrderExpiry } from "@/hooks/useOrderExpiry";
@@ -9,6 +9,7 @@ import { textColorFor } from "@/lib/format";
 import { ensureCustomerProfile, signOut } from "@/lib/store/customer";
 import { useAppState } from "@/lib/store/state";
 import { startSync, stopSync } from "@/lib/supabase/sync";
+import ConfirmDialog from "../ConfirmDialog";
 import AuthScreen from "./AuthScreen";
 import Sidebar from "./Sidebar";
 import ChatScreen from "./chat/ChatScreen";
@@ -17,6 +18,7 @@ export default function CustomerApp() {
   const state = useAppState();
   const isDesktop = useIsDesktop();
   const { user, checking } = useAuthUser("customer");
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false);
   const customer = user ? state.customers.find((item) => item.id === user.id) : undefined;
 
   useEffect(() => {
@@ -30,7 +32,9 @@ export default function CustomerApp() {
   const handleSignOut = async () => {
     await signOut();
     await stopSync();
+    setConfirmingSignOut(false);
   };
+  const askToSignOut = () => setConfirmingSignOut(true);
 
   const accent = state.settings.accent;
   const themeStyle = { ["--accent" as string]: accent, ["--accent-ink" as string]: textColorFor(accent) };
@@ -42,12 +46,21 @@ export default function CustomerApp() {
       ) : customer ? (
         <div className="flex-1 flex h-dvh md:p-4 lg:p-5">
           <div className="relative flex-1 flex max-w-[1440px] mx-auto bg-[var(--bg)] md:rounded-3xl md:border md:border-[var(--line)] md:shadow-[0_24px_60px_-28px_rgba(15,23,42,0.28)] overflow-hidden">
-            {isDesktop && <Sidebar customer={customer} onSignOut={handleSignOut} />}
-            <ChatScreen customer={customer} onSignOut={isDesktop ? undefined : handleSignOut} />
+            {isDesktop && <Sidebar customer={customer} onSignOut={askToSignOut} />}
+            <ChatScreen customer={customer} onSignOut={isDesktop ? undefined : askToSignOut} />
           </div>
         </div>
       ) : (
         <AuthScreen />
+      )}
+      {confirmingSignOut && (
+        <ConfirmDialog
+          title="Sign out?"
+          message="Your chat and codes stay saved. Log in again with your email and PIN anytime."
+          confirmLabel="Sign out"
+          onConfirm={handleSignOut}
+          onCancel={() => setConfirmingSignOut(false)}
+        />
       )}
     </div>
   );

@@ -5,6 +5,7 @@ import { useAuthUser } from "@/hooks/useAuthUser";
 import { adminSignOut, isSignedInAdmin } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import { startSync, stopSync } from "@/lib/supabase/sync";
+import ConfirmDialog from "../ConfirmDialog";
 import AdminShell from "./AdminShell";
 import LoginScreen from "./LoginScreen";
 
@@ -14,6 +15,7 @@ export default function AdminApp() {
   const state = useAppState();
   const { user, checking } = useAuthUser("admin");
   const [access, setAccess] = useState<AccessCheck | null>(null);
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false);
   const allowed = Boolean(user && access?.userId === user.id && access.allowed);
 
   useEffect(() => {
@@ -36,5 +38,21 @@ export default function AdminApp() {
   }
 
   if (!allowed) return <LoginScreen />;
-  return <AdminShell onSignOut={signOut} />;
+  return (
+    <>
+      <AdminShell onSignOut={() => setConfirmingSignOut(true)} />
+      {confirmingSignOut && (
+        <ConfirmDialog
+          title="Sign out?"
+          message="You will need your email and password to open the admin panel again."
+          confirmLabel="Sign out"
+          onConfirm={async () => {
+            await signOut();
+            setConfirmingSignOut(false);
+          }}
+          onCancel={() => setConfirmingSignOut(false)}
+        />
+      )}
+    </>
+  );
 }

@@ -8,14 +8,16 @@ import Badge from "../ui/Badge";
 import EmptyState from "../ui/EmptyState";
 import type { ChatFilter, InboxItem } from "./inboxItems";
 
+const iconProps = { size: 16, fill: "currentColor", fillOpacity: 0.28, strokeWidth: 2.2 };
+
 const tabs: { key: InboxTab; label: string; urgent: boolean; icon: React.ReactNode; tint: string }[] = [
-  { key: "general", label: "Chats", urgent: true, icon: <MessageCircle size={15} />, tint: "bg-sky-100 text-sky-700" },
-  { key: "active", label: "Active orders", urgent: false, icon: <ShoppingBag size={15} />, tint: "bg-indigo-100 text-indigo-700" },
-  { key: "pending", label: "Payment pending", urgent: true, icon: <Hourglass size={15} />, tint: "bg-amber-100 text-amber-700" },
-  { key: "completed", label: "Completed", urgent: false, icon: <CheckCircle2 size={15} />, tint: "bg-emerald-100 text-emerald-700" },
-  { key: "unused", label: "Unused codes", urgent: false, icon: <PackageX size={15} />, tint: "bg-orange-100 text-orange-700" },
-  { key: "cancelled", label: "Cancelled", urgent: false, icon: <XCircle size={15} />, tint: "bg-zinc-200 text-zinc-600" },
-  { key: "issues", label: "App issues", urgent: true, icon: <AlertTriangle size={15} />, tint: "bg-red-100 text-red-600" },
+  { key: "general", label: "Chats", urgent: true, icon: <MessageCircle {...iconProps} />, tint: "bg-[linear-gradient(135deg,#38bdf8,#0284c7)]" },
+  { key: "active", label: "Active orders", urgent: false, icon: <ShoppingBag {...iconProps} />, tint: "bg-[linear-gradient(135deg,#818cf8,#4f46e5)]" },
+  { key: "pending", label: "Payment pending", urgent: true, icon: <Hourglass {...iconProps} />, tint: "bg-[linear-gradient(135deg,#fbbf24,#d97706)]" },
+  { key: "completed", label: "Completed", urgent: false, icon: <CheckCircle2 {...iconProps} />, tint: "bg-[linear-gradient(135deg,#34d399,#059669)]" },
+  { key: "unused", label: "Unused codes", urgent: false, icon: <PackageX {...iconProps} />, tint: "bg-[linear-gradient(135deg,#fb923c,#ea580c)]" },
+  { key: "cancelled", label: "Cancelled", urgent: false, icon: <XCircle {...iconProps} />, tint: "bg-[linear-gradient(135deg,#a1a1aa,#52525b)]" },
+  { key: "issues", label: "App issues", urgent: true, icon: <AlertTriangle {...iconProps} />, tint: "bg-[linear-gradient(135deg,#f87171,#dc2626)]" },
 ];
 
 const emptyText: Record<InboxTab, string> = {
@@ -60,7 +62,7 @@ export default function ChatList({ tab, onTabChange, filter, onFilterChange, cou
                 selected ? "bg-[#0C2660] border-[#0C2660] text-white shadow-[0_8px_18px_-10px_#0C2660]" : "bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
               )}
             >
-              <span className={classNames("size-8 rounded-lg grid place-items-center shrink-0", selected ? "bg-white/15 text-white" : item.tint)}>{item.icon}</span>
+              <span className={classNames("size-8 rounded-lg grid place-items-center shrink-0 text-white shadow-sm", item.tint, selected && "ring-2 ring-white/40")}>{item.icon}</span>
               <span className="flex-1 min-w-0 text-[12.5px] font-semibold truncate">{item.label}</span>
               {counts[item.key] > 0 && (
                 <span

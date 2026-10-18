@@ -49,14 +49,14 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
           </div>
         </div>
 
-        <Card>
+        <Card className="overflow-hidden">
           {rows.length === 0 ? (
             <EmptyState icon={<Users size={20} />} title="No customers found" />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-[13px]">
                 <thead>
-                  <tr className="text-left text-zinc-500 border-b border-zinc-100 bg-zinc-50/60">
+                  <tr className="text-left text-white bg-[linear-gradient(90deg,#0c2660_0%,#14327a_100%)]">
                     <th className="font-medium px-5 py-2.5">ID</th>
                     <th className="font-medium px-3 py-2.5">Email</th>
                     <th className="font-medium px-3 py-2.5">Current code</th>
