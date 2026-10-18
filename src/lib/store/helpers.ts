@@ -1,18 +1,30 @@
-import { workingHoursLabel } from "../availability";
+import { formatDuration, minutesUntilOpen, workingHoursLabel } from "../availability";
 import { createId } from "../format";
-import type { AdminNotification, AppState, Customer, Message, Order } from "../types";
+import type { AdminNotification, AppState, BankAccount, Customer, Message, Order } from "../types";
 import { updateState } from "./state";
 
 const BOT_TYPING_DELAY = 650;
 
-export function fillPlaceholders(text: string, state: AppState) {
-  const { bank, timers } = state.settings;
+export function fillPlaceholders(text: string, state: AppState, bank: BankAccount = state.settings.bank) {
+  const { timers } = state.settings;
   return text
     .replaceAll("{timer}", String(timers.orderMinutes))
     .replaceAll("{hours}", workingHoursLabel(state.settings))
+    .replaceAll("{back_in}", formatDuration(minutesUntilOpen(state.settings)))
     .replaceAll("{bank}", bank.bankName)
     .replaceAll("{account}", bank.accountNumber)
     .replaceAll("{title}", bank.accountTitle);
+}
+
+export function stepLines(text: string) {
+  return text
+    .split("\n")
+    .map((line) => line.replace(/^\s*\d+[.)]\s*/, "").trim())
+    .filter(Boolean);
+}
+
+export function orderBank(state: AppState, order?: Order) {
+  return order?.bank ?? state.settings.bank;
 }
 
 export function addMessage(state: AppState, customerId: string, sender: Message["sender"], text: string, extra: Partial<Message> = {}) {

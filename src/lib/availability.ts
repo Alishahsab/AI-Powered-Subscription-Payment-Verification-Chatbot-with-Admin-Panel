@@ -21,6 +21,20 @@ export function getEffectiveStatus(settings: Settings, now = Date.now()): AdminS
   return settings.status;
 }
 
+export function minutesUntilOpen(settings: Settings, now = Date.now()) {
+  const date = new Date(now);
+  const current = date.getHours() * 60 + date.getMinutes();
+  const start = toMinutes(settings.hours.start);
+  return (start - current + 24 * 60) % (24 * 60);
+}
+
+export function formatDuration(totalMinutes: number) {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours === 0) return `${Math.max(1, minutes)} min`;
+  return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
+}
+
 function formatHour(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
   const date = new Date();

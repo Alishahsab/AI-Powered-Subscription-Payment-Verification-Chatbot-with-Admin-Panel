@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Clock, CreditCard, LifeBuoy, Palette, Timer } from "lucide-react";
 import { classNames } from "@/lib/format";
 import { saveSettings, type EditableSettings } from "@/lib/store/admin";
+import { stepLines } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { AppState } from "@/lib/types";
 import { validateConfig } from "@/lib/validation";
@@ -43,6 +44,7 @@ function cleanDraft(draft: EditableSettings): EditableSettings {
   const clean = structuredClone(draft);
   clean.settings.terms = clean.settings.terms.map((term) => term.trim()).filter(Boolean);
   clean.faqs = clean.faqs.filter((faq) => faq.question.trim() && faq.answer.trim());
+  clean.methods = clean.methods.map((method) => ({ ...method, steps: stepLines(method.steps).join("\n") }));
   return clean;
 }
 

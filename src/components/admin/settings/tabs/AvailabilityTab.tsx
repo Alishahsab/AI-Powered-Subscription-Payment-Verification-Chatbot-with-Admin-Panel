@@ -66,7 +66,7 @@ export default function AvailabilityTab({ draft, updateDraft }: SettingsTabProps
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Status messages" description="What the customer sees. Use {hours} and {timer} as placeholders.">
+      <SettingsSection title="Status messages" description="What the customer sees. Use {hours}, {back_in} (time until you open) and {timer} as placeholders.">
         <div className="space-y-4">
           {(Object.keys(messageLabels) as AdminStatus[]).map((status) => (
             <Field key={status} label={messageLabels[status]}>

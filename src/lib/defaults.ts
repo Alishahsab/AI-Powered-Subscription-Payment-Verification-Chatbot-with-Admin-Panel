@@ -2,11 +2,11 @@ import type { AppState, StoreConfig } from "./types";
 
 const walletSteps = (app: string) =>
   [
-    `1. Open the ${app} app and tap Send Money.`,
-    "2. Choose Bank Transfer and select {bank}.",
-    "3. Enter account number {account} and check the title is {title}.",
-    "4. Enter the exact amount and confirm the payment.",
-    "5. Take a screenshot of the receipt and upload it here.",
+    `Open the ${app} app and tap Send Money.`,
+    "Choose Bank Transfer and select {bank}.",
+    "Enter account number {account} and check the title is {title}.",
+    "Enter the exact amount and confirm the payment.",
+    "Take a screenshot of the receipt and upload it here.",
   ].join("\n");
 
 const faqList: [string, string][] = [
@@ -32,7 +32,7 @@ export function createDefaultConfig(): StoreConfig {
       statusMessages: {
         active: "Thank you. Your payment is being verified. Your code will arrive right here in a few minutes.",
         away: "Thank you, your payment is recorded. Our admin is briefly away. Your code will be sent here and to your email as soon as it's verified.",
-        offline: "We're not taking new orders right now. Subscriptions are available daily between {hours}. Customer Support remains open 24/7.",
+        offline: "We are offline right now. Back in {back_in}. Subscriptions are available daily between {hours}. Customer Support remains open 24/7.",
       },
       terms: [
         "Create an order only when you are ready to pay.",
@@ -52,7 +52,8 @@ export function createDefaultConfig(): StoreConfig {
         "• Always pay only to the account shown in your active order. Our account can change.",
       ].join("\n"),
       bank: { bankName: "Meezan Bank", accountTitle: "Premium Store", accountNumber: "0123 4567 8901 2345" },
-      timers: { orderMinutes: 15, inactiveMinutes: 20, retryMinutes: 30 },
+      timers: { orderMinutes: 15, inactiveMinutes: 20, retryMinutes: 30, cancelCooldownMinutes: 30 },
+      limits: { cancelsBeforeCooldown: 2 },
       accent: "#0C2660",
     },
     plans: [

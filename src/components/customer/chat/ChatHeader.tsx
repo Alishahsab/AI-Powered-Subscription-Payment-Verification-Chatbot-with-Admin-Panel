@@ -2,7 +2,8 @@
 
 import { Lock, LogOut } from "lucide-react";
 import BrandIcon from "@/components/BrandIcon";
-import { getEffectiveStatus, statusDetails } from "@/lib/availability";
+import { useNow } from "@/hooks/useNow";
+import { formatDuration, getEffectiveStatus, minutesUntilOpen, statusDetails } from "@/lib/availability";
 import { useAppState } from "@/lib/store/state";
 
 type ChatHeaderProps = {
@@ -12,7 +13,10 @@ type ChatHeaderProps = {
 
 export default function ChatHeader({ typing, onSignOut }: ChatHeaderProps) {
   const state = useAppState();
-  const status = statusDetails[getEffectiveStatus(state.settings)];
+  const now = useNow(60_000);
+  const effectiveStatus = getEffectiveStatus(state.settings, now);
+  const status = statusDetails[effectiveStatus];
+  const hint = effectiveStatus === "offline" ? `Back in ${formatDuration(minutesUntilOpen(state.settings, now))}` : status.hint;
 
   return (
     <header className="flex items-center gap-3 h-16 md:h-[72px] px-4 md:px-6 border-b border-[var(--line)] bg-[var(--surface)]">
@@ -21,7 +25,7 @@ export default function ChatHeader({ typing, onSignOut }: ChatHeaderProps) {
         <div className="font-[family-name:var(--font-display)] font-bold text-[17px] md:text-[18px] leading-tight">{state.settings.storeName}</div>
         <div className="flex items-center gap-1.5 text-[12.5px] md:text-[13px] text-[var(--muted)]">
           <span className={`size-2 rounded-full ${status.dot}`} />
-          {typing ? "typing…" : `${status.label} · ${status.hint}`}
+          {typing ? "typing…" : `${status.label} · ${hint}`}
         </div>
       </div>
 

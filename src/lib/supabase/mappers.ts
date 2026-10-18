@@ -16,6 +16,8 @@ export function customerFromRow(row: Row): Customer {
     lastSeenAt: Number(row.last_seen_at),
     blocked: row.blocked as boolean,
     paymentBlockedUntil: optionalNumber(row.payment_blocked_until),
+    cancelCount: Number(row.cancel_count ?? 0),
+    cancelCooldownUntil: optionalNumber(row.cancel_cooldown_until),
   };
 }
 
@@ -27,6 +29,8 @@ export function customerToRow(customer: Customer): Row {
     last_seen_at: customer.lastSeenAt,
     blocked: customer.blocked,
     payment_blocked_until: nullable(customer.paymentBlockedUntil),
+    cancel_count: customer.cancelCount,
+    cancel_cooldown_until: nullable(customer.cancelCooldownUntil),
   };
 }
 
@@ -63,6 +67,9 @@ export function orderFromRow(row: Row): Order {
     planName: row.plan_name as string,
     amount: Number(row.amount),
     methodName: row.method_name as string,
+    bank: row.account_number
+      ? { bankName: String(row.bank_name ?? ""), accountTitle: String(row.account_title ?? ""), accountNumber: String(row.account_number) }
+      : undefined,
     status: row.status as Order["status"],
     createdAt: Number(row.created_at),
     expiresAt: Number(row.expires_at),
@@ -84,6 +91,9 @@ export function orderToRow(order: Order): Row {
     plan_name: order.planName,
     amount: order.amount,
     method_name: order.methodName,
+    bank_name: nullable(order.bank?.bankName),
+    account_title: nullable(order.bank?.accountTitle),
+    account_number: nullable(order.bank?.accountNumber),
     status: order.status,
     created_at: order.createdAt,
     expires_at: order.expiresAt,
@@ -181,8 +191,14 @@ export function notificationToRow(notification: AdminNotification): Row {
 
 export function configFromRow(row: Row): StoreConfig {
   const defaults = createDefaultConfig();
+  const saved = row.settings as Partial<StoreConfig["settings"]>;
   return {
-    settings: { ...defaults.settings, ...(row.settings as StoreConfig["settings"]) },
+    settings: {
+      ...defaults.settings,
+      ...saved,
+      timers: { ...defaults.settings.timers, ...saved.timers },
+      limits: { ...defaults.settings.limits, ...saved.limits },
+    },
     plans: row.plans as StoreConfig["plans"],
     methods: row.methods as StoreConfig["methods"],
     faqs: row.faqs as StoreConfig["faqs"],

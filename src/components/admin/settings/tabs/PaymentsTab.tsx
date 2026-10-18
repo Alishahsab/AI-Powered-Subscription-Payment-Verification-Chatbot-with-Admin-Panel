@@ -3,6 +3,7 @@ import Toggle from "../../ui/Toggle";
 import { inputClass, textareaClass } from "../../ui/styles";
 import type { SettingsTabProps } from "../Settings";
 import { Field, SettingsSection } from "../SettingsSection";
+import StepsEditor from "../StepsEditor";
 
 export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
   const { bank } = draft.settings;
@@ -25,7 +26,6 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
                   className={`${inputClass} pl-9`}
                 />
               </div>
-              <span className="text-[12.5px] text-zinc-500">Rs {Math.round(plan.price / plan.months)} per month</span>
               <div className="ml-auto">
                 <Toggle on={plan.active} onChange={(value) => updateDraft((next) => (next.plans[index].active = value))} label={plan.active ? "Visible" : "Hidden"} />
               </div>
@@ -34,7 +34,7 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Bank account" description="The only account customers pay into, whichever method they choose. Change it here when a limit is reached.">
+      <SettingsSection title="Bank account" description="The account customers pay into. A change applies to new orders only; orders already created keep the account they were shown.">
         <div className="grid sm:grid-cols-3 gap-3">
           <Field label="Bank name">
             <input value={bank.bankName} onChange={(event) => updateDraft((next) => (next.settings.bank.bankName = cleanLetters(event.target.value)))} className={inputClass} />
@@ -53,7 +53,7 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Payment methods" description="Shown to customers so they know which apps work. Steps appear automatically when filled in; use {bank}, {account} and {title}.">
+      <SettingsSection title="Payment methods" description="Customers see the steps when they tap How to pay. Use {bank}, {account} and {title} to insert the account details of their order.">
         <div className="space-y-4">
           {draft.methods.map((method, index) => (
             <div key={method.id} className="rounded-xl border border-zinc-200 p-3.5 space-y-2.5">
@@ -65,14 +65,7 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
                   <Toggle on={method.active} onChange={(value) => updateDraft((next) => (next.methods[index].active = value))} label={method.active ? "Shown" : "Hidden"} />
                 </div>
               </div>
-              <textarea
-                rows={method.steps ? 5 : 2}
-                maxLength={limits.longTextMax}
-                value={method.steps}
-                placeholder="No steps for this method"
-                onChange={(event) => updateDraft((next) => (next.methods[index].steps = event.target.value))}
-                className={textareaClass}
-              />
+              <StepsEditor value={method.steps} onChange={(steps) => updateDraft((next) => (next.methods[index].steps = steps))} />
             </div>
           ))}
         </div>

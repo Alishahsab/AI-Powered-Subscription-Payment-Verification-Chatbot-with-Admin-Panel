@@ -51,7 +51,7 @@ export default function ChatScreen({ customer, onSignOut }: ChatScreenProps) {
 
       {sheet === "proof" && <UploadProofSheet customerId={customer.id} onClose={() => setSheet(null)} />}
       {sheet === "issue" && <ReportIssueSheet customerId={customer.id} onClose={() => setSheet(null)} />}
-      {sheet === "steps" && orderMethod && <PaymentStepsSheet method={orderMethod} onClose={() => setSheet(null)} />}
+      {sheet === "steps" && orderMethod && <PaymentStepsSheet customerId={customer.id} method={orderMethod} onClose={() => setSheet(null)} />}
     </section>
   );
 }

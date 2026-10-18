@@ -31,6 +31,11 @@ export type Timers = {
   orderMinutes: number;
   inactiveMinutes: number;
   retryMinutes: number;
+  cancelCooldownMinutes: number;
+};
+
+export type Limits = {
+  cancelsBeforeCooldown: number;
 };
 
 export type Settings = {
@@ -44,6 +49,7 @@ export type Settings = {
   codeInstructions: string;
   bank: BankAccount;
   timers: Timers;
+  limits: Limits;
   accent: string;
 };
 
@@ -55,6 +61,8 @@ export type Customer = {
   lastSeenAt: number;
   blocked: boolean;
   paymentBlockedUntil?: number;
+  cancelCount: number;
+  cancelCooldownUntil?: number;
 };
 
 export type MessageSender = "bot" | "customer" | "admin";
@@ -105,6 +113,7 @@ export type Order = {
   planName: string;
   amount: number;
   methodName: string;
+  bank?: BankAccount;
   status: OrderStatus;
   createdAt: number;
   expiresAt: number;

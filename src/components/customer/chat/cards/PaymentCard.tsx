@@ -3,7 +3,7 @@
 import { Clock, Lock } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
 import { formatCountdown } from "@/lib/format";
-import { canStillPay } from "@/lib/store/helpers";
+import { canStillPay, orderBank } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { Message, OrderStatus } from "@/lib/types";
 import CopyButton from "../CopyButton";
@@ -22,7 +22,8 @@ export default function PaymentCard({ message }: { message: Message }) {
   const order = state.orders.find((item) => item.id === message.orderId);
   if (!order) return null;
 
-  const { bank, timers } = state.settings;
+  const { timers } = state.settings;
+  const bank = orderBank(state, order);
   const payable = canStillPay(order, now);
   const timeLeft = order.expiresAt - now;
   const progress = Math.max(0, Math.min(100, (timeLeft / (timers.orderMinutes * 60_000)) * 100));
@@ -36,14 +37,7 @@ export default function PaymentCard({ message }: { message: Message }) {
           <div className="font-bold text-[16px] mt-0.5">{order.planName}</div>
           <div className="text-[12.5px] text-[var(--muted)]">via {order.methodName}</div>
         </div>
-        <div className="text-right">
-          <div className="font-bold text-[20px] leading-tight text-[var(--accent)]">Rs {order.amount.toLocaleString()}</div>
-          {payable && (
-            <div className="mt-1">
-              <CopyButton value={String(order.amount)} label="Copy" />
-            </div>
-          )}
-        </div>
+        <div className="font-bold text-[20px] leading-tight text-[var(--accent)]">Rs {order.amount.toLocaleString()}</div>
       </div>
 
       {payable ? (

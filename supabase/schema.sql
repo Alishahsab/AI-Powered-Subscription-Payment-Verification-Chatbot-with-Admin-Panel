@@ -29,7 +29,9 @@ create table if not exists public.customers (
   created_at bigint not null,
   last_seen_at bigint not null,
   blocked boolean not null default false,
-  payment_blocked_until bigint
+  payment_blocked_until bigint,
+  cancel_count int not null default 0,
+  cancel_cooldown_until bigint
 );
 
 create table if not exists public.conversations (
@@ -49,6 +51,9 @@ create table if not exists public.orders (
   plan_name text not null,
   amount int not null,
   method_name text not null,
+  bank_name text,
+  account_title text,
+  account_number text,
   status text not null,
   created_at bigint not null,
   expires_at bigint not null,

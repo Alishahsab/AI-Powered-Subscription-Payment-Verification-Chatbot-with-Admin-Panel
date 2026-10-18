@@ -1,8 +1,8 @@
 import type { User } from "@supabase/supabase-js";
-import { getEffectiveStatus } from "../availability";
+import { formatDuration, getEffectiveStatus } from "../availability";
 import { getSupabase } from "../supabase/client";
 import { uploadScreenshot } from "../supabase/screenshots";
-import type { AppState, Stage } from "../types";
+import type { AppState, Customer, Stage } from "../types";
 import { validateName } from "../validation";
 import { addMessage, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
 import { getState, updateState } from "./state";
@@ -56,7 +56,7 @@ export function ensureCustomerProfile(user: User) {
   updateState((draft) => {
     const now = Date.now();
     if (!hasProfile) {
-      draft.customers.push({ id: user.id, email: user.email ?? "", createdAt: now, lastSeenAt: now, blocked: false });
+      draft.customers.push({ id: user.id, email: user.email ?? "", createdAt: now, lastSeenAt: now, blocked: false, cancelCount: 0 });
     }
     if (!hasConversation) {
       draft.conversations[user.id] = { customerId: user.id, stage: "menu", typing: false, unreadByAdmin: 0, lastMessageAt: now };
@@ -129,6 +129,16 @@ export const menuLabels: Record<MenuOption, string> = {
   support: "Customer Support",
 };
 
+export type OrderPause = { until: number; reason: "cancels" | "payment_issue" };
+
+export function findOrderPause(customer: Customer | undefined, now = Date.now()): OrderPause | null {
+  if (!customer) return null;
+  const pauses: OrderPause[] = [];
+  if (customer.cancelCooldownUntil && customer.cancelCooldownUntil > now) pauses.push({ until: customer.cancelCooldownUntil, reason: "cancels" });
+  if (customer.paymentBlockedUntil && customer.paymentBlockedUntil > now) pauses.push({ until: customer.paymentBlockedUntil, reason: "payment_issue" });
+  return pauses.sort((a, b) => b.until - a.until)[0] ?? null;
+}
+
 function startBuying(state: AppState, customerId: string) {
   const conversation = state.conversations[customerId];
   const customer = state.customers.find((item) => item.id === customerId);
@@ -141,9 +151,11 @@ function startBuying(state: AppState, customerId: string) {
     return;
   }
 
-  if (customer?.paymentBlockedUntil && customer.paymentBlockedUntil > now) {
-    const minutesLeft = Math.ceil((customer.paymentBlockedUntil - now) / MINUTE);
-    addMessage(state, customerId, "bot", `We're still checking our payment account. Please try again after ${minutesLeft} minutes.`);
+  const pause = findOrderPause(customer, now);
+  if (pause) {
+    const minutesLeft = Math.ceil((pause.until - now) / MINUTE);
+    const reason = pause.reason === "cancels" ? "You cancelled several orders in a row." : "We're still checking our payment account.";
+    addMessage(state, customerId, "bot", `${reason} You can create a new order in ${formatDuration(minutesLeft)}.`);
     conversation.stage = "menu";
     return;
   }
@@ -235,6 +247,7 @@ export function createOrder(customerId: string) {
       planName: plan.name,
       amount: plan.price,
       methodName: method.name,
+      bank: { ...state.settings.bank },
       status: "awaiting_payment",
       codeUnused: false,
       createdAt: now,
@@ -249,14 +262,28 @@ export function createOrder(customerId: string) {
 }
 
 export function cancelOrder(customerId: string) {
+  let cooldownStarted = false;
+
   updateState((state) => {
     addMessage(state, customerId, "customer", "I don't want to continue this order");
     const order = getActiveOrder(state, customerId);
     if (order && canStillPay(order)) order.status = "cancelled";
+
+    const customer = state.customers.find((item) => item.id === customerId);
+    if (!customer) return;
+    customer.cancelCount += 1;
+    if (customer.cancelCount >= state.settings.limits.cancelsBeforeCooldown) {
+      customer.cancelCooldownUntil = Date.now() + state.settings.timers.cancelCooldownMinutes * MINUTE;
+      customer.cancelCount = 0;
+      cooldownStarted = true;
+    }
   });
 
   replyAsBot(customerId, (state) => {
-    addMessage(state, customerId, "bot", "Your order has been cancelled. Anything else we can help with?");
+    const message = cooldownStarted
+      ? `Your order has been cancelled. Because several orders were cancelled in a row, new orders are paused for ${formatDuration(state.settings.timers.cancelCooldownMinutes)}. Customer Support is still open.`
+      : "Your order has been cancelled. Anything else we can help with?";
+    addMessage(state, customerId, "bot", message);
     state.conversations[customerId].stage = "menu";
     state.conversations[customerId].activeOrderId = undefined;
   });
@@ -287,6 +314,9 @@ export async function submitPaymentProof(customerId: string, screenshot: string,
     current.senderName = name;
     current.submittedAt = Date.now();
     current.rejectReason = undefined;
+
+    const customer = state.customers.find((item) => item.id === customerId);
+    if (customer) customer.cancelCount = 0;
 
     addMessage(state, customerId, "customer", "Payment proof submitted", { kind: "proof", orderId: order.id });
     state.conversations[customerId].unreadByAdmin += 1;

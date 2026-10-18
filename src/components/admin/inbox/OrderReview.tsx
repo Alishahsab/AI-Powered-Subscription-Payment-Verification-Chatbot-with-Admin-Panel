@@ -28,6 +28,7 @@ export default function OrderReview({ order }: { order: Order }) {
         <Row label="Plan" value={order.planName} />
         <Row label="Amount" value={formatMoney(order.amount)} strong />
         <Row label="Method" value={order.methodName} />
+        {order.bank && <Row label="Paid to" value={`${order.bank.bankName} · ${order.bank.accountNumber}`} />}
         {order.senderName && <Row label="Sender name" value={order.senderName} />}
         {order.code && <Row label="Code" value={order.code} strong />}
         <Row label="Created" value={formatDateTime(order.createdAt)} />
