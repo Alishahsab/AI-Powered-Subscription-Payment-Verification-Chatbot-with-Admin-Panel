@@ -36,6 +36,7 @@ export type Timers = {
 
 export type Limits = {
   cancelsBeforeCooldown: number;
+  repliesAfterRejection: number;
 };
 
 export type Settings = {
@@ -47,6 +48,10 @@ export type Settings = {
   terms: string[];
   howItWorks: string;
   codeInstructions: string;
+  codeMessage: string;
+  rejectionMessage: string;
+  waitForAdminMessage: string;
+  rejectReasons: string[];
   bank: BankAccount;
   timers: Timers;
   limits: Limits;
@@ -91,6 +96,7 @@ export type Stage =
   | "awaiting_payment"
   | "support"
   | "support_other"
+  | "rejected"
   | "live";
 
 export type Conversation = {

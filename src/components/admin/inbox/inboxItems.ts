@@ -19,8 +19,9 @@ export type InboxItem = {
 const cancelledLabels: Partial<Record<OrderStatus, string>> = {
   cancelled: "Cancelled by customer",
   expired: "Expired before payment",
-  rejected: "Rejected, not re-sent",
 };
+
+const isPending = (order: Order) => order.status === "pending_review" || order.status === "rejected";
 
 function describeMessage(message: Message) {
   if (message.kind === "payment") return "Order created";
@@ -40,9 +41,8 @@ export function isCustomerActive(state: AppState, customerId: string, now: numbe
   return now - customer.lastSeenAt < state.settings.timers.inactiveMinutes * 60_000;
 }
 
-function isCancelled(order: Order, now: number) {
-  if (order.status === "cancelled" || order.status === "expired") return true;
-  return order.status === "rejected" && !canStillPay(order, now);
+function isCancelled(order: Order) {
+  return order.status === "cancelled" || order.status === "expired";
 }
 
 function orderItem(state: AppState, order: Order, time: number, subtitle: string, badge?: InboxItem["badge"], unread = false): InboxItem {
@@ -92,11 +92,13 @@ function activeItems(state: AppState, now: number): InboxItem[] {
 
 function pendingItems(state: AppState, now: number): InboxItem[] {
   return state.orders
-    .filter((order) => order.status === "pending_review")
+    .filter(isPending)
     .sort((a, b) => (a.submittedAt ?? 0) - (b.submittedAt ?? 0))
     .map((order) => {
       const submitted = order.submittedAt ?? order.createdAt;
-      return orderItem(state, order, submitted, `${order.planName} · ${formatMoney(order.amount)} · ${order.methodName}`, { label: `waiting ${timeAgo(submitted, now).replace(" ago", "")}`, tone: "amber" }, true);
+      const badge: InboxItem["badge"] =
+        order.status === "rejected" ? { label: "Rejected, awaiting reply", tone: "red" } : { label: `waiting ${timeAgo(submitted, now).replace(" ago", "")}`, tone: "amber" };
+      return orderItem(state, order, submitted, `${order.planName} · ${formatMoney(order.amount)} · ${order.methodName}`, badge, order.status === "pending_review");
     });
 }
 
@@ -115,9 +117,9 @@ function completedItems(state: AppState, unused: boolean): InboxItem[] {
     );
 }
 
-function cancelledItems(state: AppState, now: number): InboxItem[] {
+function cancelledItems(state: AppState): InboxItem[] {
   return state.orders
-    .filter((order) => isCancelled(order, now))
+    .filter(isCancelled)
     .sort((a, b) => b.createdAt - a.createdAt)
     .map((order) => orderItem(state, order, order.createdAt, `${order.planName} · ${formatMoney(order.amount)}`, { label: cancelledLabels[order.status] ?? "Cancelled", tone: "gray" }));
 }
@@ -148,7 +150,7 @@ export function buildInboxItems(state: AppState, tab: InboxTab, filter: ChatFilt
   if (tab === "pending") return pendingItems(state, now);
   if (tab === "completed") return completedItems(state, false);
   if (tab === "unused") return completedItems(state, true);
-  if (tab === "cancelled") return cancelledItems(state, now);
+  if (tab === "cancelled") return cancelledItems(state);
   if (tab === "issues") return issueItems(state);
   return generalChatItems(state, filter, now);
 }
@@ -157,7 +159,7 @@ export function countInboxTabs(state: AppState, now: number): Record<InboxTab, n
   return {
     general: Object.values(state.conversations).filter((conversation) => conversation.unreadByAdmin > 0).length,
     active: state.orders.filter((order) => canStillPay(order, now)).length,
-    pending: state.orders.filter((order) => order.status === "pending_review").length,
+    pending: state.orders.filter(isPending).length,
     completed: 0,
     unused: state.orders.filter((order) => order.status === "completed" && order.codeUnused).length,
     cancelled: 0,

@@ -11,6 +11,7 @@ import CopyButton from "../CopyButton";
 const hiddenStatusText: Partial<Record<OrderStatus, string>> = {
   pending_review: "Payment under review",
   completed: "Payment approved",
+  rejected: "Payment not verified",
   cancelled: "Order cancelled",
   issue_reported: "Payment issue reported",
   expired: "Order expired",
@@ -66,10 +67,6 @@ export default function PaymentCard({ message }: { message: Message }) {
               <div className={`h-full rounded-full transition-all duration-1000 ${runningOut ? "bg-red-500" : "bg-[var(--accent)]"}`} style={{ width: `${progress}%` }} />
             </div>
           </div>
-
-          {order.status === "rejected" && (
-            <div className="text-[12.5px] text-red-700 bg-red-500/10 rounded-lg px-3 py-2">Previous proof rejected: {order.rejectReason}</div>
-          )}
         </div>
       ) : (
         <div className="px-4 py-3.5 border-t border-[var(--line)] flex items-center gap-3">

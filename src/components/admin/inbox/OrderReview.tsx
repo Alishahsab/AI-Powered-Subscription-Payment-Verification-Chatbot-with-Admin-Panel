@@ -4,14 +4,21 @@ import { useState } from "react";
 import { Check, Info, PackageX, X } from "lucide-react";
 import StoredImage from "@/components/StoredImage";
 import { formatDateTime, formatMoney, formatTime } from "@/lib/format";
-import { approveOrder, rejectOrder, rejectReasons, setCodeUnused } from "@/lib/store/admin";
+import { setCodeUnused } from "@/lib/store/admin";
 import type { Order } from "@/lib/types";
 import Badge from "../ui/Badge";
 import { orderStatusBadge } from "../ui/orderStatus";
+import ApproveDialog from "./ApproveDialog";
+import RejectDialog from "./RejectDialog";
 
-export default function OrderReview({ order }: { order: Order }) {
+type OrderReviewProps = {
+  order: Order;
+  customerEmail: string;
+};
+
+export default function OrderReview({ order, customerEmail }: OrderReviewProps) {
   const [zoomed, setZoomed] = useState(false);
-  const [choosingReason, setChoosingReason] = useState(false);
+  const [dialog, setDialog] = useState<"approve" | "reject" | null>(null);
   const badge = orderStatusBadge[order.status];
 
   return (
@@ -43,26 +50,27 @@ export default function OrderReview({ order }: { order: Order }) {
         </div>
       )}
 
-      {order.status === "pending_review" && (
+      {order.status === "rejected" && (
+        <div className="mx-4 mb-3 text-[12.5px] text-red-700 bg-red-50 rounded-xl px-3 py-2.5">
+          Rejected: {order.rejectReason}. The customer can reply once; approve it here if the payment turns out to be fine.
+        </div>
+      )}
+
+      {(order.status === "pending_review" || order.status === "rejected") && (
         <div className="px-4 pb-4 space-y-2">
-          <button onClick={() => approveOrder(order.id)} className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
-            <Check size={15} /> Approve payment
+          <button onClick={() => setDialog("approve")} className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
+            <Check size={15} /> {order.status === "rejected" ? "Approve anyway" : "Approve payment"}
           </button>
-          {choosingReason ? (
-            <div className="rounded-xl border border-red-200 bg-red-50/50 p-1.5 space-y-0.5 fade-in">
-              {rejectReasons.map((reason) => (
-                <button key={reason} onClick={() => rejectOrder(order.id, reason)} className="w-full text-left text-[12.5px] px-2.5 py-2 rounded-lg hover:bg-red-100 text-red-700">
-                  {reason}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <button onClick={() => setChoosingReason(true)} className="w-full h-10 rounded-xl text-red-600 hover:bg-red-50 text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
+          {order.status === "pending_review" && (
+            <button onClick={() => setDialog("reject")} className="w-full h-10 rounded-xl text-red-600 hover:bg-red-50 text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
               <X size={14} /> Reject
             </button>
           )}
         </div>
       )}
+
+      {dialog === "approve" && <ApproveDialog order={order} customerEmail={customerEmail} onClose={() => setDialog(null)} />}
+      {dialog === "reject" && <RejectDialog order={order} onClose={() => setDialog(null)} />}
 
       {order.status === "completed" && !order.code && (
         <div className="mx-4 mb-4 rounded-xl bg-emerald-50 px-3 py-2.5 text-[12.5px] text-emerald-800 flex gap-2">
@@ -84,8 +92,6 @@ export default function OrderReview({ order }: { order: Order }) {
           )}
         </div>
       )}
-
-      {order.status === "rejected" && <div className="mx-4 mb-4 text-[12.5px] text-red-700 bg-red-50 rounded-xl px-3 py-2.5">Rejected: {order.rejectReason}. The customer can upload new proof.</div>}
 
       {zoomed && order.screenshot && (
         <div className="fixed inset-0 z-50 bg-black/80 grid place-items-center p-6 fade-in" onClick={() => setZoomed(false)}>

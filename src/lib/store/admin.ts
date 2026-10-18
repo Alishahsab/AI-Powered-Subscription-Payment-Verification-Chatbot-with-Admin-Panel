@@ -5,7 +5,6 @@ import type { AdminStatus, AppState } from "../types";
 import { addMessage, extractCodes, findCustomerEmail } from "./helpers";
 import { applyRemoteChange, getState, updateState } from "./state";
 
-const MINUTE = 60_000;
 
 export async function isSignedInAdmin() {
   const client = getSupabase("admin");
@@ -32,8 +31,6 @@ export async function adminSignOut() {
   await getSupabase("admin").auth.signOut();
 }
 
-export const rejectReasons = ["Screenshot is unclear", "Amount does not match", "Payment not received", "Sender name does not match"];
-
 export function setAdminStatus(status: AdminStatus) {
   updateState((state) => {
     state.settings.status = status;
@@ -55,7 +52,8 @@ export function sendAdminMessage(customerId: string, text: string, emailCopy: bo
 
     const conversation = state.conversations[customerId];
     conversation.unreadByAdmin = 0;
-    if (conversation.stage !== "awaiting_payment") conversation.stage = "live";
+    const keepsStage = conversation.stage === "awaiting_payment" || conversation.stage === "rejected";
+    if (!keepsStage) conversation.stage = containsCode ? "menu" : "live";
   });
 
   if (emailCopy) {
@@ -113,20 +111,33 @@ export function findCodeSentToSomeoneElse(customerId: string, text: string) {
   return null;
 }
 
-export function approveOrder(orderId: string) {
+export function approveOrder(orderId: string, code: string, emailCopy: boolean) {
+  const order = getState().orders.find((item) => item.id === orderId);
+  if (!order) return;
+
+  const message = getState().settings.codeMessage.replaceAll("{order_id}", order.id).replaceAll("{code}", code);
+
   updateState((state) => {
-    const order = state.orders.find((item) => item.id === orderId);
-    if (!order) return;
+    const current = state.orders.find((item) => item.id === orderId);
+    if (!current) return;
 
-    order.status = "completed";
-    order.reviewedAt = Date.now();
-    addMessage(state, order.customerId, "bot", `Your payment for order ${order.id} has been approved. Your premium code will be sent here shortly.`);
+    current.status = "completed";
+    current.reviewedAt = Date.now();
+    current.code = code;
+    current.codeUnused = false;
 
-    const conversation = state.conversations[order.customerId];
+    const customer = state.customers.find((item) => item.id === current.customerId);
+    addMessage(state, current.customerId, "admin", message, { emailedTo: emailCopy ? customer?.email : undefined });
+    addMessage(state, current.customerId, "bot", state.settings.codeInstructions, { kind: "instructions" });
+
+    const conversation = state.conversations[current.customerId];
     if (conversation.activeOrderId === orderId) conversation.activeOrderId = undefined;
+    conversation.stage = "menu";
     conversation.unreadByAdmin = 0;
-    markNotificationsRead(state, order.customerId);
+    markNotificationsRead(state, current.customerId);
   });
+
+  if (emailCopy) sendEmailCopy(order.customerId, message, getState().settings.codeInstructions);
 }
 
 export function rejectOrder(orderId: string, reason: string) {
@@ -137,14 +148,15 @@ export function rejectOrder(orderId: string, reason: string) {
     order.status = "rejected";
     order.rejectReason = reason;
     order.reviewedAt = Date.now();
-    order.expiresAt = Date.now() + state.settings.timers.orderMinutes * MINUTE;
 
-    addMessage(state, order.customerId, "bot", `We couldn't verify the payment for order ${order.id}: ${reason.toLowerCase()}. Please upload a clear screenshot with the correct sender account name.`);
+    const message = state.settings.rejectionMessage.replaceAll("{order_id}", order.id).replaceAll("{reason}", reason);
+    addMessage(state, order.customerId, "bot", message);
 
     const conversation = state.conversations[order.customerId];
-    conversation.activeOrderId = order.id;
-    conversation.stage = "awaiting_payment";
+    if (conversation.activeOrderId === orderId) conversation.activeOrderId = undefined;
+    conversation.stage = "rejected";
     conversation.unreadByAdmin = 0;
+    markNotificationsRead(state, order.customerId);
   });
 }
 

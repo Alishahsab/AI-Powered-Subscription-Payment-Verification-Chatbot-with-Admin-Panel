@@ -113,6 +113,5 @@ export function findOrderMethod(state: AppState, customerId: string) {
 }
 
 export function canStillPay(order: Order, now = Date.now()) {
-  const waitingForPayment = order.status === "awaiting_payment" || order.status === "rejected";
-  return waitingForPayment && order.expiresAt > now;
+  return order.status === "awaiting_payment" && order.expiresAt > now;
 }

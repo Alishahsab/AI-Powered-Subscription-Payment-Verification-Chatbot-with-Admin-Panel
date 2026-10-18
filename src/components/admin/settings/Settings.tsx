@@ -43,6 +43,7 @@ function snapshot(draft: EditableSettings) {
 function cleanDraft(draft: EditableSettings): EditableSettings {
   const clean = structuredClone(draft);
   clean.settings.terms = clean.settings.terms.map((term) => term.trim()).filter(Boolean);
+  clean.settings.rejectReasons = clean.settings.rejectReasons.map((reason) => reason.trim()).filter(Boolean);
   clean.faqs = clean.faqs.filter((faq) => faq.question.trim() && faq.answer.trim());
   clean.methods = clean.methods.map((method) => ({ ...method, steps: stepLines(method.steps).join("\n") }));
   return clean;

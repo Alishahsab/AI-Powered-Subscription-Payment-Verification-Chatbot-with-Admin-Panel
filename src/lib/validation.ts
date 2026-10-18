@@ -77,8 +77,20 @@ export function validateConfig(config: StoreConfig) {
   if (!settings.welcome.trim()) errors.push("Welcome message cannot be empty.");
   if (!settings.howItWorks.trim()) errors.push("\"How does it work\" answer cannot be empty.");
   if (!settings.codeInstructions.trim()) errors.push("Code instructions cannot be empty.");
+  if (!settings.codeMessage.includes("{code}")) errors.push("The code message must include {code}.");
+  if (!settings.rejectionMessage.trim()) errors.push("Rejection message cannot be empty.");
+  if (!settings.waitForAdminMessage.trim()) errors.push("The waiting message cannot be empty.");
+  if (settings.rejectReasons.length === 0) errors.push("Add at least one rejection reason.");
 
-  const longTexts = [settings.welcome, settings.howItWorks, settings.codeInstructions, ...Object.values(settings.statusMessages)];
+  const longTexts = [
+    settings.welcome,
+    settings.howItWorks,
+    settings.codeInstructions,
+    settings.codeMessage,
+    settings.rejectionMessage,
+    settings.waitForAdminMessage,
+    ...Object.values(settings.statusMessages),
+  ];
   if (longTexts.some((text) => text.length > limits.longTextMax)) errors.push(`Messages can be at most ${limits.longTextMax} characters.`);
   if (Object.values(settings.statusMessages).some((text) => !text.trim())) errors.push("Status messages cannot be empty.");
 

@@ -2,7 +2,7 @@ import { cleanAccountNumber, cleanDigits, cleanLetters, cleanLettersAndDigits, l
 import Toggle from "../../ui/Toggle";
 import { inputClass, textareaClass } from "../../ui/styles";
 import type { SettingsTabProps } from "../Settings";
-import { Field, SettingsSection } from "../SettingsSection";
+import { ChoiceButtons, Field, SettingsSection } from "../SettingsSection";
 import StepsEditor from "../StepsEditor";
 
 export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
@@ -75,8 +75,33 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
         <textarea rows={5} maxLength={limits.longTextMax} value={draft.settings.howItWorks} onChange={(event) => updateDraft((next) => (next.settings.howItWorks = event.target.value))} className={textareaClass} />
       </SettingsSection>
 
-      <SettingsSection title="After a code is sent" description="Shown to the customer right after you send a premium code. Leave an empty line between the activation steps and the safety notes.">
-        <textarea rows={9} maxLength={limits.longTextMax} value={draft.settings.codeInstructions} onChange={(event) => updateDraft((next) => (next.settings.codeInstructions = event.target.value))} className={textareaClass} />
+      <SettingsSection title="Approving a payment" description="Sent when you approve a payment and enter the code. Use {code} and {order_id}.">
+        <div className="space-y-4">
+          <Field label="Code message">
+            <textarea rows={3} maxLength={limits.longTextMax} value={draft.settings.codeMessage} onChange={(event) => updateDraft((next) => (next.settings.codeMessage = event.target.value))} className={textareaClass} />
+          </Field>
+          <Field label="Activation instructions" hint="Sent right after the code">
+            <textarea rows={9} maxLength={limits.longTextMax} value={draft.settings.codeInstructions} onChange={(event) => updateDraft((next) => (next.settings.codeInstructions = event.target.value))} className={textareaClass} />
+          </Field>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection title="Rejecting a payment" description="The customer can reply a limited number of times, then waits for you. Use {reason} and {order_id}.">
+        <div className="space-y-4">
+          <Field label="Rejection message">
+            <textarea rows={3} maxLength={limits.longTextMax} value={draft.settings.rejectionMessage} onChange={(event) => updateDraft((next) => (next.settings.rejectionMessage = event.target.value))} className={textareaClass} />
+          </Field>
+          <Field label="Reasons to choose from" hint="One per line">
+            <textarea rows={4} maxLength={limits.longTextMax} value={draft.settings.rejectReasons.join("\n")} onChange={(event) => updateDraft((next) => (next.settings.rejectReasons = event.target.value.split("\n")))} className={textareaClass} />
+          </Field>
+          <div>
+            <div className="text-[13px] font-medium text-zinc-700 mb-1.5">Replies allowed before waiting for you</div>
+            <ChoiceButtons values={[1, 2, 3]} value={draft.settings.limits.repliesAfterRejection} unit="reply" onChange={(value) => updateDraft((next) => (next.settings.limits.repliesAfterRejection = value))} />
+          </div>
+          <Field label="Message while waiting for you">
+            <textarea rows={2} maxLength={limits.longTextMax} value={draft.settings.waitForAdminMessage} onChange={(event) => updateDraft((next) => (next.settings.waitForAdminMessage = event.target.value))} className={textareaClass} />
+          </Field>
+        </div>
       </SettingsSection>
     </>
   );

@@ -16,7 +16,7 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
   if (!customer) return null;
 
   const orders = state.orders.filter((order) => order.customerId === customerId).sort((a, b) => b.createdAt - a.createdAt);
-  const focusOrder = orders.find((order) => order.status === "pending_review") ?? orders[0];
+  const focusOrder = orders.find((order) => order.status === "pending_review" || order.status === "rejected") ?? orders[0];
   const completed = orders.filter((order) => order.status === "completed");
   const totalSpent = completed.reduce((sum, order) => sum + order.amount, 0);
   const tickets = state.tickets.filter((ticket) => ticket.customerId === customerId);
@@ -46,7 +46,7 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
         )}
       </div>
 
-      {focusOrder && <OrderReview key={focusOrder.id + focusOrder.status} order={focusOrder} />}
+      {focusOrder && <OrderReview key={focusOrder.id + focusOrder.status} order={focusOrder} customerEmail={customer.email} />}
 
       {tickets.map((ticket) => (
         <TicketCard key={ticket.id} ticket={ticket} />

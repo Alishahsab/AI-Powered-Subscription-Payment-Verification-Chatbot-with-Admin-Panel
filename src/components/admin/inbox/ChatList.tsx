@@ -23,10 +23,10 @@ const tabs: { key: InboxTab; label: string; urgent: boolean; icon: React.ReactNo
 const emptyText: Record<InboxTab, string> = {
   general: "No conversations here yet.",
   active: "Orders waiting for the customer to pay show up here.",
-  pending: "New payment submissions will appear here instantly.",
+  pending: "New payment submissions and rejected payments show up here.",
   completed: "Approved orders will show up here.",
   unused: "Move a completed order here when its code has not been used yet.",
-  cancelled: "Cancelled, expired and rejected orders show up here.",
+  cancelled: "Cancelled and expired orders show up here.",
   issues: "No problems reported. All caught up.",
 };
 

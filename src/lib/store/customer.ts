@@ -464,15 +464,36 @@ export function backToMenu(customerId: string) {
   });
 }
 
+export function repliesLeftAfterRejection(state: AppState, customerId: string) {
+  const order = state.orders.filter((item) => item.customerId === customerId && item.status === "rejected").sort((a, b) => (b.reviewedAt ?? 0) - (a.reviewedAt ?? 0))[0];
+  if (!order) return 0;
+
+  const messages = state.messages.filter((message) => message.customerId === customerId);
+  const lastAdminReply = messages.filter((message) => message.sender === "admin").at(-1)?.createdAt ?? 0;
+  const since = Math.max(order.reviewedAt ?? 0, lastAdminReply);
+  const sent = messages.filter((message) => message.sender === "customer" && message.kind === "text" && message.createdAt > since).length;
+  return Math.max(0, state.settings.limits.repliesAfterRejection - sent);
+}
+
+export async function sendRejectionReply(customerId: string, text: string, screenshot?: string) {
+  const screenshotPath = await uploadOptional(customerId, screenshot);
+
+  updateState((state) => {
+    addMessage(state, customerId, "customer", text);
+    if (screenshotPath) addMessage(state, customerId, "customer", "Screenshot", { kind: "image", image: screenshotPath });
+    state.conversations[customerId].unreadByAdmin += 1;
+    notifyAdmin(state, { kind: "payment", title: "Reply to a rejected payment", body: `${findCustomerEmail(state, customerId)} · ${text.slice(0, 70)}`, customerId });
+  });
+}
+
 export function expireUnpaidOrders() {
   const now = Date.now();
-  const isUnpaid = (status: string) => status === "awaiting_payment" || status === "rejected";
-  const hasExpired = getState().orders.some((order) => isUnpaid(order.status) && order.expiresAt <= now);
+  const hasExpired = getState().orders.some((order) => order.status === "awaiting_payment" && order.expiresAt <= now);
   if (!hasExpired) return;
 
   updateState((state) => {
     for (const order of state.orders) {
-      if (!isUnpaid(order.status) || order.expiresAt > now) continue;
+      if (order.status !== "awaiting_payment" || order.expiresAt > now) continue;
 
       order.status = "expired";
       const conversation = state.conversations[order.customerId];

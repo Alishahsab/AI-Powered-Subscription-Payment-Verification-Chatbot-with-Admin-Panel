@@ -51,9 +51,14 @@ export function createDefaultConfig(): StoreConfig {
         "• Never send payment to any account without first creating an order in this chatbot.",
         "• Always pay only to the account shown in your active order. Our account can change.",
       ].join("\n"),
+      codeMessage: "Your payment for order {order_id} has been approved. Here is your premium code:\n{code}",
+      rejectionMessage:
+        "We couldn't verify the payment for order {order_id}. Reason: {reason}.\nIf you think this is a mistake, describe your side below and attach a screenshot.",
+      waitForAdminMessage: "Thanks, we've received your reply. Please wait for our team to respond here.",
+      rejectReasons: ["Screenshot is unclear", "Amount does not match", "Payment not received", "Sender name does not match"],
       bank: { bankName: "Meezan Bank", accountTitle: "Premium Store", accountNumber: "0123 4567 8901 2345" },
       timers: { orderMinutes: 15, inactiveMinutes: 20, retryMinutes: 30, cancelCooldownMinutes: 30 },
-      limits: { cancelsBeforeCooldown: 2 },
+      limits: { cancelsBeforeCooldown: 2, repliesAfterRejection: 1 },
       accent: "#0C2660",
     },
     plans: [

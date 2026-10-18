@@ -11,6 +11,7 @@ import MessageComposer from "./actions/MessageComposer";
 import MethodOptions from "./actions/MethodOptions";
 import PaymentActions from "./actions/PaymentActions";
 import PlanOptions from "./actions/PlanOptions";
+import RejectionReply from "./actions/RejectionReply";
 import SupportOptions from "./actions/SupportOptions";
 import TermsActions from "./actions/TermsActions";
 
@@ -49,6 +50,8 @@ function StageActions({ customerId, conversation, onOpenSheet }: ActionPanelProp
       return <SupportOptions customerId={customerId} />;
     case "support_other":
       return <IssueComposer customerId={customerId} />;
+    case "rejected":
+      return <RejectionReply customerId={customerId} />;
     case "live":
       return <MessageComposer customerId={customerId} />;
   }
