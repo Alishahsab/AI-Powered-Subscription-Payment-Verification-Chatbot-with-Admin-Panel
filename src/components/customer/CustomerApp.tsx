@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { useOrderExpiry } from "@/hooks/useOrderExpiry";
@@ -21,10 +21,24 @@ export default function CustomerApp() {
   const [confirmingSignOut, setConfirmingSignOut] = useState(false);
   const customer = user ? state.customers.find((item) => item.id === user.id) : undefined;
 
+  const hadProfile = useRef(false);
+
   useEffect(() => {
     if (!user) return;
+    hadProfile.current = false;
     startSync("customer").then(() => ensureCustomerProfile(user));
   }, [user]);
+
+  useEffect(() => {
+    if (customer) {
+      hadProfile.current = true;
+      return;
+    }
+    if (user && hadProfile.current) {
+      hadProfile.current = false;
+      signOut().then(stopSync);
+    }
+  }, [customer, user]);
 
   useOrderExpiry();
   usePresence(customer?.id);
