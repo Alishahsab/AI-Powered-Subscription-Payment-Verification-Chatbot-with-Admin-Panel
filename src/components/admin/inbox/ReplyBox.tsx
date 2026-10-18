@@ -84,7 +84,7 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
               }
             }}
             rows={1}
-            placeholder="Message the customer or paste the code…"
+            placeholder="Type a message or code…"
             className="flex-1 resize-none min-h-9 max-h-32 bg-transparent px-1.5 py-2 text-[14px] outline-none placeholder:text-zinc-400"
           />
           <button

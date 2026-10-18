@@ -40,7 +40,7 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
   const active = isCustomerActive(state, customerId, now);
 
   return (
-    <div className="flex-1 min-w-0 flex flex-col bg-[#f5f6f8]">
+    <div className="flex-1 min-w-0 flex flex-col bg-[#f7f8fa] overflow-hidden lg:rounded-2xl lg:border lg:border-zinc-200/70 lg:shadow-[0_1px_3px_rgba(16,24,40,0.06)]">
       <div className="h-16 shrink-0 bg-white border-b border-zinc-200/80 flex items-center gap-3 px-3 lg:px-6">
         <button onClick={onBack} className="lg:hidden size-9 grid place-items-center rounded-lg hover:bg-zinc-100" aria-label="Back">
           <ArrowLeft size={18} />

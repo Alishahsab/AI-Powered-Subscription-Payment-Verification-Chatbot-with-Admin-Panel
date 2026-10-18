@@ -13,6 +13,8 @@ import ChatThread from "./ChatThread";
 import CustomerPanel from "./CustomerPanel";
 import { buildInboxItems, countInboxTabs, type ChatFilter } from "./inboxItems";
 
+const panelClass = "lg:rounded-2xl lg:border lg:border-zinc-200/70 lg:shadow-[0_1px_3px_rgba(16,24,40,0.06)]";
+
 type InboxProps = {
   initialTab?: InboxTab;
   initialCustomerId?: string;
@@ -36,8 +38,8 @@ export default function Inbox({ initialTab, initialCustomerId }: InboxProps) {
   }, [selectedCustomerId, state.messages.length]);
 
   return (
-    <div className="h-full flex">
-      <div className={classNames("w-full lg:w-[360px] shrink-0 border-r border-zinc-200/80 bg-white flex flex-col", selectedCustomerId && "hidden lg:flex")}>
+    <div className="h-full flex lg:gap-3 lg:p-3 bg-[#e9ecf1]">
+      <div className={classNames("w-full lg:w-[360px] shrink-0 bg-white flex flex-col overflow-hidden", panelClass, selectedCustomerId && "hidden lg:flex")}>
         <ChatList
           tab={tab}
           onTabChange={setTab}
@@ -55,7 +57,7 @@ export default function Inbox({ initialTab, initialCustomerId }: InboxProps) {
         <>
           <ChatThread customerId={selectedCustomerId} onBack={() => setChosenCustomerId(undefined)} onShowDetails={() => setDetailsOpen(true)} />
 
-          <div className="hidden xl:block w-[340px] shrink-0 border-l border-zinc-200/80 bg-white overflow-y-auto">
+          <div className={classNames("hidden xl:block w-[340px] shrink-0 bg-white overflow-y-auto", panelClass)}>
             <CustomerPanel customerId={selectedCustomerId} />
           </div>
 
@@ -74,7 +76,7 @@ export default function Inbox({ initialTab, initialCustomerId }: InboxProps) {
           )}
         </>
       ) : (
-        <div className="hidden lg:grid flex-1 place-items-center">
+        <div className={classNames("hidden lg:grid flex-1 place-items-center bg-white", panelClass)}>
           <EmptyState icon={<MessageSquareText size={20} />} title="Select a conversation" description="Choose a chat or order from the list." />
         </div>
       )}
