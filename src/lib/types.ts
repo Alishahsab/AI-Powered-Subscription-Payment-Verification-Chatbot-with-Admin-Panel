@@ -44,7 +44,6 @@ export type Settings = {
   codeInstructions: string;
   bank: BankAccount;
   timers: Timers;
-  retentionDays: number;
   accent: string;
 };
 

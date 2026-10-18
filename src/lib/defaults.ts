@@ -53,7 +53,6 @@ export function createDefaultConfig(): StoreConfig {
       ].join("\n"),
       bank: { bankName: "Meezan Bank", accountTitle: "Premium Store", accountNumber: "0123 4567 8901 2345" },
       timers: { orderMinutes: 15, inactiveMinutes: 20, retryMinutes: 30 },
-      retentionDays: 15,
       accent: "#0C2660",
     },
     plans: [

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, History, Lock, ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, History, Lock, ShieldCheck, Zap } from "lucide-react";
 import { classNames } from "@/lib/format";
-import { isEmailRegistered, requestPinReset, signIn, signUp } from "@/lib/store/customer";
+import { logIn, requestPinReset } from "@/lib/store/customer";
 import { cleanDigits, cleanEmail, limits, validateEmail, validatePin } from "@/lib/validation";
 
-type Step = "email" | "login" | "create" | "forgot";
+type Mode = "login" | "forgot";
 
 const features = [
   { icon: <Zap size={17} />, title: "Code in minutes", text: "Pay, upload proof, get your code right in the chat." },
@@ -14,41 +14,31 @@ const features = [
   { icon: <History size={17} />, title: "Every code saved", text: "Your codes stay safe in your chat." },
 ];
 
-const titles: Record<Step, { heading: string; text: string; button: string }> = {
-  email: { heading: "Welcome", text: "Enter your email to continue.", button: "Continue" },
-  login: { heading: "Welcome back", text: "Enter your 6-digit PIN to open your chat.", button: "Log in" },
-  create: { heading: "Create your PIN", text: "New here? Choose a 6-digit PIN for your account.", button: "Create account" },
-  forgot: { heading: "Reset your PIN", text: "We'll email you a link to set a new PIN.", button: "Send reset link" },
+const titles: Record<Mode, { heading: string; text: string; button: string }> = {
+  login: { heading: "Welcome", text: "Enter your email and 6-digit PIN to open your private chat.", button: "Continue" },
+  forgot: { heading: "Reset your PIN", text: "Enter your email and we'll send you a link to set a new PIN.", button: "Send reset link" },
 };
 
 const inputClass =
   "mt-1.5 w-full h-12 rounded-xl bg-[var(--bg)] border border-[var(--line)] px-4 text-[15.5px] outline-none placeholder:text-[#9aa1ab] focus:bg-[var(--surface)] focus:border-[var(--accent)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--accent)_12%,transparent)] transition";
 
-const linkClass = "text-[13px] font-medium text-[var(--accent)] hover:underline flex items-center gap-1";
-
 export default function AuthScreen() {
-  const [step, setStep] = useState<Step>("email");
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [pin, setPin] = useState("");
-  const [confirmPin, setConfirmPin] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const goTo = (next: Step) => {
-    setStep(next);
-    setPin("");
-    setConfirmPin("");
+  const switchMode = (next: Mode) => {
+    setMode(next);
     setError("");
     setNotice("");
   };
 
   const validate = () => {
-    if (step === "email" || step === "forgot") return validateEmail(email);
-    const pinProblem = validatePin(pin);
-    if (pinProblem) return pinProblem;
-    if (step === "create" && pin !== confirmPin) return "The two PINs do not match.";
-    return null;
+    if (mode === "forgot") return validateEmail(email);
+    return validateEmail(email) ?? validatePin(pin);
   };
 
   const submit = async (event: React.FormEvent) => {
@@ -62,30 +52,20 @@ export default function AuthScreen() {
 
     setError("");
     setBusy(true);
-
-    if (step === "email") {
-      const registered = await isEmailRegistered(email);
-      setBusy(false);
-      if (registered === null) setError("We couldn't check this email right now. Please try again.");
-      else goTo(registered ? "login" : "create");
-      return;
-    }
-
-    if (step === "forgot") {
+    if (mode === "forgot") {
       const result = await requestPinReset(email);
       setBusy(false);
       if (result.error) setError(result.error);
-      else setNotice("A reset link is on its way. Open it from your inbox to set a new PIN.");
+      else setNotice("If an account exists for this email, a reset link is on its way. Check your inbox.");
       return;
     }
 
-    const result = step === "login" ? await signIn(email, pin) : await signUp(email, pin);
+    const result = await logIn(email, pin);
     setBusy(false);
     if (result.error) setError(result.error);
   };
 
-  const copy = titles[step];
-  const askingPin = step === "login" || step === "create";
+  const copy = titles[mode];
 
   return (
     <div className="h-dvh w-full overflow-hidden flex md:items-center md:justify-center md:p-6">
@@ -121,54 +101,20 @@ export default function AuthScreen() {
             </div>
 
             <div className="mt-6 space-y-4">
-              {step === "email" || step === "forgot" ? (
+              <label className="block">
+                <span className="text-[13.5px] font-semibold">Email</span>
+                <input value={email} onChange={(event) => setEmail(cleanEmail(event.target.value))} placeholder="you@example.com" inputMode="email" autoComplete="email" className={inputClass} />
+              </label>
+              {mode === "login" && (
                 <label className="block">
-                  <span className="text-[13.5px] font-semibold">Email</span>
+                  <span className="text-[13.5px] font-semibold">6-digit PIN</span>
                   <input
-                    autoFocus
-                    value={email}
-                    onChange={(event) => setEmail(cleanEmail(event.target.value))}
-                    placeholder="you@example.com"
-                    inputMode="email"
-                    autoComplete="email"
-                    className={inputClass}
-                  />
-                </label>
-              ) : (
-                <div className="flex items-center justify-between gap-3 rounded-xl bg-[var(--bg)] border border-[var(--line)] px-4 h-12">
-                  <span className="text-[14.5px] font-medium truncate">{email}</span>
-                  <button type="button" onClick={() => goTo("email")} className="text-[13px] font-semibold text-[var(--accent)] shrink-0 hover:underline">
-                    Change
-                  </button>
-                </div>
-              )}
-
-              {askingPin && (
-                <label className="block">
-                  <span className="text-[13.5px] font-semibold">{step === "create" ? "Choose a 6-digit PIN" : "6-digit PIN"}</span>
-                  <input
-                    autoFocus
                     value={pin}
                     onChange={(event) => setPin(cleanDigits(event.target.value, limits.pinLength))}
                     placeholder="••••••"
                     type="password"
                     inputMode="numeric"
-                    autoComplete={step === "login" ? "current-password" : "new-password"}
-                    className={classNames(inputClass, "tracking-[0.3em]")}
-                  />
-                </label>
-              )}
-
-              {step === "create" && (
-                <label className="block">
-                  <span className="text-[13.5px] font-semibold">Confirm PIN</span>
-                  <input
-                    value={confirmPin}
-                    onChange={(event) => setConfirmPin(cleanDigits(event.target.value, limits.pinLength))}
-                    placeholder="••••••"
-                    type="password"
-                    inputMode="numeric"
-                    autoComplete="new-password"
+                    autoComplete="current-password"
                     className={classNames(inputClass, "tracking-[0.3em]")}
                   />
                 </label>
@@ -177,18 +123,12 @@ export default function AuthScreen() {
 
             {error && <p className="mt-3 text-[13px] text-red-600">{error}</p>}
             {notice && <p className="mt-3 text-[13px] text-emerald-700">{notice}</p>}
+            {!error && !notice && mode === "login" && <p className="mt-3 text-[12.5px] text-[var(--muted)]">New here? Your account is created with this PIN.</p>}
 
             <div className="flex justify-between mt-3">
-              {step === "login" && (
-                <button type="button" onClick={() => goTo("forgot")} className={linkClass}>
-                  Forgot PIN?
-                </button>
-              )}
-              {step === "forgot" && (
-                <button type="button" onClick={() => goTo("login")} className={linkClass}>
-                  <ArrowLeft size={14} /> Back to login
-                </button>
-              )}
+              <button type="button" onClick={() => switchMode(mode === "login" ? "forgot" : "login")} className="text-[13px] font-medium text-[var(--accent)] hover:underline">
+                {mode === "login" ? "Forgot PIN?" : "Back to login"}
+              </button>
             </div>
 
             <div className="mt-auto md:mt-7 pt-5 md:pt-0 md:mb-auto">

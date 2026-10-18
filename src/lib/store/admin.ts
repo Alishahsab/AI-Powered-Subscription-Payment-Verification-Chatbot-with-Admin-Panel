@@ -6,7 +6,6 @@ import { addMessage, extractCodes, findCustomerEmail } from "./helpers";
 import { applyRemoteChange, getState, updateState } from "./state";
 
 const MINUTE = 60_000;
-const DAY = 24 * 60 * MINUTE;
 
 export async function isSignedInAdmin() {
   const client = getSupabase("admin");
@@ -195,31 +194,4 @@ export function saveSettings(changes: EditableSettings) {
     state.methods = changes.methods;
     state.faqs = changes.faqs;
   });
-}
-
-export function deleteOldChats() {
-  let removedMessages = 0;
-  const removedPaths: string[] = [];
-
-  updateState((state) => {
-    const cutoff = Date.now() - state.settings.retentionDays * DAY;
-    const oldMessages = state.messages.filter((message) => message.createdAt < cutoff);
-    removedMessages = oldMessages.length;
-    state.messages = state.messages.filter((message) => message.createdAt >= cutoff);
-
-    for (const message of oldMessages) {
-      if (message.image) removedPaths.push(message.image);
-    }
-
-    for (const order of state.orders) {
-      const reviewedLongAgo = (order.reviewedAt ?? order.createdAt) < cutoff;
-      if (order.screenshot && order.status !== "pending_review" && reviewedLongAgo) {
-        removedPaths.push(order.screenshot);
-        order.screenshot = undefined;
-      }
-    }
-  });
-
-  deleteScreenshots(removedPaths);
-  return { removedMessages, removedScreenshots: removedPaths.length };
 }

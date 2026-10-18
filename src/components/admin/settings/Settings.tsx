@@ -25,7 +25,7 @@ const tabs = [
   { key: "availability", label: "Availability", icon: <Clock size={15} /> },
   { key: "payments", label: "Plans & payments", icon: <CreditCard size={15} /> },
   { key: "support", label: "Support", icon: <LifeBuoy size={15} /> },
-  { key: "timers", label: "Timers & data", icon: <Timer size={15} /> },
+  { key: "timers", label: "Timers", icon: <Timer size={15} /> },
   { key: "appearance", label: "Appearance", icon: <Palette size={15} /> },
 ] as const;
 
