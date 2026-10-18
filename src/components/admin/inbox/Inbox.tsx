@@ -16,11 +16,12 @@ import { buildInboxItems, countBotFilters, countInboxTabs, type BotFilter } from
 const panelClass = "lg:rounded-2xl lg:border lg:border-zinc-200/70 lg:shadow-[0_1px_3px_rgba(16,24,40,0.06)]";
 
 type InboxProps = {
+  view: "inbox" | "bot";
   initialTab?: InboxTab;
   initialCustomerId?: string;
 };
 
-export default function Inbox({ initialTab, initialCustomerId }: InboxProps) {
+export default function Inbox({ view, initialTab, initialCustomerId }: InboxProps) {
   const state = useAppState();
   const now = useNow(15_000);
   const [tab, setTab] = useState<InboxTab>(initialTab ?? state.settings.inboxTabs[0]?.key ?? "pending");
@@ -29,7 +30,8 @@ export default function Inbox({ initialTab, initialCustomerId }: InboxProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [isWideScreen] = useState(() => window.innerWidth >= 1024);
 
-  const items = useMemo(() => buildInboxItems(state, tab, botFilter, now), [state, tab, botFilter, now]);
+  const list = view === "bot" ? "bot" : tab;
+  const items = useMemo(() => buildInboxItems(state, list, botFilter, now), [state, list, botFilter, now]);
   const counts = useMemo(() => countInboxTabs(state), [state]);
   const botCounts = useMemo(() => countBotFilters(state, now), [state, now]);
   const selectedCustomerId = chosenCustomerId ?? (isWideScreen ? items[0]?.customerId : undefined);
@@ -42,6 +44,7 @@ export default function Inbox({ initialTab, initialCustomerId }: InboxProps) {
     <div className="h-full flex lg:gap-3 lg:p-3 bg-[#e9ecf1]">
       <div className={classNames("w-full lg:w-[360px] shrink-0 bg-white flex flex-col overflow-hidden", panelClass, selectedCustomerId && "hidden lg:flex")}>
         <ChatList
+          view={view}
           tab={tab}
           onTabChange={setTab}
           botFilter={botFilter}

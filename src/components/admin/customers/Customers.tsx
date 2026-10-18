@@ -98,7 +98,7 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
                       <td className="px-3 py-3 text-zinc-500 whitespace-nowrap">{timeAgo(customer.lastSeenAt, now)}</td>
                       <td className="px-5 py-3">
                         <div className="flex justify-end gap-1.5">
-                          <Button size="sm" onClick={() => onNavigate({ section: "inbox", customerId: customer.id, tab: "bot" })}>
+                          <Button size="sm" onClick={() => onNavigate({ section: "bot", customerId: customer.id })}>
                             <MessageSquare size={13} /> Chat
                           </Button>
                           <BlockCustomerButton customer={customer} compact />

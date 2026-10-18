@@ -4,7 +4,7 @@ import { AlertTriangle, ArrowRight, Clock, LifeBuoy, MessageCircle, Wallet } fro
 import { useNow } from "@/hooks/useNow";
 import { classNames, formatMoney, timeAgo } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
-import type { Navigate } from "../navigation";
+import type { Navigate, NavTarget } from "../navigation";
 import { Card, CardHeader } from "../ui/Card";
 import RecentOrders from "./RecentOrders";
 
@@ -20,11 +20,24 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
   const inactiveAfter = state.settings.timers.inactiveMinutes * 60_000;
   const activeChats = state.customers.filter((customer) => now - customer.lastSeenAt < inactiveAfter);
 
-  const stats = [
+  const stats: { label: string; value: string; note: string; icon: React.ReactNode; highlight?: boolean; target?: NavTarget }[] = [
     { label: "Revenue today", value: formatMoney(revenueToday), note: `${completedToday.length} orders completed`, icon: <Wallet size={17} /> },
-    { label: "Pending review", value: String(pendingOrders.length), note: "Waiting for your approval", icon: <Clock size={17} />, highlight: pendingOrders.length > 0, tab: "pending" as const },
-    { label: "Open issues", value: String(openIssues.length), note: "Support and payment issues", icon: <LifeBuoy size={17} />, tab: "issues" as const },
-    { label: "Active chats", value: String(activeChats.length), note: `Active in the last ${state.settings.timers.inactiveMinutes} min`, icon: <MessageCircle size={17} />, tab: "bot" as const },
+    {
+      label: "Pending review",
+      value: String(pendingOrders.length),
+      note: "Waiting for your approval",
+      icon: <Clock size={17} />,
+      highlight: pendingOrders.length > 0,
+      target: { section: "inbox", tab: "pending" },
+    },
+    { label: "Open issues", value: String(openIssues.length), note: "Support and payment issues", icon: <LifeBuoy size={17} />, target: { section: "inbox", tab: "issues" } },
+    {
+      label: "Active chats",
+      value: String(activeChats.length),
+      note: `Active in the last ${state.settings.timers.inactiveMinutes} min`,
+      icon: <MessageCircle size={17} />,
+      target: { section: "bot" },
+    },
   ];
 
   const hour = new Date(now).getHours();
@@ -57,8 +70,8 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
           {stats.map((stat) => (
             <button
               key={stat.label}
-              disabled={!stat.tab}
-              onClick={() => stat.tab && onNavigate({ section: "inbox", tab: stat.tab })}
+              disabled={!stat.target}
+              onClick={() => stat.target && onNavigate(stat.target)}
               className="text-left bg-white rounded-xl border border-zinc-200/80 px-3.5 py-3 hover:border-zinc-300 transition disabled:hover:border-zinc-200/80"
             >
               <div className="flex items-center justify-between text-zinc-500">

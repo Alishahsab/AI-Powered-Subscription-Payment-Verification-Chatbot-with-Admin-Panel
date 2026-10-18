@@ -4,11 +4,19 @@ import { useNow } from "@/hooks/useNow";
 import { formatMoney, timeAgo } from "@/lib/format";
 import { findCustomerEmail } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
-import type { Navigate } from "../navigation";
+import type { Order } from "@/lib/types";
+import type { Navigate, NavTarget } from "../navigation";
 import Avatar from "../ui/Avatar";
 import Badge from "../ui/Badge";
 import { Card, CardHeader } from "../ui/Card";
 import { orderStatusBadge } from "../ui/orderStatus";
+
+function targetForOrder(order: Order): NavTarget {
+  const customerId = order.customerId;
+  if (order.status === "pending_review" || order.status === "rejected") return { section: "inbox", tab: "pending", customerId };
+  if (order.status === "completed") return { section: "inbox", tab: order.codeUnused ? "unused" : "completed", customerId };
+  return { section: "bot", customerId };
+}
 
 export default function RecentOrders({ onNavigate }: { onNavigate: Navigate }) {
   const state = useAppState();
@@ -35,10 +43,8 @@ export default function RecentOrders({ onNavigate }: { onNavigate: Navigate }) {
             {orders.map((order) => {
               const name = findCustomerEmail(state, order.customerId);
               const badge = orderStatusBadge[order.status];
-              const tab = order.status === "pending_review" ? "pending" : order.status === "completed" ? (order.codeUnused ? "unused" : "completed") : "bot";
-
               return (
-                <tr key={order.id} onClick={() => onNavigate({ section: "inbox", customerId: order.customerId, tab })} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50 cursor-pointer">
+                <tr key={order.id} onClick={() => onNavigate(targetForOrder(order))} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50 cursor-pointer">
                   <td className="px-5 py-2.5">
                     <div className="flex items-center gap-2.5">
                       <Avatar name={name} size={28} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Ban, Bot, CheckCircle2, Hourglass, Inbox as InboxIcon, PackageX } from "lucide-react";
+import { AlertTriangle, Ban, CheckCircle2, Hourglass, Inbox as InboxIcon, PackageX } from "lucide-react";
 import { classNames, timeAgo } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import type { InboxTab } from "@/lib/types";
@@ -17,10 +17,9 @@ const tabIcons: Record<InboxTab, React.ReactNode> = {
   completed: <CheckCircle2 {...iconProps} />,
   unused: <PackageX {...iconProps} />,
   blocked: <Ban {...iconProps} />,
-  bot: <Bot {...iconProps} />,
 };
 
-const urgentTabs: InboxTab[] = ["pending", "issues", "bot"];
+const urgentTabs: InboxTab[] = ["pending", "issues"];
 
 const botFilters: { key: BotFilter; label: string; dot: string }[] = [
   { key: "active_orders", label: "Active orders", dot: "bg-sky-500" },
@@ -35,7 +34,6 @@ const emptyText: Record<InboxTab | BotFilter, string> = {
   completed: "Approved orders will show up here.",
   unused: "Move a completed order here when its code has not been used yet.",
   blocked: "Customers you block show up here.",
-  bot: "No conversations here yet.",
   active_orders: "Orders waiting for the customer to pay show up here.",
   cancelled: "Cancelled and expired orders show up here.",
   active_chats: "Customers active right now show up here.",
@@ -43,6 +41,7 @@ const emptyText: Record<InboxTab | BotFilter, string> = {
 };
 
 type ChatListProps = {
+  view: "inbox" | "bot";
   tab: InboxTab;
   onTabChange: (tab: InboxTab) => void;
   botFilter: BotFilter;
@@ -55,66 +54,66 @@ type ChatListProps = {
   now: number;
 };
 
-export default function ChatList({ tab, onTabChange, botFilter, onBotFilterChange, counts, botCounts, items, selectedCustomerId, onSelect, now }: ChatListProps) {
+export default function ChatList({ view, tab, onTabChange, botFilter, onBotFilterChange, counts, botCounts, items, selectedCustomerId, onSelect, now }: ChatListProps) {
   const state = useAppState();
-  const tabs = state.settings.inboxTabs;
+  const isBot = view === "bot";
 
   return (
     <>
       <div className="px-5 pt-5">
-        <h1 className="text-[20px] font-bold tracking-tight text-zinc-900">Inbox</h1>
+        <h1 className="text-[20px] font-bold tracking-tight text-zinc-900">{isBot ? "Bot chat" : "Inbox"}</h1>
       </div>
 
-      <div className="mt-3 px-4 grid grid-cols-2 gap-1.5 pb-3.5 border-b border-zinc-200/80">
-        {tabs.map((item) => {
-          const selected = tab === item.key;
-          return (
-            <button
-              key={item.key}
-              onClick={() => onTabChange(item.key)}
-              className={classNames(
-                "h-9 px-2.5 rounded-lg border flex items-center gap-2 text-left transition",
-                selected ? "bg-[#0C2660] border-[#0C2660] text-white" : "bg-white border-zinc-200 text-zinc-800 hover:border-zinc-300 hover:bg-zinc-50"
-              )}
-            >
-              <span className={classNames("shrink-0", selected ? "text-white" : "text-zinc-900")}>{tabIcons[item.key]}</span>
-              <span className="flex-1 min-w-0 text-[12px] font-semibold truncate">{item.label}</span>
-              {counts[item.key] > 0 && (
-                <span
-                  className={classNames(
-                    "text-[10.5px] font-bold rounded-full min-w-[20px] h-5 px-1.5 grid place-items-center shrink-0",
-                    selected ? "bg-white text-[#0C2660]" : urgentTabs.includes(item.key) ? "bg-red-500 text-white" : "bg-zinc-200 text-zinc-700"
-                  )}
-                >
-                  {counts[item.key]}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {tab === "bot" && (
-        <div className="px-4 pt-3 pb-1 grid grid-cols-2 gap-1.5">
+      {isBot ? (
+        <div className="mt-3 px-4 pb-3.5 grid grid-cols-2 gap-1.5 border-b border-zinc-200/80">
           {botFilters.map((option) => (
             <button
               key={option.key}
               onClick={() => onBotFilterChange(option.key)}
               className={classNames(
-                "h-8 px-2.5 rounded-md text-[12px] font-semibold flex items-center gap-1.5 transition",
-                botFilter === option.key ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200/70"
+                "h-9 px-2.5 rounded-lg border text-[12px] font-semibold flex items-center gap-1.5 transition",
+                botFilter === option.key ? "bg-[#0C2660] border-[#0C2660] text-white" : "bg-white border-zinc-200 text-zinc-800 hover:border-zinc-300 hover:bg-zinc-50"
               )}
             >
-              <span className={classNames("size-1.5 rounded-full shrink-0", option.dot)} />
+              <span className={classNames("size-2 rounded-full shrink-0", option.dot)} />
               <span className="flex-1 text-left truncate">{option.label}</span>
               <span className="tabular-nums opacity-70">{botCounts[option.key]}</span>
             </button>
           ))}
         </div>
+      ) : (
+        <div className="mt-3 px-4 grid grid-cols-2 gap-1.5 pb-3.5 border-b border-zinc-200/80">
+          {state.settings.inboxTabs.map((item) => {
+            const selected = tab === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={() => onTabChange(item.key)}
+                className={classNames(
+                  "h-9 px-2.5 rounded-lg border flex items-center gap-2 text-left transition",
+                  selected ? "bg-[#0C2660] border-[#0C2660] text-white" : "bg-white border-zinc-200 text-zinc-800 hover:border-zinc-300 hover:bg-zinc-50"
+                )}
+              >
+                <span className={classNames("shrink-0", selected ? "text-white" : "text-zinc-900")}>{tabIcons[item.key]}</span>
+                <span className="flex-1 min-w-0 text-[12px] font-semibold truncate">{item.label}</span>
+                {counts[item.key] > 0 && (
+                  <span
+                    className={classNames(
+                      "text-[10.5px] font-bold rounded-full min-w-[20px] h-5 px-1.5 grid place-items-center shrink-0",
+                      selected ? "bg-white text-[#0C2660]" : urgentTabs.includes(item.key) ? "bg-red-500 text-white" : "bg-zinc-200 text-zinc-700"
+                    )}
+                  >
+                    {counts[item.key]}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       )}
       <div className="flex-1 overflow-y-auto px-2.5 py-2">
         {items.length === 0 ? (
-          <EmptyState icon={<InboxIcon size={20} />} title="Nothing here" description={emptyText[tab === "bot" ? botFilter : tab]} />
+          <EmptyState icon={<InboxIcon size={20} />} title="Nothing here" description={emptyText[isBot ? botFilter : tab]} />
         ) : (
           items.map((item) => {
             const selected = selectedCustomerId === item.customerId;

@@ -1,8 +1,9 @@
 "use client";
 
-import { ExternalLink, Inbox, LayoutDashboard, LogOut, Settings, Users } from "lucide-react";
+import { Bot, ExternalLink, Inbox, LayoutDashboard, LogOut, Settings, Users } from "lucide-react";
 import { classNames } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
+import { countInboxTabs, countUnreadChats } from "../inbox/inboxItems";
 import type { Navigate, Section } from "../navigation";
 
 type AdminSidebarProps = {
@@ -13,12 +14,12 @@ type AdminSidebarProps = {
 
 export default function AdminSidebar({ current, onNavigate, onSignOut }: AdminSidebarProps) {
   const state = useAppState();
-  const pendingCount = state.orders.filter((order) => order.status === "pending_review").length;
-  const unreadChats = Object.values(state.conversations).filter((conversation) => conversation.unreadByAdmin > 0).length;
+  const inboxCounts = countInboxTabs(state);
 
   const items: { section: Section; label: string; icon: React.ReactNode; count?: number }[] = [
     { section: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={17} /> },
-    { section: "inbox", label: "Inbox", icon: <Inbox size={17} />, count: pendingCount + unreadChats },
+    { section: "inbox", label: "Inbox", icon: <Inbox size={17} />, count: inboxCounts.pending + inboxCounts.issues },
+    { section: "bot", label: "Bot chat", icon: <Bot size={17} />, count: countUnreadChats(state) },
     { section: "customers", label: "Customers", icon: <Users size={17} /> },
     { section: "settings", label: "Settings", icon: <Settings size={17} /> },
   ];

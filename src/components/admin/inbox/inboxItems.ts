@@ -161,12 +161,14 @@ function botChatItems(state: AppState, filter: BotFilter, now: number): InboxIte
   return chatItems(state, filter === "active_chats", now);
 }
 
-export function buildInboxItems(state: AppState, tab: InboxTab, botFilter: BotFilter, now: number) {
-  if (tab === "pending") return pendingItems(state, now);
-  if (tab === "issues") return issueItems(state);
-  if (tab === "completed") return completedItems(state, false);
-  if (tab === "unused") return completedItems(state, true);
-  if (tab === "blocked") return blockedItems(state);
+export type InboxList = InboxTab | "bot";
+
+export function buildInboxItems(state: AppState, list: InboxList, botFilter: BotFilter, now: number) {
+  if (list === "pending") return pendingItems(state, now);
+  if (list === "issues") return issueItems(state);
+  if (list === "completed") return completedItems(state, false);
+  if (list === "unused") return completedItems(state, true);
+  if (list === "blocked") return blockedItems(state);
   return botChatItems(state, botFilter, now);
 }
 
@@ -177,8 +179,11 @@ export function countInboxTabs(state: AppState): Record<InboxTab, number> {
     completed: 0,
     unused: state.orders.filter((order) => order.status === "completed" && order.codeUnused).length,
     blocked: state.customers.filter((customer) => customer.blocked).length,
-    bot: Object.values(state.conversations).filter((conversation) => conversation.unreadByAdmin > 0).length,
   };
+}
+
+export function countUnreadChats(state: AppState) {
+  return Object.values(state.conversations).filter((conversation) => conversation.unreadByAdmin > 0).length;
 }
 
 export function countBotFilters(state: AppState, now: number): Record<BotFilter, number> {
