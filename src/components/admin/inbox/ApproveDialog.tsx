@@ -5,7 +5,7 @@ import { AlertTriangle } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
 import { approveOrder, findCodeSentToSomeoneElse } from "@/lib/store/admin";
 import type { Order } from "@/lib/types";
-import { extractCode, limits, validateCode } from "@/lib/validation";
+import { cleanCode, extractCode, limits, validateCode } from "@/lib/validation";
 import Modal from "../ui/Modal";
 import { textareaClass } from "../ui/styles";
 
@@ -19,8 +19,11 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
   const [message, setMessage] = useState("");
   const [emailCopy, setEmailCopy] = useState(false);
   const [confirmedDuplicate, setConfirmedDuplicate] = useState(false);
+  const [typedCode, setTypedCode] = useState("");
 
-  const code = extractCode(message);
+  const foundCode = extractCode(message);
+  const codeFound = !validateCode(foundCode);
+  const code = codeFound ? foundCode : typedCode;
   const codeProblem = message.trim() ? validateCode(code) : null;
   const duplicate = code && !codeProblem ? findCodeSentToSomeoneElse(order.customerId, code) : null;
   const canApprove = Boolean(message.trim()) && !codeProblem && !(duplicate && !confirmedDuplicate);
@@ -48,10 +51,20 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
           className={`${textareaClass} mt-1.5 text-[14px]`}
         />
       </label>
-      {message.trim() && (
-        <p className={`mt-1.5 text-[12px] ${codeProblem ? "text-red-600" : "text-zinc-500"}`}>
-          {codeProblem ? `No ${limits.codeLength}-character code found in this message.` : `Code found: ${code}`}
-        </p>
+      {message.trim() && codeFound && <p className="mt-1.5 text-[12px] text-zinc-500">Code found: {code}</p>}
+      {message.trim() && !codeFound && (
+        <div className="mt-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5">
+          <p className="text-[12.5px] font-medium text-red-700">No code found, please type the code</p>
+          <input
+            value={typedCode}
+            onChange={(event) => {
+              setTypedCode(cleanCode(event.target.value));
+              setConfirmedDuplicate(false);
+            }}
+            placeholder={`${limits.codeLength}-character code`}
+            className="mt-2 w-full h-10 rounded-lg border border-red-200 bg-white px-3 text-[14px] font-semibold tracking-wider outline-none focus:border-red-400"
+          />
+        </div>
       )}
 
       {duplicate && (

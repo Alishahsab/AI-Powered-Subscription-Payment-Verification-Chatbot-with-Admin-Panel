@@ -15,7 +15,7 @@ export default function PaymentStepsSheet({ customerId, method, onClose }: Payme
   const steps = orderSteps(state, customerId);
 
   return (
-    <Sheet title={`How to pay with ${method.name}`} subtitle="Follow these steps in your app" onClose={onClose}>
+    <Sheet title={`Steps for ${method.name}`} subtitle="Follow these steps in your app" onClose={onClose}>
       <div className="flex items-center gap-3 mb-4">
         <MethodLogo methodId={method.id} className="size-12" />
         <span className="font-semibold text-[15px]">{method.name}</span>

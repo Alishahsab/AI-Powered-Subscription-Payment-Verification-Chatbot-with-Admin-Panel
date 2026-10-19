@@ -64,7 +64,7 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Payment methods" description="Customers see the steps when they tap How to pay. Use {bank}, {account}, {title} and {iban} to insert the account details of their order.">
+      <SettingsSection title="Payment methods" description="Customers see these steps when they tap Steps for the method. Use {bank}, {account}, {title} and {iban} to insert the account details of their order.">
         <div className="space-y-4">
           {draft.methods.map((method, index) => (
             <div key={method.id} className="rounded-xl border border-zinc-200 p-3.5 space-y-2.5">

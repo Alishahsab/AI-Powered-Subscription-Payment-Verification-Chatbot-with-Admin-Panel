@@ -30,7 +30,7 @@ export default function StepsEditor({ value, onChange }: StepsEditorProps) {
 
   return (
     <div className="space-y-2">
-      {steps.length === 0 && <div className="text-[12.5px] text-zinc-400">No steps yet. Customers will not see a How to pay button for this method.</div>}
+      {steps.length === 0 && <div className="text-[12.5px] text-zinc-400">No steps yet. Customers will not see a Steps button for this method.</div>}
       {steps.map((step, index) => (
         <div
           key={index}

@@ -48,9 +48,9 @@ export function extractCode(text: string) {
   const trimmed = text.trim();
   if (!/\s/.test(trimmed)) return cleanCode(trimmed);
 
+  const codeLike = (part: string) => (part.match(/\b[A-Za-z0-9]{6}\b/g) ?? []).filter((word) => /\d/.test(word) || /^[A-Z]+$/.test(word));
   const colon = trimmed.indexOf(":");
-  const words = (colon >= 0 ? trimmed.slice(colon + 1) : trimmed).match(/\b[A-Za-z0-9]{6}\b/g) ?? [];
-  const code = colon >= 0 ? words[0] : (words.find((word) => /\d/.test(word)) ?? words.find((word) => word === word.toUpperCase()));
+  const code = (colon >= 0 ? codeLike(trimmed.slice(colon + 1))[0] : undefined) ?? codeLike(trimmed)[0];
   return cleanCode(code ?? "");
 }
 

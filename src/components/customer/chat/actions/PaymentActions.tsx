@@ -24,7 +24,7 @@ export default function PaymentActions({ customerId, method, onOpenSheet }: Paym
       <div className={classNames("grid gap-2", hasSteps ? "grid-cols-3" : "grid-cols-2")}>
         {hasSteps && (
           <button onClick={() => onOpenSheet("steps")} className={classNames(secondaryButtonClass, "text-[13px] text-[var(--accent)]")}>
-            How to pay
+            Steps for {method?.name}
           </button>
         )}
         <button onClick={() => onOpenSheet("issue")} className={classNames(secondaryButtonClass, "text-[13px] text-amber-700")}>
