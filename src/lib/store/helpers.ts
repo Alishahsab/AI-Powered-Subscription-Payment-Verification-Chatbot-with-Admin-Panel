@@ -109,7 +109,7 @@ export function findLatestCode(state: AppState, customerId: string) {
 }
 
 export function extractCodes(text: string) {
-  const words = text.match(/[A-Z0-9-]{6,}/gi) ?? [];
+  const words = text.match(/\b[A-Z0-9]{6}\b/gi) ?? [];
   return words.filter((word) => /\d/.test(word));
 }
 

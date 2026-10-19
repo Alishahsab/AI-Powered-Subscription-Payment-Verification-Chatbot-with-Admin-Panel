@@ -15,7 +15,7 @@ export const limits = {
   shortTextMax: 40,
   longTextMax: 800,
   questionMax: 150,
-  codeMax: 40,
+  codeLength: 6,
 };
 
 const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -40,7 +40,7 @@ export function cleanAccountNumber(value: string) {
 }
 
 export function cleanCode(value: string) {
-  return value.replace(/[^A-Za-z0-9-]/g, "").slice(0, limits.codeMax);
+  return value.replace(/[^A-Za-z0-9]/g, "").slice(0, limits.codeLength);
 }
 
 export function extractCode(text: string) {
@@ -48,9 +48,14 @@ export function extractCode(text: string) {
   if (!/\s/.test(trimmed)) return cleanCode(trimmed);
 
   const colon = trimmed.indexOf(":");
-  const words = (colon >= 0 ? trimmed.slice(colon + 1) : trimmed).match(/[A-Za-z0-9-]{4,}/g) ?? [];
-  const code = colon >= 0 ? words[0] : (words.find((word) => /\d/.test(word) && /[A-Za-z]/.test(word)) ?? words.find((word) => /\d/.test(word)));
+  const words = (colon >= 0 ? trimmed.slice(colon + 1) : trimmed).match(/\b[A-Za-z0-9]{6}\b/g) ?? [];
+  const code = colon >= 0 ? words[0] : (words.find((word) => /\d/.test(word)) ?? words.find((word) => word === word.toUpperCase()));
   return cleanCode(code ?? "");
+}
+
+export function validateCode(code: string) {
+  if (code.length !== limits.codeLength) return `The premium code must be exactly ${limits.codeLength} letters or numbers.`;
+  return null;
 }
 
 export function cleanEmail(value: string) {
