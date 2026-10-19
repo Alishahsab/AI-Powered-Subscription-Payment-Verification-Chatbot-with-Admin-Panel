@@ -10,7 +10,8 @@ export const defaultBotMessages: BotMessages = {
   openOrderExists: "You already have an open order ({order_id}). Complete the payment below or cancel it to start a new one.",
   orderPendingReview: "Your order {order_id} is still waiting for approval. You can place a new order once we approve or reject it.",
   orderCancelled: "Your order has been cancelled. Anything else we can help with?",
-  ordersPausedAfterCancels: "Your order has been cancelled. Because several orders were cancelled in a row, new orders are paused for {time_left}. Customer Support is still open.",
+  orderCancelledByAdmin: "Your order {order_id} has been cancelled by our team. You can create a new order from the main menu.",
+  ordersPausedAfterCancels: "Your order has been cancelled. Because several orders were cancelled in a short time, new orders are paused for {time_left}. Customer Support is still open.",
   ordersPaused: "New orders are paused right now. You can create a new order in {time_left}.",
   orderExpired: "Order {order_id} has been cancelled because the payment time ran out. If you still want to buy, please start again from the main menu.",
   paymentIssueReceived: "Thanks for letting us know. Please don't send any payment right now, we're checking our account details. Please try again after {time_left}. Our team will reply here.",
@@ -50,6 +51,7 @@ export const botMessageGroups: { title: string; fields: MessageField[] }[] = [
     title: "Cancelled and paused orders",
     fields: [
       { key: "orderCancelled", label: "Order cancelled" },
+      { key: "orderCancelledByAdmin", label: "Order cancelled by admin", variables: "{order_id}" },
       { key: "ordersPausedAfterCancels", label: "Order cancelled and new orders paused", variables: "{time_left}" },
       { key: "ordersPaused", label: "Customer tries to buy while paused", variables: "{time_left}" },
       { key: "orderExpired", label: "Payment time ran out", variables: "{order_id}" },

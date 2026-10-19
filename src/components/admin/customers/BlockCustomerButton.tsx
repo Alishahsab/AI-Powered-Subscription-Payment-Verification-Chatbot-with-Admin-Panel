@@ -6,6 +6,7 @@ import { classNames } from "@/lib/format";
 import { blockCustomer, unblockCustomer } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import type { Customer } from "@/lib/types";
+import ConfirmDialog from "../ui/ConfirmDialog";
 import Modal from "../ui/Modal";
 import { inputClass } from "../ui/styles";
 
@@ -25,9 +26,12 @@ export default function BlockCustomerButton({ customer, compact = false }: Block
 
   if (customer.blocked) {
     return (
-      <button onClick={() => unblockCustomer(customer.id)} className={buttonClass}>
-        {!compact && <ShieldCheck size={14} />} Unblock
-      </button>
+      <>
+        <button onClick={() => setOpen(true)} className={buttonClass}>
+          {!compact && <ShieldCheck size={14} />} Unblock
+        </button>
+        {open && <ConfirmDialog description={`${customer.email} will be able to use the chat again.`} confirmLabel="Yes, unblock" onConfirm={() => unblockCustomer(customer.id)} onClose={() => setOpen(false)} />}
+      </>
     );
   }
 

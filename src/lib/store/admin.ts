@@ -1,8 +1,8 @@
 import { getSupabase } from "../supabase/client";
 import { sendEmailCopy } from "../supabase/email";
 import { deleteScreenshots, uploadScreenshot } from "../supabase/screenshots";
-import type { AdminStatus, AppState, GuideStep } from "../types";
-import { addMessage, botText, extractCodes, findCustomerEmail } from "./helpers";
+import type { AdminStatus, AppState, GuideStep, Message } from "../types";
+import { ADMIN_CANCEL_REASON, addMessage, botText, extractCodes, findCustomerEmail } from "./helpers";
 import { applyRemoteChange, getState, updateState } from "./state";
 
 
@@ -183,6 +183,44 @@ export function rejectOrder(orderId: string, reason: string) {
     const conversation = state.conversations[order.customerId];
     if (conversation.activeOrderId === orderId) conversation.activeOrderId = undefined;
     conversation.stage = "rejected";
+    conversation.unreadByAdmin = 0;
+    markNotificationsRead(state, order.customerId);
+  });
+}
+
+export function canDeleteMessage(message: Message) {
+  return message.sender === "admin" && (message.kind === "text" || message.kind === "image");
+}
+
+export function deleteAdminMessage(messageId: string) {
+  const message = getState().messages.find((item) => item.id === messageId);
+  if (!message || !canDeleteMessage(message)) return;
+
+  updateState((state) => {
+    const current = state.messages.find((item) => item.id === messageId);
+    if (!current) return;
+    current.kind = "deleted";
+    current.text = "";
+    current.image = undefined;
+  });
+
+  if (message.image) deleteScreenshots([message.image]).catch(() => undefined);
+}
+
+export function cancelOrderAsAdmin(orderId: string) {
+  updateState((state) => {
+    const order = state.orders.find((item) => item.id === orderId);
+    if (!order || order.status !== "pending_review") return;
+
+    order.status = "cancelled";
+    order.rejectReason = ADMIN_CANCEL_REASON;
+    order.reviewedAt = Date.now();
+
+    addMessage(state, order.customerId, "bot", botText(state, "orderCancelledByAdmin", { order_id: order.id }));
+
+    const conversation = state.conversations[order.customerId];
+    if (conversation.activeOrderId === orderId) conversation.activeOrderId = undefined;
+    conversation.stage = "menu";
     conversation.unreadByAdmin = 0;
     markNotificationsRead(state, order.customerId);
   });

@@ -40,6 +40,7 @@ export type Timers = {
   inactiveMinutes: number;
   retryMinutes: number;
   cancelCooldownMinutes: number;
+  cancelWindowMinutes: number;
   issueInactiveMinutes: number;
 };
 
@@ -53,6 +54,7 @@ export type BotMessageKey =
   | "openOrderExists"
   | "orderPendingReview"
   | "orderCancelled"
+  | "orderCancelledByAdmin"
   | "ordersPausedAfterCancels"
   | "ordersPaused"
   | "orderExpired"
@@ -131,7 +133,7 @@ export type Customer = {
 
 export type MessageSender = "bot" | "customer" | "admin";
 
-export type MessageKind = "text" | "payment" | "steps" | "proof" | "image" | "instructions" | "code";
+export type MessageKind = "text" | "payment" | "steps" | "proof" | "image" | "instructions" | "code" | "deleted";
 
 export type Message = {
   id: string;

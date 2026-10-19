@@ -28,6 +28,7 @@ function describeMessage(message: Message) {
   if (message.kind === "steps") return "Payment steps shown";
   if (message.kind === "image") return "Screenshot";
   if (message.kind === "code") return "Code sent";
+  if (message.kind === "deleted") return "Message deleted";
   return message.text;
 }
 

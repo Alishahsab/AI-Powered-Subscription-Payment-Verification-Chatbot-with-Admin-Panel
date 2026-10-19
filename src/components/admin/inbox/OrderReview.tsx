@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Info, PackageX, X } from "lucide-react";
+import { Ban, Check, Info, PackageX, X } from "lucide-react";
 import StoredImage from "@/components/StoredImage";
 import { formatDateTime, formatMoney } from "@/lib/format";
-import { setCodeUnused } from "@/lib/store/admin";
+import { cancelOrderAsAdmin, setCodeUnused } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import type { Order } from "@/lib/types";
 import Badge from "../ui/Badge";
+import ConfirmDialog from "../ui/ConfirmDialog";
 import { orderStatusBadge } from "../ui/orderStatus";
 import ApproveDialog from "./ApproveDialog";
 import RejectDialog from "./RejectDialog";
@@ -19,7 +20,7 @@ type OrderReviewProps = {
 
 export default function OrderReview({ order, customerEmail }: OrderReviewProps) {
   const [zoomed, setZoomed] = useState(false);
-  const [dialog, setDialog] = useState<"approve" | "reject" | null>(null);
+  const [dialog, setDialog] = useState<"approve" | "reject" | "cancel" | "unused" | null>(null);
   const state = useAppState();
   const badge = orderStatusBadge[order.status];
   const completedOrders = state.orders.filter((item) => item.customerId === order.customerId && item.status === "completed").length;
@@ -79,11 +80,33 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
               <X size={14} /> Reject
             </button>
           )}
+          {order.status === "pending_review" && (
+            <button onClick={() => setDialog("cancel")} className="w-full h-10 rounded-xl text-zinc-600 hover:bg-zinc-100 text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
+              <Ban size={14} /> Cancel order
+            </button>
+          )}
         </div>
       )}
 
       {dialog === "approve" && <ApproveDialog order={order} customerEmail={customerEmail} onClose={() => setDialog(null)} />}
       {dialog === "reject" && <RejectDialog order={order} onClose={() => setDialog(null)} />}
+      {dialog === "cancel" && (
+        <ConfirmDialog
+          description={`${order.id} will move to Cancelled and ${customerEmail} can create a new order.`}
+          confirmLabel="Yes, cancel order"
+          tone="danger"
+          onConfirm={() => cancelOrderAsAdmin(order.id)}
+          onClose={() => setDialog(null)}
+        />
+      )}
+      {dialog === "unused" && (
+        <ConfirmDialog
+          description={order.codeUnused ? `Code ${order.code} will move back to Completed.` : `Code ${order.code} will move to Unused.`}
+          confirmLabel={order.codeUnused ? "Yes, mark as used" : "Yes, mark as unused"}
+          onConfirm={() => setCodeUnused(order.id, !order.codeUnused)}
+          onClose={() => setDialog(null)}
+        />
+      )}
 
       {order.status === "completed" && !order.code && (
         <div className="mx-4 mb-4 rounded-xl bg-emerald-50 px-3 py-2.5 text-[12.5px] text-emerald-800 flex gap-2">
@@ -95,11 +118,11 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
       {order.status === "completed" && order.code && (
         <div className="px-4 pb-4">
           {order.codeUnused ? (
-            <button onClick={() => setCodeUnused(order.id, false)} className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
+            <button onClick={() => setDialog("unused")} className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
               <Check size={15} /> Code used, move to Completed
             </button>
           ) : (
-            <button onClick={() => setCodeUnused(order.id, true)} className="w-full h-10 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
+            <button onClick={() => setDialog("unused")} className="w-full h-10 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
               <PackageX size={15} /> Code not used, move to Unused
             </button>
           )}

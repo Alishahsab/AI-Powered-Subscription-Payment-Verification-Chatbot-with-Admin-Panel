@@ -1,8 +1,11 @@
-import { Bot, ImageIcon, Mail } from "lucide-react";
+import { useState } from "react";
+import { Ban, Bot, ImageIcon, Mail, Trash2 } from "lucide-react";
 import StoredImage from "@/components/StoredImage";
 import { classNames, formatMoney, formatTime } from "@/lib/format";
+import { canDeleteMessage, deleteAdminMessage } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import type { Message } from "@/lib/types";
+import ConfirmDialog from "../ui/ConfirmDialog";
 import MessageTicks from "./MessageTicks";
 
 type ThreadMessageProps = {
@@ -46,26 +49,40 @@ export default function ThreadMessage({ message, showMeta }: ThreadMessageProps)
     return <ImageMessage image={order?.screenshot} title="Payment proof" detail={`From ${order?.senderName ?? "N/A"} · ${formatTime(message.createdAt)}`} />;
   }
 
+  if (message.kind === "deleted") {
+    return (
+      <div className="flex justify-end">
+        <div className="rounded-2xl rounded-br-md border border-dashed border-zinc-300 px-4 py-2 text-[13px] italic text-zinc-400 flex items-center gap-1.5">
+          <Ban size={13} /> You deleted this message · <span className="not-italic">{formatTime(message.createdAt)}</span>
+        </div>
+      </div>
+    );
+  }
+
   if (message.kind === "image") {
     const fromAdmin = message.sender === "admin";
-    return <ImageMessage image={message.image} title={fromAdmin ? "You sent an image" : "Screenshot"} detail={formatTime(message.createdAt)} alignRight={fromAdmin} />;
+    const action = canDeleteMessage(message) && <DeleteMessageButton message={message} />;
+    return <ImageMessage image={message.image} title={fromAdmin ? "You sent an image" : "Screenshot"} detail={formatTime(message.createdAt)} alignRight={fromAdmin} action={action} />;
   }
 
   const fromCustomer = message.sender === "customer";
   const fromBot = message.sender === "bot";
 
   return (
-    <div className={classNames("flex", !fromCustomer && "justify-end")}>
+    <div className={classNames("group flex", !fromCustomer && "justify-end")}>
       <div className={classNames("max-w-[72%] flex flex-col", fromCustomer ? "items-start" : "items-end")}>
-        <div
-          className={classNames(
-            "px-4 py-2.5 text-[14px] leading-relaxed whitespace-pre-line",
-            fromCustomer && "bg-white text-zinc-900 rounded-2xl rounded-bl-md shadow-[0_1px_2px_rgba(16,24,40,0.06)]",
-            fromBot && "bg-[#e9edf5] text-zinc-600 rounded-2xl rounded-br-md text-[13.5px]",
-            message.sender === "admin" && "bg-[#0C2660] text-white rounded-2xl rounded-br-md"
-          )}
-        >
-          {message.text}
+        <div className="flex items-center gap-1 min-w-0">
+          {canDeleteMessage(message) && <DeleteMessageButton message={message} />}
+          <div
+            className={classNames(
+              "min-w-0 px-4 py-2.5 text-[14px] leading-relaxed whitespace-pre-line",
+              fromCustomer && "bg-white text-zinc-900 rounded-2xl rounded-bl-md shadow-[0_1px_2px_rgba(16,24,40,0.06)]",
+              fromBot && "bg-[#e9edf5] text-zinc-600 rounded-2xl rounded-br-md text-[13.5px]",
+              message.sender === "admin" && "bg-[#0C2660] text-white rounded-2xl rounded-br-md"
+            )}
+          >
+            {message.text}
+          </div>
         </div>
         {showMeta && (
           <div className="text-[11px] text-zinc-400 mt-1 px-1 flex items-center gap-1">
@@ -88,6 +105,32 @@ export default function ThreadMessage({ message, showMeta }: ThreadMessageProps)
   );
 }
 
+function DeleteMessageButton({ message }: { message: Message }) {
+  const [confirming, setConfirming] = useState(false);
+
+  return (
+    <>
+      <button
+        onClick={() => setConfirming(true)}
+        className="size-8 shrink-0 grid place-items-center rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 focus:opacity-100 transition"
+        aria-label="Delete message"
+        title="Delete message"
+      >
+        <Trash2 size={15} />
+      </button>
+      {confirming && (
+        <ConfirmDialog
+          description="The customer will see “This message has been deleted”."
+          confirmLabel="Yes, delete"
+          tone="danger"
+          onConfirm={() => deleteAdminMessage(message.id)}
+          onClose={() => setConfirming(false)}
+        />
+      )}
+    </>
+  );
+}
+
 function SystemNote({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 py-1">
@@ -103,11 +146,13 @@ type ImageMessageProps = {
   title: string;
   detail: string;
   alignRight?: boolean;
+  action?: React.ReactNode;
 };
 
-function ImageMessage({ image, title, detail, alignRight = false }: ImageMessageProps) {
+function ImageMessage({ image, title, detail, alignRight = false, action }: ImageMessageProps) {
   return (
-    <div className={classNames("flex", alignRight && "justify-end")}>
+    <div className={classNames("group flex items-center gap-1", alignRight && "justify-end")}>
+      {action}
       <div className="w-[220px] rounded-2xl rounded-bl-md overflow-hidden bg-white shadow-[0_1px_2px_rgba(16,24,40,0.06)]">
         {image ? (
           <StoredImage path={image} alt={title} className="w-full h-36 object-cover object-top" />

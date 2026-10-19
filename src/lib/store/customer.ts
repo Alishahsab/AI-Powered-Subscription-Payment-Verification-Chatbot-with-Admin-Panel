@@ -4,7 +4,7 @@ import { getSupabase } from "../supabase/client";
 import { uploadScreenshot } from "../supabase/screenshots";
 import type { AppState, Customer, Stage, Ticket } from "../types";
 import { validateName } from "../validation";
-import { addMessage, botText, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
+import { ADMIN_CANCEL_REASON, addMessage, botText, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
 import { getState, updateState } from "./state";
 
 const MINUTE = 60_000;
@@ -289,15 +289,18 @@ export function cancelOrder(customerId: string) {
 
   updateState((state) => {
     addMessage(state, customerId, "customer", "I don't want to continue this order");
+    const now = Date.now();
     const order = getActiveOrder(state, customerId);
-    if (order && canStillPay(order)) order.status = "cancelled";
+    if (!order || !canStillPay(order)) return;
+    order.status = "cancelled";
+    order.reviewedAt = now;
 
     const customer = state.customers.find((item) => item.id === customerId);
     if (!customer) return;
-    customer.cancelCount += 1;
-    if (customer.cancelCount >= state.settings.limits.cancelsBeforeCooldown) {
-      customer.cancelCooldownUntil = Date.now() + state.settings.timers.cancelCooldownMinutes * MINUTE;
-      customer.cancelCount = 0;
+    const windowStart = now - state.settings.timers.cancelWindowMinutes * MINUTE;
+    const recentCancels = state.orders.filter((item) => item.customerId === customerId && item.status === "cancelled" && item.rejectReason !== ADMIN_CANCEL_REASON && (item.reviewedAt ?? 0) >= windowStart).length;
+    if (recentCancels >= state.settings.limits.cancelsBeforeCooldown) {
+      customer.cancelCooldownUntil = now + state.settings.timers.cancelCooldownMinutes * MINUTE;
       cooldownStarted = true;
     }
   });

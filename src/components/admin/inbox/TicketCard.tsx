@@ -6,11 +6,13 @@ import StoredImage from "@/components/StoredImage";
 import { classNames, formatDateTime } from "@/lib/format";
 import { setTicketResolved } from "@/lib/store/admin";
 import type { Ticket } from "@/lib/types";
+import ConfirmDialog from "../ui/ConfirmDialog";
 import ReplyDialog from "./ReplyDialog";
 
 export default function TicketCard({ ticket }: { ticket: Ticket }) {
   const [zoomed, setZoomed] = useState(false);
   const [replying, setReplying] = useState(false);
+  const [confirmingResolve, setConfirmingResolve] = useState(false);
   const isOpen = ticket.status === "open";
 
   return (
@@ -40,13 +42,16 @@ export default function TicketCard({ ticket }: { ticket: Ticket }) {
           <button onClick={() => setReplying(true)} className="h-9 rounded-xl border border-zinc-200 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center justify-center gap-1.5 transition">
             <MessageSquareReply size={14} /> Reply
           </button>
-          <button onClick={() => setTicketResolved(ticket.id, true)} className="h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
+          <button onClick={() => setConfirmingResolve(true)} className="h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
             <CheckCircle2 size={14} /> Resolved
           </button>
         </div>
       )}
 
       {replying && <ReplyDialog customerId={ticket.customerId} onClose={() => setReplying(false)} />}
+      {confirmingResolve && (
+        <ConfirmDialog description={`${ticket.id} will be closed and the customer will be told it is resolved.`} confirmLabel="Yes, resolve" onConfirm={() => setTicketResolved(ticket.id, true)} onClose={() => setConfirmingResolve(false)} />
+      )}
 
       {zoomed && ticket.screenshot && (
         <div className="fixed inset-0 z-50 bg-black/80 grid place-items-center p-6 fade-in" onClick={() => setZoomed(false)}>

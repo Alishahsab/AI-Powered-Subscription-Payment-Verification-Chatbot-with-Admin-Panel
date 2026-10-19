@@ -1,3 +1,4 @@
+import { Ban } from "lucide-react";
 import BrandIcon from "@/components/BrandIcon";
 import StoredImage from "@/components/StoredImage";
 import { formatTime } from "@/lib/format";
@@ -44,6 +45,7 @@ function MessageContent({ message }: { message: Message }) {
   if (message.kind === "image") return <ImageBubble message={message} />;
   if (message.kind === "instructions") return <CodeInstructionsCard message={message} />;
   if (message.kind === "code") return <CodeCard message={message} />;
+  if (message.kind === "deleted") return <DeletedBubble message={message} />;
   return <TextBubble message={message} />;
 }
 
@@ -59,6 +61,15 @@ function TextBubble({ message }: { message: Message }) {
     <div className={`px-3.5 pt-2 pb-1.5 rounded-2xl text-[15.5px] md:text-[16px] leading-[1.55] whitespace-pre-line ${styles[message.sender]}`}>
       {message.text}
       <span className={`ml-2 inline-block translate-y-0.5 text-[10.5px] ${timeColor}`}>{formatTime(message.createdAt)}</span>
+    </div>
+  );
+}
+
+function DeletedBubble({ message }: { message: Message }) {
+  return (
+    <div className="px-3.5 pt-2 pb-1.5 rounded-2xl rounded-bl-md border border-dashed border-[var(--line)] text-[14.5px] italic text-[var(--muted)] flex items-center gap-1.5">
+      <Ban size={14} className="shrink-0" /> This message has been deleted
+      <span className="ml-1 not-italic text-[10.5px]">{formatTime(message.createdAt)}</span>
     </div>
   );
 }

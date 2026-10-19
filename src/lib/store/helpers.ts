@@ -5,6 +5,8 @@ import { updateState } from "./state";
 
 const BOT_TYPING_DELAY = 650;
 
+export const ADMIN_CANCEL_REASON = "Cancelled by admin";
+
 export function fillPlaceholders(text: string, state: AppState, bank: BankAccount = state.settings.bank) {
   const { timers } = state.settings;
   return text
