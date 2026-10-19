@@ -13,8 +13,13 @@ type StepsEditorProps = {
 
 export default function StepsEditor({ value, onChange }: StepsEditorProps) {
   const [dragging, setDragging] = useState<number | null>(null);
-  const steps = value === "" ? [] : value.split("\n").map((line) => line.replace(/^\s*\d+[.)]\s*/, ""));
-  const save = (next: string[]) => onChange(next.join("\n"));
+  const [firstStepAdded, setFirstStepAdded] = useState(false);
+  const savedSteps = value === "" ? [] : value.split("\n").map((line) => line.replace(/^\s*\d+[.)]\s*/, ""));
+  const steps = savedSteps.length === 0 && firstStepAdded ? [""] : savedSteps;
+  const save = (next: string[]) => {
+    setFirstStepAdded(next.length > 0);
+    onChange(next.join("\n"));
+  };
 
   const update = (index: number, text: string) => save(steps.map((step, position) => (position === index ? text.replace(/\n/g, " ") : step)));
   const remove = (index: number) => save(steps.filter((_, position) => position !== index));

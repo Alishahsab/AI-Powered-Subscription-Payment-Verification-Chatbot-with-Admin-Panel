@@ -114,7 +114,7 @@ export function validateConfig(config: StoreConfig) {
   if (Object.values(settings.messages).some((text) => !text.trim())) errors.push("Bot messages cannot be empty.");
   if (settings.inboxTabs.some((tab) => !tab.label)) errors.push("Inbox tab names cannot be empty.");
   if (!settings.blocking.message.trim()) errors.push("The blocked customer message cannot be empty.");
-  if (settings.blocking.channelUrl && !/^https?:\/\//.test(settings.blocking.channelUrl)) errors.push("The official channel link must start with https://");
+  if (settings.blocking.channelUrl && validateEmail(settings.blocking.channelUrl)) errors.push("Please enter a valid support email.");
 
   const longTexts = [
     settings.welcome,

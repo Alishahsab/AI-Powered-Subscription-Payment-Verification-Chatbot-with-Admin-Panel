@@ -77,8 +77,8 @@ export function createDefaultConfig(): StoreConfig {
       },
       messages: { ...defaultBotMessages },
       blocking: {
-        message: "Your access has been restricted. Please contact us on our official channel.",
-        channelLabel: "Contact us on WhatsApp",
+        message: "Your access has been restricted. Please contact us by email.",
+        channelLabel: "Contact us by email",
         channelUrl: "",
         reasons: ["Fake payment screenshot", "Abusive messages", "Repeated cancelled orders", "Sharing codes with others"],
       },

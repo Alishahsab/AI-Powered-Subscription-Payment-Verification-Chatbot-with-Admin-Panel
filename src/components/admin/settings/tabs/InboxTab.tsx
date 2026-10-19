@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { GripVertical } from "lucide-react";
 import { classNames } from "@/lib/format";
-import { limits } from "@/lib/validation";
+import { cleanEmail, limits } from "@/lib/validation";
 import { inputClass, textareaClass } from "../../ui/styles";
 import type { SettingsTabProps } from "../Settings";
 import { Field, SettingsSection } from "../SettingsSection";
@@ -53,11 +53,11 @@ export default function InboxTab({ draft, updateDraft }: SettingsTabProps) {
             <textarea rows={2} maxLength={limits.longTextMax} value={blocking.message} onChange={(event) => updateDraft((next) => (next.settings.blocking.message = event.target.value))} className={textareaClass} />
           </Field>
           <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="Official channel button">
+            <Field label="Email button text">
               <input value={blocking.channelLabel} maxLength={40} onChange={(event) => updateDraft((next) => (next.settings.blocking.channelLabel = event.target.value))} className={inputClass} />
             </Field>
-            <Field label="Official channel link" hint="Leave empty to hide the button">
-              <input value={blocking.channelUrl} maxLength={200} placeholder="https://wa.me/923001234567" onChange={(event) => updateDraft((next) => (next.settings.blocking.channelUrl = event.target.value.trim()))} className={inputClass} />
+            <Field label="Support email" hint="Leave empty to hide the button">
+              <input type="email" value={blocking.channelUrl} maxLength={80} placeholder="support@example.com" onChange={(event) => updateDraft((next) => (next.settings.blocking.channelUrl = cleanEmail(event.target.value)))} className={inputClass} />
             </Field>
           </div>
           <Field label="Block reasons" hint="One per line">

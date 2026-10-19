@@ -15,9 +15,7 @@ export default function BlockedNotice({ customer }: { customer: Customer }) {
         {customer.blockReason && <p className="mt-1 text-[13.5px] text-[var(--muted)]">Reason: {customer.blockReason}</p>}
         {blocking.channelUrl && (
           <a
-            href={blocking.channelUrl}
-            target="_blank"
-            rel="noreferrer"
+            href={`mailto:${blocking.channelUrl}`}
             className="mt-4 inline-flex h-11 px-5 rounded-2xl bg-[var(--accent)] text-[var(--accent-ink)] text-[14px] font-semibold items-center gap-2 hover:brightness-110 transition"
           >
             {blocking.channelLabel}

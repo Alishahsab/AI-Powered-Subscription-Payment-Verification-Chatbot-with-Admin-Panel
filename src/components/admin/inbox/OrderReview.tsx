@@ -15,6 +15,7 @@ import RejectDialog from "./RejectDialog";
 const statusChip = {
   green: "bg-emerald-300/70 text-emerald-950",
   amber: "bg-amber-300/70 text-amber-950",
+  orange: "bg-orange-400/80 text-orange-950",
   red: "bg-red-300/70 text-red-950",
   blue: "bg-sky-300/70 text-sky-950",
   gray: "bg-zinc-200 text-zinc-700",
