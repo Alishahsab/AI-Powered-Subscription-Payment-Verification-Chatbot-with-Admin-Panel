@@ -434,11 +434,6 @@ function blockSupport(state: AppState, customerId: string) {
     conversation.stage = issueStage(state, customerId);
     return true;
   }
-  if (getEffectiveStatus(state.settings) === "away_closed") {
-    addMessage(state, customerId, "bot", botText(state, "supportAwayClosed"));
-    conversation.stage = "menu";
-    return true;
-  }
   return false;
 }
 
@@ -463,7 +458,7 @@ export async function submitSupportIssue(customerId: string, description: string
   });
 
   replyAsBot(customerId, (state) => {
-    const away = getEffectiveStatus(state.settings) === "away";
+    const away = getEffectiveStatus(state.settings) !== "active";
     addMessage(state, customerId, "bot", botText(state, away ? "supportAwayListed" : "issueReceived", { ticket_id: ticketId }));
     state.conversations[customerId].stage = "waiting_agent";
   });
@@ -494,7 +489,7 @@ export function findOpenTicket(state: AppState, customerId: string) {
 
 export function resolveIdleIssues(customerId?: string) {
   const state = getState();
-  if (getEffectiveStatus(state.settings) === "away") return;
+  if (getEffectiveStatus(state.settings) !== "active") return;
 
   const now = Date.now();
   const idleAfter = state.settings.timers.issueInactiveMinutes * MINUTE;

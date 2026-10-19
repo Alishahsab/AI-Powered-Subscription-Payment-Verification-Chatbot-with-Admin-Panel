@@ -23,7 +23,6 @@ export const defaultBotMessages: BotMessages = {
   openRequestExists: "You already have an open request ({ticket_id}). Please wait for our reply here before sending a new one.",
   issueAutoResolved: "Your request {ticket_id} has been resolved because there was no reply for a while. If you still need help, choose Customer Support from the menu.",
   supportAwayListed: "Your request {ticket_id} is listed. Our admin is away right now and will reply here as soon as they are back.",
-  supportAwayClosed: "Our admin is away right now and can't take new requests. Please try again after some time.",
 };
 
 type MessageField = { key: BotMessageKey; label: string; variables?: string };
@@ -73,8 +72,7 @@ export const botMessageGroups: { title: string; fields: MessageField[] }[] = [
   {
     title: "While you are away",
     fields: [
-      { key: "supportAwayListed", label: "Away (accepting): after a request is sent", variables: "{ticket_id}" },
-      { key: "supportAwayClosed", label: "Away (not accepting): when the customer opens Support" },
+      { key: "supportAwayListed", label: "Admin not active: after a request is sent", variables: "{ticket_id}" },
     ],
   },
 ];

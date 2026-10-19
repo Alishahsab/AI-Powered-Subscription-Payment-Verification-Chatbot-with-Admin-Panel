@@ -11,7 +11,7 @@ import { Field, SettingsSection } from "../SettingsSection";
 const statuses: { status: AdminStatus; label: string; description: string; dot: string }[] = [
   { status: "active", label: "Active", description: "Orders and support work normally", dot: "bg-emerald-500" },
   { status: "away", label: "Away (accepting)", description: "Orders and requests are taken and answered when you're back", dot: "bg-amber-400" },
-  { status: "away_closed", label: "Away (not accepting)", description: "No new orders or support requests", dot: "bg-orange-500" },
+  { status: "away_closed", label: "Away (not accepting)", description: "No new orders, support open", dot: "bg-orange-500" },
   { status: "offline", label: "Offline", description: "Buying paused, support open", dot: "bg-zinc-400" },
 ];
 

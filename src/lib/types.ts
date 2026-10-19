@@ -66,8 +66,7 @@ export type BotMessageKey =
   | "issueResolvedByAdmin"
   | "issueAutoResolved"
   | "openRequestExists"
-  | "supportAwayListed"
-  | "supportAwayClosed";
+  | "supportAwayListed";
 
 export type BotMessages = Record<BotMessageKey, string>;
 
