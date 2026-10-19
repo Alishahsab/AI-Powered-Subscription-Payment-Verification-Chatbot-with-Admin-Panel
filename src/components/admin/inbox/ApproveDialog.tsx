@@ -4,9 +4,10 @@ import { useState } from "react";
 import { AlertTriangle, Check, Mail } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
 import { approveOrder, findCodeSentToSomeoneElse } from "@/lib/store/admin";
+import { codeHeading } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { Order } from "@/lib/types";
-import { cleanCode } from "@/lib/validation";
+import { cleanCode, extractCode } from "@/lib/validation";
 import Modal from "../ui/Modal";
 import { inputClass } from "../ui/styles";
 
@@ -24,7 +25,6 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
 
   const trimmed = code.trim();
   const duplicate = trimmed ? findCodeSentToSomeoneElse(order.customerId, trimmed) : null;
-  const preview = state.settings.codeMessage.replaceAll("{order_id}", order.id).replaceAll("{code}", trimmed || "…");
 
   const approve = () => {
     if (!trimmed || (duplicate && !confirmedDuplicate)) return;
@@ -36,7 +36,7 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
     <Modal title="Approve payment" description={`${order.id} · ${order.planName} · ${customerEmail}`} onClose={onClose}>
       <label className="block">
         <span className="text-[13px] font-medium text-zinc-700">
-          Premium code <span className="text-zinc-400 font-normal">· only the code, the message is added for you</span>
+          Premium code <span className="text-zinc-400 font-normal">· paste the code or the full text from your portal</span>
         </span>
         <input
           autoFocus
@@ -45,9 +45,14 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
             setCode(cleanCode(event.target.value));
             setConfirmedDuplicate(false);
           }}
+          onPaste={(event) => {
+            event.preventDefault();
+            setCode(extractCode(event.clipboardData.getData("text")));
+            setConfirmedDuplicate(false);
+          }}
           onKeyDown={(event) => event.key === "Enter" && approve()}
-          placeholder="e.g. ABCD-1234-EFGH"
-          className={`${inputClass} mt-1.5 h-11 text-[15px] font-semibold tracking-wide`}
+          placeholder="e.g. AB12CD34"
+          className={`${inputClass} mt-1.5 h-11 text-[16px] font-bold tracking-wider`}
         />
       </label>
 
@@ -64,10 +69,11 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
         </label>
       )}
 
-      <div className="mt-4">
-        <div className="text-[12px] font-medium text-zinc-500 mb-1.5">Customer will receive</div>
-        <div className="rounded-xl bg-[#0C2660] text-white px-4 py-3 text-[13.5px] leading-relaxed whitespace-pre-line">{preview}</div>
-        <div className="mt-1.5 text-[12px] text-zinc-500">Followed by the activation instructions from Settings.</div>
+      <div className="mt-4 rounded-xl border border-zinc-200 bg-[#f8f9fb] px-4 py-3">
+        <div className="text-[12px] font-medium text-zinc-500">Customer will receive</div>
+        <p className="mt-1 text-[13px] leading-relaxed text-zinc-700">{codeHeading(state, order)}</p>
+        <div className="mt-2 font-bold text-[17px] tracking-wider text-[#0C2660] break-all">{trimmed || "Code appears here"}</div>
+        <div className="mt-1 text-[12px] text-zinc-500">With a Copy code button, How to activate it and Instructions for next time.</div>
       </div>
 
       <label className="mt-4 inline-flex items-center gap-2 text-[12.5px] text-zinc-600 cursor-pointer select-none">

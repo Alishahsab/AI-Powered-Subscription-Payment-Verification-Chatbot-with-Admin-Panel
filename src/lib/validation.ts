@@ -43,6 +43,16 @@ export function cleanCode(value: string) {
   return value.replace(/[^A-Za-z0-9-]/g, "").slice(0, limits.codeMax);
 }
 
+export function extractCode(text: string) {
+  const trimmed = text.trim();
+  if (!/\s/.test(trimmed)) return cleanCode(trimmed);
+
+  const colon = trimmed.indexOf(":");
+  const words = (colon >= 0 ? trimmed.slice(colon + 1) : trimmed).match(/[A-Za-z0-9-]{4,}/g) ?? [];
+  const code = colon >= 0 ? words[0] : (words.find((word) => /\d/.test(word) && /[A-Za-z]/.test(word)) ?? words.find((word) => /\d/.test(word)));
+  return cleanCode(code ?? "");
+}
+
 export function cleanEmail(value: string) {
   return value.replace(/\s/g, "").slice(0, 80);
 }
@@ -81,8 +91,8 @@ export function validateConfig(config: StoreConfig) {
   }
   if (!settings.welcome.trim()) errors.push("Welcome message cannot be empty.");
   if (!settings.howItWorks.trim()) errors.push("\"How does it work\" answer cannot be empty.");
-  if (!settings.codeInstructions.trim()) errors.push("Code instructions cannot be empty.");
-  if (!settings.codeMessage.includes("{code}")) errors.push("The code message must include {code}.");
+  if (!settings.codeMessage.trim()) errors.push("The code message cannot be empty.");
+  if (!settings.activationGuide.trim() || !settings.nextTimeGuide.trim()) errors.push("Activation and next time instructions cannot be empty.");
   if (!settings.rejectionMessage.trim()) errors.push("Rejection message cannot be empty.");
   if (!settings.waitForAdminMessage.trim()) errors.push("The waiting message cannot be empty.");
   if (settings.rejectReasons.length === 0) errors.push("Add at least one rejection reason.");
@@ -96,8 +106,9 @@ export function validateConfig(config: StoreConfig) {
   const longTexts = [
     settings.welcome,
     settings.howItWorks,
-    settings.codeInstructions,
     settings.codeMessage,
+    settings.activationGuide,
+    settings.nextTimeGuide,
     settings.rejectionMessage,
     settings.waitForAdminMessage,
     ...Object.values(settings.statusMessages),

@@ -89,8 +89,9 @@ export type Settings = {
   statusMessages: Record<AdminStatus, string>;
   terms: string[];
   howItWorks: string;
-  codeInstructions: string;
   codeMessage: string;
+  activationGuide: string;
+  nextTimeGuide: string;
   rejectionMessage: string;
   waitForAdminMessage: string;
   rejectReasons: string[];
@@ -119,7 +120,7 @@ export type Customer = {
 
 export type MessageSender = "bot" | "customer" | "admin";
 
-export type MessageKind = "text" | "payment" | "steps" | "proof" | "image" | "instructions";
+export type MessageKind = "text" | "payment" | "steps" | "proof" | "image" | "instructions" | "code";
 
 export type Message = {
   id: string;

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, History, Lock, ShieldCheck, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, History, Lock, ShieldCheck, Zap } from "lucide-react";
 import { classNames } from "@/lib/format";
-import { logIn, requestPinReset } from "@/lib/store/customer";
+import { isEmailRegistered, requestPinReset, signIn, signUp } from "@/lib/store/customer";
 import { cleanDigits, cleanEmail, limits, validateEmail, validatePin } from "@/lib/validation";
 
-type Mode = "login" | "forgot";
+type Step = "email" | "login" | "create" | "forgot";
 
 const features = [
   { icon: <Zap size={17} />, title: "Code in minutes", text: "Pay, upload proof, get your code right in the chat." },
@@ -14,31 +14,41 @@ const features = [
   { icon: <History size={17} />, title: "Every code saved", text: "Your codes stay safe in your chat." },
 ];
 
-const titles: Record<Mode, { heading: string; text: string; button: string }> = {
-  login: { heading: "Welcome", text: "Enter your email and 6-digit PIN to open your private chat.", button: "Continue" },
-  forgot: { heading: "Reset your PIN", text: "Enter your email and we'll send you a link to set a new PIN.", button: "Send reset link" },
+const titles: Record<Step, { heading: string; text: string; button: string }> = {
+  email: { heading: "Welcome", text: "Enter your email to sign in or create your account. We'll check which one you need.", button: "Continue" },
+  login: { heading: "Welcome back", text: "Enter your 6-digit PIN to open your chat.", button: "Sign in" },
+  create: { heading: "Create your PIN", text: "You're new here! Choose a 6-digit PIN. You'll use it every time you sign in, so remember it.", button: "Create account" },
+  forgot: { heading: "Reset your PIN", text: "We'll email you a link to set a new PIN.", button: "Send reset link" },
 };
 
 const inputClass =
   "mt-1.5 w-full h-12 rounded-xl bg-[var(--bg)] border border-[var(--line)] px-4 text-[15.5px] outline-none placeholder:text-[#9aa1ab] focus:bg-[var(--surface)] focus:border-[var(--accent)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--accent)_12%,transparent)] transition";
 
+const pinClass = classNames(inputClass, "tracking-[0.3em]");
+
 export default function AuthScreen() {
-  const [mode, setMode] = useState<Mode>("login");
+  const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [pin, setPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const switchMode = (next: Mode) => {
-    setMode(next);
+  const goTo = (next: Step) => {
+    setStep(next);
+    setPin("");
+    setConfirmPin("");
     setError("");
     setNotice("");
   };
 
   const validate = () => {
-    if (mode === "forgot") return validateEmail(email);
-    return validateEmail(email) ?? validatePin(pin);
+    if (step === "email" || step === "forgot") return validateEmail(email);
+    const pinProblem = validatePin(pin);
+    if (pinProblem) return pinProblem;
+    if (step === "create" && pin !== confirmPin) return "The two PINs do not match.";
+    return null;
   };
 
   const submit = async (event: React.FormEvent) => {
@@ -52,20 +62,30 @@ export default function AuthScreen() {
 
     setError("");
     setBusy(true);
-    if (mode === "forgot") {
-      const result = await requestPinReset(email);
+
+    if (step === "email") {
+      const registered = await isEmailRegistered(email);
       setBusy(false);
-      if (result.error) setError(result.error);
-      else setNotice("If an account exists for this email, a reset link is on its way. Check your inbox.");
+      if (registered === null) setError("We couldn't check this email right now. Please try again.");
+      else goTo(registered ? "login" : "create");
       return;
     }
 
-    const result = await logIn(email, pin);
+    if (step === "forgot") {
+      const result = await requestPinReset(email);
+      setBusy(false);
+      if (result.error) setError(result.error);
+      else setNotice("A reset link is on its way. Open it from your inbox to set a new PIN.");
+      return;
+    }
+
+    const result = step === "login" ? await signIn(email, pin) : await signUp(email, pin);
     setBusy(false);
     if (result.error) setError(result.error);
   };
 
-  const copy = titles[mode];
+  const copy = titles[step];
+  const showsEmailInput = step === "email" || step === "forgot";
 
   return (
     <div className="h-dvh w-full overflow-hidden flex md:items-center md:justify-center md:p-6">
@@ -101,34 +121,59 @@ export default function AuthScreen() {
             </div>
 
             <div className="mt-6 space-y-4">
-              <label className="block">
-                <span className="text-[13.5px] font-semibold">Email</span>
-                <input value={email} onChange={(event) => setEmail(cleanEmail(event.target.value))} placeholder="you@example.com" inputMode="email" autoComplete="email" className={inputClass} />
-              </label>
-              {mode === "login" && (
+              {showsEmailInput ? (
                 <label className="block">
-                  <span className="text-[13.5px] font-semibold">6-digit PIN</span>
+                  <span className="text-[13.5px] font-semibold">Email</span>
+                  <input autoFocus value={email} onChange={(event) => setEmail(cleanEmail(event.target.value))} placeholder="you@example.com" inputMode="email" autoComplete="email" className={inputClass} />
+                </label>
+              ) : (
+                <div className="inline-flex max-w-full items-center gap-2 rounded-full bg-[var(--bg)] border border-[var(--line)] pl-4 pr-1.5 h-9">
+                  <span className="text-[13.5px] font-medium truncate">{email}</span>
+                  <button type="button" onClick={() => goTo("email")} className="h-7 px-2.5 rounded-full text-[12.5px] font-semibold text-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] shrink-0">
+                    Change
+                  </button>
+                </div>
+              )}
+
+              {(step === "login" || step === "create") && (
+                <label className="block">
+                  <span className="text-[13.5px] font-semibold">{step === "create" ? "Choose a 6-digit PIN" : "6-digit PIN"}</span>
                   <input
+                    autoFocus
                     value={pin}
                     onChange={(event) => setPin(cleanDigits(event.target.value, limits.pinLength))}
                     placeholder="••••••"
                     type="password"
                     inputMode="numeric"
-                    autoComplete="current-password"
-                    className={classNames(inputClass, "tracking-[0.3em]")}
+                    autoComplete={step === "login" ? "current-password" : "new-password"}
+                    className={pinClass}
                   />
+                  {step === "create" && <span className="mt-1 block text-[12px] text-[var(--muted)]">Numbers only</span>}
+                </label>
+              )}
+
+              {step === "create" && (
+                <label className="block">
+                  <span className="text-[13.5px] font-semibold">Confirm your PIN</span>
+                  <input value={confirmPin} onChange={(event) => setConfirmPin(cleanDigits(event.target.value, limits.pinLength))} placeholder="••••••" type="password" inputMode="numeric" autoComplete="new-password" className={pinClass} />
                 </label>
               )}
             </div>
 
             {error && <p className="mt-3 text-[13px] text-red-600">{error}</p>}
             {notice && <p className="mt-3 text-[13px] text-emerald-700">{notice}</p>}
-            {!error && !notice && mode === "login" && <p className="mt-3 text-[12.5px] text-[var(--muted)]">New here? Your account is created with this PIN.</p>}
 
             <div className="flex justify-between mt-3">
-              <button type="button" onClick={() => switchMode(mode === "login" ? "forgot" : "login")} className="text-[13px] font-medium text-[var(--accent)] hover:underline">
-                {mode === "login" ? "Forgot PIN?" : "Back to login"}
-              </button>
+              {step === "login" && (
+                <button type="button" onClick={() => goTo("forgot")} className="text-[13px] font-medium text-[var(--accent)] hover:underline">
+                  Forgot PIN?
+                </button>
+              )}
+              {step === "forgot" && (
+                <button type="button" onClick={() => goTo("login")} className="text-[13px] font-medium text-[var(--accent)] hover:underline flex items-center gap-1">
+                  <ArrowLeft size={14} /> Back to sign in
+                </button>
+              )}
             </div>
 
             <div className="mt-auto md:mt-7 pt-5 md:pt-0 md:mb-auto">

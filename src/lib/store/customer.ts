@@ -15,17 +15,25 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-export async function logIn(email: string, pin: string): Promise<AuthResult> {
-  const auth = getSupabase("customer").auth;
-  const signIn = await auth.signInWithPassword({ email: normalizeEmail(email), password: pin });
-  if (!signIn.error) return { error: null };
+export async function isEmailRegistered(email: string): Promise<boolean | null> {
+  const { data, error } = await getSupabase("customer").rpc("email_registered", { check_email: normalizeEmail(email) });
+  if (error) return null;
+  return Boolean(data);
+}
 
-  const signUp = await auth.signUp({ email: normalizeEmail(email), password: pin });
-  if (signUp.error) {
-    const alreadyExists = signUp.error.message.toLowerCase().includes("already");
-    return { error: alreadyExists ? "Wrong PIN for this email. Try again or use Forgot PIN." : signUp.error.message };
+export async function signIn(email: string, pin: string): Promise<AuthResult> {
+  const { error } = await getSupabase("customer").auth.signInWithPassword({ email: normalizeEmail(email), password: pin });
+  if (error) return { error: "Wrong PIN. Try again or use Forgot PIN." };
+  return { error: null };
+}
+
+export async function signUp(email: string, pin: string): Promise<AuthResult> {
+  const { data, error } = await getSupabase("customer").auth.signUp({ email: normalizeEmail(email), password: pin });
+  if (error) {
+    const alreadyExists = error.message.toLowerCase().includes("already");
+    return { error: alreadyExists ? "This email already has an account. Go back and enter your PIN." : error.message };
   }
-  if (!signUp.data.session) return { error: "Please confirm your email address, then log in." };
+  if (!data.session) return { error: "Please confirm your email address, then log in." };
   return { error: null };
 }
 

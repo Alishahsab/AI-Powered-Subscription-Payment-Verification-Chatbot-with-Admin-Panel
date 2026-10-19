@@ -20,6 +20,14 @@ export function botText(state: AppState, key: BotMessageKey, values: Record<stri
   return Object.entries(values).reduce((text, [name, value]) => text.replaceAll(`{${name}}`, value), fillPlaceholders(state.settings.messages[key], state));
 }
 
+export function codeHeading(state: AppState, order?: Order) {
+  return fillPlaceholders(state.settings.codeMessage, state)
+    .replaceAll("{plan}", order?.planName ?? "your plan")
+    .replaceAll("{order_id}", order?.id ?? "")
+    .replaceAll("{code}", "")
+    .trim();
+}
+
 export function stepLines(text: string) {
   return text
     .split("\n")

@@ -75,13 +75,16 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
         <textarea rows={5} maxLength={limits.longTextMax} value={draft.settings.howItWorks} onChange={(event) => updateDraft((next) => (next.settings.howItWorks = event.target.value))} className={textareaClass} />
       </SettingsSection>
 
-      <SettingsSection title="Approving a payment" description="Sent when you approve a payment and enter the code. Use {code} and {order_id}.">
+      <SettingsSection title="Sending the code" description="The customer gets a card with the code, a Copy code button and two buttons that open the instructions below.">
         <div className="space-y-4">
-          <Field label="Code message">
+          <Field label="Message above the code" hint="{plan} {order_id}">
             <textarea rows={3} maxLength={limits.longTextMax} value={draft.settings.codeMessage} onChange={(event) => updateDraft((next) => (next.settings.codeMessage = event.target.value))} className={textareaClass} />
           </Field>
-          <Field label="Activation instructions" hint="Sent right after the code">
-            <textarea rows={9} maxLength={limits.longTextMax} value={draft.settings.codeInstructions} onChange={(event) => updateDraft((next) => (next.settings.codeInstructions = event.target.value))} className={textareaClass} />
+          <Field label="How to activate it" hint="One step per line">
+            <textarea rows={5} maxLength={limits.longTextMax} value={draft.settings.activationGuide} onChange={(event) => updateDraft((next) => (next.settings.activationGuide = event.target.value))} className={textareaClass} />
+          </Field>
+          <Field label="Instructions for next time" hint="One point per line">
+            <textarea rows={4} maxLength={limits.longTextMax} value={draft.settings.nextTimeGuide} onChange={(event) => updateDraft((next) => (next.settings.nextTimeGuide = event.target.value))} className={textareaClass} />
           </Field>
         </div>
       </SettingsSection>
