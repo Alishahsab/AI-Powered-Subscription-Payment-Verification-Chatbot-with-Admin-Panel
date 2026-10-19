@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
-import { ArrowLeft, PanelRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
 import { customerNumberLabel } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
@@ -56,7 +56,7 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
           </div>
         </div>
         <button onClick={onShowDetails} className="xl:hidden h-9 px-3 flex items-center gap-1.5 rounded-lg text-[13px] font-medium text-zinc-600 hover:bg-zinc-100" aria-label="Show details">
-          <PanelRight size={16} /> Details
+          Details
         </button>
       </div>
 

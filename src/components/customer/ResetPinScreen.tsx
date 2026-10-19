@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Lock } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import SecretInput from "@/components/SecretInput";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { signOut, updatePin } from "@/lib/store/customer";
@@ -84,7 +84,7 @@ export default function ResetPinScreen() {
             {error && <p className="mt-3 text-[13px] text-red-600">{error}</p>}
 
             <button disabled={busy} className="mt-6 w-full h-12 rounded-xl bg-[#0C2660] text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-60">
-              <Lock size={16} /> {busy ? "Saving…" : "Save new PIN"}
+              {busy ? "Saving…" : "Save new PIN"}
             </button>
           </form>
         )}

@@ -1,4 +1,3 @@
-import { MessageSquareText } from "lucide-react";
 import { askFaq, chooseOtherIssue } from "@/lib/store/customer";
 import { useAppState } from "@/lib/store/state";
 import BackToMenuButton from "./BackToMenuButton";
@@ -23,7 +22,7 @@ export default function SupportOptions({ customerId }: { customerId: string }) {
       </div>
       <div className="max-w-[560px] mx-auto mt-3.5">
         <button onClick={() => chooseOtherIssue(customerId)} className={primaryButtonClass}>
-          <MessageSquareText size={17} /> Other issues
+          Other issues
         </button>
         <BackToMenuButton customerId={customerId} />
       </div>

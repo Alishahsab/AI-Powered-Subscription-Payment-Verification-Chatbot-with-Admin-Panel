@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff, Lock } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { adminSignIn } from "@/lib/store/admin";
 import { cleanEmail, limits, validateEmail } from "@/lib/validation";
 
@@ -84,7 +84,7 @@ export default function LoginScreen() {
         {error && <p className="text-[13px] text-red-600 mt-3">{error}</p>}
 
         <button disabled={busy} className="mt-6 w-full h-12 rounded-xl bg-[#0C2660] text-white text-[15.5px] font-semibold flex items-center justify-center gap-2 hover:brightness-125 transition disabled:opacity-60">
-          <Lock size={16} /> {busy ? "Signing in…" : "Sign in"}
+          {busy ? "Signing in…" : "Sign in"}
         </button>
       </form>
     </div>

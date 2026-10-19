@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, LogOut, Mail, ShieldCheck } from "lucide-react";
+import { Clock, Mail, ShieldCheck } from "lucide-react";
 import BrandIcon from "@/components/BrandIcon";
 import { useNow } from "@/hooks/useNow";
 import { getEffectiveStatus, statusDetails, workingHoursLabel } from "@/lib/availability";
@@ -109,7 +109,7 @@ export default function Sidebar({ customer, onSignOut }: SidebarProps) {
 
       <div className="px-6 py-4 border-t border-[var(--line)] flex justify-end">
         <button onClick={onSignOut} className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--muted)] hover:text-[var(--text)]">
-          <LogOut size={15} /> Sign out
+          Sign out
         </button>
       </div>
     </aside>

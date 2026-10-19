@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { createId } from "@/lib/format";
 import { limits } from "@/lib/validation";
 import Button from "../../ui/Button";
@@ -25,7 +25,7 @@ export default function FaqsSection({ draft, updateDraft }: SettingsTabProps) {
       description={`${draft.faqs.length} questions shown under Customer Support`}
       action={
         <Button size="sm" onClick={addQuestion}>
-          <Plus size={13} /> Add question
+          Add question
         </Button>
       }
     >

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Send } from "lucide-react";
 import { submitSupportIssue } from "@/lib/store/customer";
 import { useAppState } from "@/lib/store/state";
 import { limits, validateMessage } from "@/lib/validation";
@@ -56,7 +55,7 @@ export default function IssueComposer({ customerId }: { customerId: string }) {
       </div>
 
       <button onClick={submit} disabled={busy} className={`${primaryButtonClass} disabled:opacity-50`}>
-        <Send size={16} /> {busy ? "Sending…" : "Send to our team"}
+        {busy ? "Sending…" : "Send to our team"}
       </button>
       <BackToMenuButton customerId={customerId} showBack />
     </div>

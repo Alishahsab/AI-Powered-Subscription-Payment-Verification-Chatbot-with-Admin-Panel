@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
 import { classNames } from "@/lib/format";
 import { rejectOrder } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
@@ -56,7 +55,7 @@ export default function RejectDialog({ order, onClose }: RejectDialogProps) {
           Cancel
         </button>
         <button onClick={reject} disabled={!reason} className="h-11 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[14px] font-semibold flex items-center justify-center gap-1.5 transition disabled:opacity-40">
-          <X size={16} /> Reject payment
+          Reject payment
         </button>
       </div>
     </Modal>

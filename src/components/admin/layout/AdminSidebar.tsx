@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, ExternalLink, Inbox, LayoutDashboard, LogOut, Settings, Users } from "lucide-react";
+import { Bot, Inbox, LayoutDashboard, Settings, Users } from "lucide-react";
 import { classNames } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import { countInboxTabs, countUnreadChats } from "../inbox/inboxItems";
@@ -53,10 +53,10 @@ export default function AdminSidebar({ current, onNavigate, onSignOut }: AdminSi
 
       <div className="p-3 border-t border-white/10 space-y-0.5">
         <a href={customerUrl} target="_blank" className={linkClass}>
-          <ExternalLink size={16} /> Open customer chat
+          Open customer chat
         </a>
         <button onClick={onSignOut} className={linkClass}>
-          <LogOut size={16} /> Sign out
+          Sign out
         </button>
       </div>
     </div>

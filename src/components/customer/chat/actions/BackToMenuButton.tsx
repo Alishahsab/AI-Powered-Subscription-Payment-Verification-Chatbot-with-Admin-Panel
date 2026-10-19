@@ -1,4 +1,3 @@
-import { ArrowLeft, LayoutGrid } from "lucide-react";
 import { backToMenu, goBack } from "@/lib/store/customer";
 
 type BackToMenuButtonProps = {
@@ -15,13 +14,13 @@ export default function BackToMenuButton({ customerId, showBack = false }: BackT
       {showBack && (
         <>
           <button onClick={() => goBack(customerId)} className={buttonClass}>
-            <ArrowLeft size={15} /> Back
+            Back
           </button>
           <span className="h-4 w-px bg-[var(--line)]" />
         </>
       )}
       <button onClick={() => backToMenu(customerId)} className={buttonClass}>
-        <LayoutGrid size={15} /> Main menu
+        Main menu
       </button>
     </div>
   );

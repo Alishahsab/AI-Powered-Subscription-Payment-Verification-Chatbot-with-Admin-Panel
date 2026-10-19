@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { ImagePlus, Mail, Zap } from "lucide-react";
+import { ImagePlus, Zap } from "lucide-react";
 import { compressImage } from "@/lib/browser";
 import { classNames, formatDateTime } from "@/lib/format";
 import { findCodeSentToSomeoneElse, sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
@@ -133,7 +133,7 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
 
         <label className="mt-2 inline-flex items-center gap-2 text-[12px] text-zinc-500 cursor-pointer select-none">
           <input type="checkbox" checked={emailCopy} onChange={(event) => setEmailCopy(event.target.checked)} className="size-3.5 accent-[#0C2660]" />
-          <Mail size={12} /> Also send to {customerEmail}
+          Also send to {customerEmail}
         </label>
       </div>
     </div>

@@ -1,4 +1,3 @@
-import { AlertTriangle, BookOpen, Upload, X } from "lucide-react";
 import { classNames } from "@/lib/format";
 import { cancelOrder } from "@/lib/store/customer";
 import { orderSteps } from "@/lib/store/helpers";
@@ -20,19 +19,19 @@ export default function PaymentActions({ customerId, method, onOpenSheet }: Paym
   return (
     <div className="max-w-[560px] mx-auto space-y-2">
       <button onClick={() => onOpenSheet("proof")} className={primaryButtonClass}>
-        <Upload size={17} /> Upload payment proof
+        Upload payment proof
       </button>
       <div className={classNames("grid gap-2", hasSteps ? "grid-cols-3" : "grid-cols-2")}>
         {hasSteps && (
           <button onClick={() => onOpenSheet("steps")} className={classNames(secondaryButtonClass, "text-[13px] text-[var(--accent)]")}>
-            <BookOpen size={15} /> How to pay
+            How to pay
           </button>
         )}
         <button onClick={() => onOpenSheet("issue")} className={classNames(secondaryButtonClass, "text-[13px] text-amber-700")}>
-          <AlertTriangle size={15} /> Problem?
+          Problem?
         </button>
         <button onClick={() => cancelOrder(customerId)} className={classNames(secondaryButtonClass, "text-[13px] text-[var(--muted)] hover:text-red-700")}>
-          <X size={15} /> Cancel
+          Cancel
         </button>
       </div>
     </div>

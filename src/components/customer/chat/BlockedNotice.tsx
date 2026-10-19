@@ -1,4 +1,4 @@
-import { ExternalLink, ShieldOff } from "lucide-react";
+import { ShieldOff } from "lucide-react";
 import { useAppState } from "@/lib/store/state";
 import type { Customer } from "@/lib/types";
 
@@ -20,7 +20,7 @@ export default function BlockedNotice({ customer }: { customer: Customer }) {
             rel="noreferrer"
             className="mt-4 inline-flex h-11 px-5 rounded-2xl bg-[var(--accent)] text-[var(--accent-ink)] text-[14px] font-semibold items-center gap-2 hover:brightness-110 transition"
           >
-            <ExternalLink size={15} /> {blocking.channelLabel}
+            {blocking.channelLabel}
           </a>
         )}
       </div>

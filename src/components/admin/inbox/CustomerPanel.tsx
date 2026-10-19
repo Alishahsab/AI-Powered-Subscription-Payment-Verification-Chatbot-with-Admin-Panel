@@ -14,8 +14,8 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
   if (!customer) return null;
 
   const orders = state.orders.filter((order) => order.customerId === customerId).sort((a, b) => b.createdAt - a.createdAt);
-  const focusOrder = orders.find((order) => order.status === "pending_review" || order.status === "rejected") ?? orders[0];
   const completed = orders.filter((order) => order.status === "completed");
+  const focusOrder = orders.find((order) => order.status === "pending_review" || order.status === "rejected") ?? completed[0];
   const customerTickets = state.tickets.filter((ticket) => ticket.customerId === customerId);
   const tickets = customerTickets.filter((ticket) => ticket.status === "open");
   const issuesResolved = customerTickets.filter((ticket) => ticket.status === "resolved").length;

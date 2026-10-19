@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, History, Lock, ShieldCheck, Zap } from "lucide-react";
+import { History, Lock, ShieldCheck, Zap } from "lucide-react";
 import { classNames } from "@/lib/format";
 import SecretInput from "@/components/SecretInput";
 import { checkEmailStatus, requestPinReset, signIn, signUp, suspendedEmailMessage } from "@/lib/store/customer";
@@ -172,7 +172,7 @@ export default function AuthScreen() {
               )}
               {step === "forgot" && (
                 <button type="button" onClick={() => goTo("login")} className="text-[13px] font-medium text-[var(--accent)] hover:underline flex items-center gap-1">
-                  <ArrowLeft size={14} /> Back to sign in
+                  Back to sign in
                 </button>
               )}
             </div>
@@ -183,7 +183,6 @@ export default function AuthScreen() {
                 className="group w-full h-[52px] rounded-2xl bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-[16px] flex items-center justify-center gap-2 shadow-[0_12px_28px_-14px_var(--accent)] hover:brightness-110 transition disabled:opacity-60"
               >
                 {busy ? "Please wait…" : copy.button}
-                <ArrowRight size={18} className="group-hover:translate-x-0.5 transition" />
               </button>
               <p className="mt-3.5 flex items-center justify-center gap-1.5 text-[12.5px] text-[var(--muted)]">
                 <Lock size={12} /> Your chat is private and visible only to you

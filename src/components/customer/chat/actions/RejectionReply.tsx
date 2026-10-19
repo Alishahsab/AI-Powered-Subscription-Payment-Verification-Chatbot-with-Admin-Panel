@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Clock, Paperclip, Send } from "lucide-react";
+import { Clock } from "lucide-react";
 import { repliesLeftAfterRejection, sendRejectionReply } from "@/lib/store/customer";
 import { useAppState } from "@/lib/store/state";
 import { limits, validateMessage } from "@/lib/validation";
@@ -64,12 +64,12 @@ export default function RejectionReply({ customerId }: { customerId: string }) {
         <ImagePicker image={screenshot} onChange={setScreenshot} label="Attach a screenshot (optional)" />
       ) : (
         <button onClick={() => setShowPicker(true)} className="text-[13px] font-medium text-[var(--accent)] flex items-center gap-1.5">
-          <Paperclip size={14} /> Attach a screenshot (optional)
+          Attach a screenshot (optional)
         </button>
       )}
 
       <button onClick={send} disabled={busy} className={`${primaryButtonClass} disabled:opacity-50`}>
-        <Send size={16} /> {busy ? "Sending…" : "Send to our team"}
+        {busy ? "Sending…" : "Send to our team"}
       </button>
     </div>
   );

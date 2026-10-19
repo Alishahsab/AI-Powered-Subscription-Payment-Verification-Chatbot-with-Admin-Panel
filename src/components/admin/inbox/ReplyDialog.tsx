@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImagePlus, Send, X } from "lucide-react";
+import { ImagePlus, X } from "lucide-react";
 import { compressImage } from "@/lib/browser";
 import { sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
 import { limits } from "@/lib/validation";
@@ -78,7 +78,7 @@ export default function ReplyDialog({ customerId, onClose }: ReplyDialogProps) {
           disabled={busy || (!text.trim() && images.length === 0)}
           className="h-11 rounded-xl bg-[#0C2660] hover:bg-[#0a1f52] text-white text-[14px] font-semibold flex items-center justify-center gap-1.5 transition disabled:opacity-40"
         >
-          <Send size={15} /> {busy ? "Sending…" : "Send reply"}
+          {busy ? "Sending…" : "Send reply"}
         </button>
       </div>
     </Modal>

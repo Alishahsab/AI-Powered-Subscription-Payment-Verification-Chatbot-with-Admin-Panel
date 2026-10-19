@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Check, Mail } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
 import { approveOrder, findCodeSentToSomeoneElse } from "@/lib/store/admin";
 import type { Order } from "@/lib/types";
@@ -69,7 +69,7 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
 
       <label className="mt-4 inline-flex items-center gap-2 text-[13px] text-zinc-700 cursor-pointer select-none">
         <input type="checkbox" checked={emailCopy} onChange={(event) => setEmailCopy(event.target.checked)} className="size-4 accent-[#0C2660]" />
-        <Mail size={14} /> Notify user by email
+        Notify user by email
       </label>
 
       <div className="mt-5 grid grid-cols-2 gap-2.5">
@@ -81,7 +81,7 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
           disabled={!canApprove}
           className="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[14px] font-semibold flex items-center justify-center gap-1.5 transition disabled:opacity-40"
         >
-          <Check size={16} /> Approve & send
+          Approve & send
         </button>
       </div>
     </Modal>

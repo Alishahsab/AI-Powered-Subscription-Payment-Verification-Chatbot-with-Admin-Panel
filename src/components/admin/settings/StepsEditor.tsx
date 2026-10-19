@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GripVertical, Plus, Trash2 } from "lucide-react";
+import { GripVertical, Trash2 } from "lucide-react";
 import { classNames } from "@/lib/format";
 import { limits } from "@/lib/validation";
 import { inputClass } from "../ui/styles";
@@ -52,7 +52,7 @@ export default function StepsEditor({ value, onChange }: StepsEditorProps) {
         </div>
       ))}
       <button type="button" onClick={() => save([...steps, ""])} className="h-8 px-3 rounded-lg border border-dashed border-zinc-300 text-[12.5px] font-medium text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50 flex items-center gap-1.5">
-        <Plus size={13} /> Add step
+        Add step
       </button>
     </div>
   );

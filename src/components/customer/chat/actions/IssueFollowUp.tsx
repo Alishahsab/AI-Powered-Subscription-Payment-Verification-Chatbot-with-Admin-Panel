@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Paperclip, Send } from "lucide-react";
 import { sendIssueFollowUp } from "@/lib/store/customer";
 import { limits, validateMessage } from "@/lib/validation";
 import ImagePicker from "../ImagePicker";
@@ -44,12 +43,12 @@ export default function IssueFollowUp({ customerId }: { customerId: string }) {
         <ImagePicker image={screenshot} onChange={setScreenshot} label="Attach a screenshot (optional)" />
       ) : (
         <button onClick={() => setShowPicker(true)} className="text-[13px] font-medium text-[var(--accent)] flex items-center gap-1.5">
-          <Paperclip size={14} /> Attach a screenshot (optional)
+          Attach a screenshot (optional)
         </button>
       )}
 
       <button onClick={send} disabled={busy} className={`${primaryButtonClass} disabled:opacity-50`}>
-        <Send size={16} /> {busy ? "Sending…" : "Send to our team"}
+        {busy ? "Sending…" : "Send to our team"}
       </button>
     </div>
   );

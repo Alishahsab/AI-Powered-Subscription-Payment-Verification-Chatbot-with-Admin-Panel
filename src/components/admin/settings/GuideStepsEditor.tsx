@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { GripVertical, ImagePlus, Plus, Trash2, X } from "lucide-react";
+import { GripVertical, ImagePlus, Trash2, X } from "lucide-react";
 import { compressImage } from "@/lib/browser";
 import { classNames, createId } from "@/lib/format";
 import { uploadGuideImage } from "@/lib/supabase/guides";
@@ -67,7 +67,7 @@ export default function GuideStepsEditor({ steps, onChange }: GuideStepsEditorPr
         onClick={() => onChange([...steps, { id: createId(), text: "" }])}
         className="h-8 px-3 rounded-lg border border-dashed border-zinc-300 text-[12.5px] font-medium text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50 flex items-center gap-1.5"
       >
-        <Plus size={13} /> Add step
+        Add step
       </button>
     </div>
   );

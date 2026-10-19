@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MessageSquare, Search, Users } from "lucide-react";
+import { Search, Users } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
 import { formatMoney, timeAgo } from "@/lib/format";
 import { customerNumberLabel, findLatestCode } from "@/lib/store/helpers";
@@ -99,7 +99,7 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
                       <td className="px-5 py-3">
                         <div className="flex justify-end gap-1.5">
                           <Button size="sm" onClick={() => onNavigate({ section: "bot", customerId: customer.id })}>
-                            <MessageSquare size={13} /> Chat
+                            Chat
                           </Button>
                           <BlockCustomerButton customer={customer} compact />
                           <DeleteCustomerButton customerId={customer.id} email={customer.email} compact />

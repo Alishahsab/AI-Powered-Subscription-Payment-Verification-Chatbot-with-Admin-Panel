@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Ban, ShieldCheck } from "lucide-react";
 import { classNames } from "@/lib/format";
 import { blockCustomer, unblockCustomer } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
@@ -28,7 +27,7 @@ export default function BlockCustomerButton({ customer, compact = false }: Block
     return (
       <>
         <button onClick={() => setOpen(true)} className={buttonClass}>
-          {!compact && <ShieldCheck size={14} />} Unblock
+          Unblock
         </button>
         {open && <ConfirmDialog description={`${customer.email} will be able to use the chat again.`} confirmLabel="Yes, unblock" onConfirm={() => unblockCustomer(customer.id)} onClose={() => setOpen(false)} />}
       </>
@@ -38,7 +37,7 @@ export default function BlockCustomerButton({ customer, compact = false }: Block
   return (
     <>
       <button onClick={() => setOpen(true)} className={buttonClass}>
-        {!compact && <Ban size={14} />} Block
+        Block
       </button>
       {open && <BlockDialog customer={customer} onClose={() => setOpen(false)} />}
     </>
@@ -83,7 +82,7 @@ function BlockDialog({ customer, onClose }: { customer: Customer; onClose: () =>
           Cancel
         </button>
         <button onClick={block} disabled={!reason} className="h-11 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[14px] font-semibold flex items-center justify-center gap-1.5 transition disabled:opacity-40">
-          <Ban size={15} /> Block
+          Block
         </button>
       </div>
     </Modal>

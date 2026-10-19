@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Clock, MessageCircleQuestion } from "lucide-react";
+import { Clock } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
 import { formatCountdown } from "@/lib/format";
 import { confirmIssueResolved, continueIssue, findOpenTicket } from "@/lib/store/customer";
@@ -25,10 +25,10 @@ export default function IssueStatus({ customerId, agentReplied }: IssueStatusPro
     return (
       <div className="max-w-[560px] mx-auto space-y-2">
         <button onClick={() => confirmIssueResolved(customerId)} className={primaryButtonClass}>
-          <CheckCircle2 size={17} /> {support.resolvedLabel}
+          {support.resolvedLabel}
         </button>
         <button onClick={() => continueIssue(customerId)} className={secondaryButtonClass}>
-          <MessageCircleQuestion size={16} /> {support.stillFacingLabel}
+          {support.stillFacingLabel}
         </button>
       </div>
     );

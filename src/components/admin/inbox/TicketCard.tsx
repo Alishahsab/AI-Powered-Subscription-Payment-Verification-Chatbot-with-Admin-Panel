@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, MessageSquareReply } from "lucide-react";
 import StoredImage from "@/components/StoredImage";
 import { classNames, formatDateTime } from "@/lib/format";
 import { setTicketResolved } from "@/lib/store/admin";
@@ -43,10 +42,10 @@ export default function TicketCard({ ticket }: { ticket: Ticket }) {
       {isOpen && (
         <div className="px-4 pb-4 grid grid-cols-2 gap-1.5">
           <button onClick={() => setReplying(true)} className="h-9 rounded-xl border border-zinc-200 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center justify-center gap-1.5 transition">
-            <MessageSquareReply size={14} /> Reply
+            Reply
           </button>
           <button onClick={() => setConfirmingResolve(true)} className="h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
-            <CheckCircle2 size={14} /> Resolved
+            Resolved
           </button>
         </div>
       )}
