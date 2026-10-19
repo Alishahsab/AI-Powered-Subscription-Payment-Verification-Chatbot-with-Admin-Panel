@@ -74,7 +74,7 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
 
       <div className="mt-4 rounded-xl border border-zinc-200 bg-[#f8f9fb] px-4 py-3">
         <div className="text-[12px] font-medium text-zinc-500">Customer will receive</div>
-        <p className="mt-1 text-[13px] leading-relaxed text-zinc-700">{codeHeading(state, order)}</p>
+        {codeHeading(state, order) && <p className="mt-1 text-[13px] leading-relaxed text-zinc-700">{codeHeading(state, order)}</p>}
         <div className="mt-2 font-bold text-[17px] tracking-wider text-[#0C2660] break-all">{trimmed || "Code appears here"}</div>
         <div className="mt-1 text-[12px] text-zinc-500">With a Copy code button, How to activate it and Instructions for next time.</div>
       </div>
