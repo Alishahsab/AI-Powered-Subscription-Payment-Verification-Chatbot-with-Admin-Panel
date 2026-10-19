@@ -15,10 +15,14 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-export async function isEmailRegistered(email: string): Promise<boolean | null> {
-  const { data, error } = await getSupabase("customer").rpc("email_registered", { check_email: normalizeEmail(email) });
+export type EmailStatus = "new" | "registered" | "suspended";
+
+export const suspendedEmailMessage = "This email can no longer be used. Please contact us on our official channel.";
+
+export async function checkEmailStatus(email: string): Promise<EmailStatus | null> {
+  const { data, error } = await getSupabase("customer").rpc("email_status", { check_email: normalizeEmail(email) });
   if (error) return null;
-  return Boolean(data);
+  return data as EmailStatus;
 }
 
 export async function signIn(email: string, pin: string): Promise<AuthResult> {
@@ -30,8 +34,10 @@ export async function signIn(email: string, pin: string): Promise<AuthResult> {
 export async function signUp(email: string, pin: string): Promise<AuthResult> {
   const { data, error } = await getSupabase("customer").auth.signUp({ email: normalizeEmail(email), password: pin });
   if (error) {
-    const alreadyExists = error.message.toLowerCase().includes("already");
-    return { error: alreadyExists ? "This email already has an account. Go back and enter your PIN." : error.message };
+    const message = error.message.toLowerCase();
+    if (message.includes("already")) return { error: "This email already has an account. Go back and enter your PIN." };
+    if (message.includes("database error")) return { error: suspendedEmailMessage };
+    return { error: error.message };
   }
   if (!data.session) return { error: "Please confirm your email address, then log in." };
   return { error: null };
@@ -254,7 +260,7 @@ export function createOrder(customerId: string) {
       planName: plan.name,
       amount: plan.price,
       methodName: method.name,
-      bank: { ...state.settings.bank },
+      bank: { ...state.settings.bank, iban: method.showIban && state.settings.bank.iban ? state.settings.bank.iban : undefined },
       paymentSteps: method.steps,
       status: "awaiting_payment",
       codeUnused: false,

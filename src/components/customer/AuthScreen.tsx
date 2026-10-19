@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, History, Lock, ShieldCheck, Zap } from "lucide-react";
 import { classNames } from "@/lib/format";
-import { isEmailRegistered, requestPinReset, signIn, signUp } from "@/lib/store/customer";
+import SecretInput from "@/components/SecretInput";
+import { checkEmailStatus, requestPinReset, signIn, signUp, suspendedEmailMessage } from "@/lib/store/customer";
 import { cleanDigits, cleanEmail, limits, validateEmail, validatePin } from "@/lib/validation";
 
 type Step = "email" | "login" | "create" | "forgot";
@@ -64,10 +65,11 @@ export default function AuthScreen() {
     setBusy(true);
 
     if (step === "email") {
-      const registered = await isEmailRegistered(email);
+      const status = await checkEmailStatus(email);
       setBusy(false);
-      if (registered === null) setError("We couldn't check this email right now. Please try again.");
-      else goTo(registered ? "login" : "create");
+      if (status === null) setError("We couldn't check this email right now. Please try again.");
+      else if (status === "suspended") setError(suspendedEmailMessage);
+      else goTo(status === "registered" ? "login" : "create");
       return;
     }
 
@@ -138,12 +140,11 @@ export default function AuthScreen() {
               {(step === "login" || step === "create") && (
                 <label className="block">
                   <span className="text-[13.5px] font-semibold">{step === "create" ? "Choose a 6-digit PIN" : "6-digit PIN"}</span>
-                  <input
+                  <SecretInput
                     autoFocus
                     value={pin}
                     onChange={(event) => setPin(cleanDigits(event.target.value, limits.pinLength))}
                     placeholder="••••••"
-                    type="password"
                     inputMode="numeric"
                     autoComplete={step === "login" ? "current-password" : "new-password"}
                     className={pinClass}
@@ -155,7 +156,7 @@ export default function AuthScreen() {
               {step === "create" && (
                 <label className="block">
                   <span className="text-[13.5px] font-semibold">Confirm your PIN</span>
-                  <input value={confirmPin} onChange={(event) => setConfirmPin(cleanDigits(event.target.value, limits.pinLength))} placeholder="••••••" type="password" inputMode="numeric" autoComplete="new-password" className={pinClass} />
+                  <SecretInput value={confirmPin} onChange={(event) => setConfirmPin(cleanDigits(event.target.value, limits.pinLength))} placeholder="••••••" inputMode="numeric" autoComplete="new-password" className={pinClass} />
                 </label>
               )}
             </div>

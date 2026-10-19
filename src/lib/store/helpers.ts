@@ -13,6 +13,7 @@ export function fillPlaceholders(text: string, state: AppState, bank: BankAccoun
     .replaceAll("{back_in}", formatDuration(minutesUntilOpen(state.settings)))
     .replaceAll("{bank}", bank.bankName)
     .replaceAll("{account}", bank.accountNumber)
+    .replaceAll("{iban}", bank.iban ?? "")
     .replaceAll("{title}", bank.accountTitle);
 }
 

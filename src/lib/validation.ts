@@ -16,6 +16,7 @@ export const limits = {
   longTextMax: 800,
   questionMax: 150,
   codeLength: 6,
+  ibanMax: 34,
 };
 
 const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -56,6 +57,11 @@ export function extractCode(text: string) {
 export function validateCode(code: string) {
   if (code.length !== limits.codeLength) return `The premium code must be exactly ${limits.codeLength} letters or numbers.`;
   return null;
+}
+
+export function cleanIban(value: string) {
+  const characters = value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, limits.ibanMax);
+  return characters.replace(/(.{4})(?=.)/g, "$1 ");
 }
 
 export function cleanEmail(value: string) {
@@ -128,6 +134,9 @@ export function validateConfig(config: StoreConfig) {
   if (digits.length < limits.accountNumberMin || digits.length > limits.accountNumberMax) {
     errors.push(`Account number must be ${limits.accountNumberMin} to ${limits.accountNumberMax} digits.`);
   }
+  const iban = (settings.bank.iban ?? "").replace(/\s/g, "");
+  if (iban && !/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) errors.push("IBAN should look like PK36SCBL0000001123456702.");
+  if (!iban && methods.some((method) => method.showIban)) errors.push("Add the IBAN, or turn off Show IBAN for every payment method.");
 
   for (const plan of plans) {
     if (!LETTERS_AND_DIGITS.test(plan.name.trim())) errors.push(`Plan name "${plan.name || "empty"}" can only contain letters and numbers.`);

@@ -13,12 +13,14 @@ export type PaymentMethod = {
   name: string;
   active: boolean;
   steps: string;
+  showIban?: boolean;
 };
 
 export type BankAccount = {
   bankName: string;
   accountTitle: string;
   accountNumber: string;
+  iban?: string;
 };
 
 export type Faq = {

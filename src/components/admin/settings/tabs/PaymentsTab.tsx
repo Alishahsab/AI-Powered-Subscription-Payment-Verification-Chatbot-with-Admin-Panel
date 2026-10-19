@@ -1,4 +1,4 @@
-import { cleanAccountNumber, cleanDigits, cleanLetters, cleanLettersAndDigits, limits } from "@/lib/validation";
+import { cleanAccountNumber, cleanDigits, cleanIban, cleanLetters, cleanLettersAndDigits, limits } from "@/lib/validation";
 import Toggle from "../../ui/Toggle";
 import { inputClass, textareaClass } from "../../ui/styles";
 import type { SettingsTabProps } from "../Settings";
@@ -50,10 +50,20 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
               className={`${inputClass} tabular-nums`}
             />
           </Field>
+          <div className="sm:col-span-3">
+            <Field label="IBAN" hint="Shown only for the payment methods where you turn it on">
+              <input
+                value={bank.iban ?? ""}
+                placeholder="PK36 SCBL 0000 0011 2345 6702"
+                onChange={(event) => updateDraft((next) => (next.settings.bank.iban = cleanIban(event.target.value)))}
+                className={`${inputClass} tabular-nums uppercase`}
+              />
+            </Field>
+          </div>
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Payment methods" description="Customers see the steps when they tap How to pay. Use {bank}, {account} and {title} to insert the account details of their order.">
+      <SettingsSection title="Payment methods" description="Customers see the steps when they tap How to pay. Use {bank}, {account}, {title} and {iban} to insert the account details of their order.">
         <div className="space-y-4">
           {draft.methods.map((method, index) => (
             <div key={method.id} className="rounded-xl border border-zinc-200 p-3.5 space-y-2.5">
@@ -61,7 +71,8 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
                 <div className="w-48">
                   <input value={method.name} onChange={(event) => updateDraft((next) => (next.methods[index].name = cleanLetters(event.target.value, 20)))} className={`${inputClass} font-medium`} />
                 </div>
-                <div className="ml-auto">
+                <div className="ml-auto flex flex-wrap items-center justify-end gap-x-5 gap-y-2">
+                  <Toggle on={Boolean(method.showIban)} onChange={(value) => updateDraft((next) => (next.methods[index].showIban = value))} label="Show IBAN" />
                   <Toggle on={method.active} onChange={(value) => updateDraft((next) => (next.methods[index].active = value))} label={method.active ? "Shown" : "Hidden"} />
                 </div>
               </div>

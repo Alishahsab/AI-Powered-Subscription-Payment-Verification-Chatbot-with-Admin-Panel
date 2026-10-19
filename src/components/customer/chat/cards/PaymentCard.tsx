@@ -35,23 +35,17 @@ export default function PaymentCard({ message }: { message: Message }) {
       <div className="px-4 pt-3.5 pb-3 flex items-start justify-between gap-3">
         <div>
           <div className="text-[11px] uppercase tracking-[0.12em] text-[var(--muted)] font-semibold">Order {order.id}</div>
-          <div className="font-bold text-[16px] mt-0.5">{order.planName}</div>
+          <div className={`${valueClass} mt-0.5`}>{order.planName}</div>
           <div className="text-[12.5px] text-[var(--muted)]">via {order.methodName}</div>
         </div>
-        <div className="font-bold text-[20px] leading-tight text-[var(--accent)]">Rs {order.amount.toLocaleString()}</div>
+        <div className={`${valueClass} text-[var(--accent)]`}>Rs {order.amount.toLocaleString()}</div>
       </div>
 
       {payable ? (
         <div className="px-4 pb-4 space-y-3">
-          <div className="rounded-xl bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))] border border-[color-mix(in_srgb,var(--accent)_14%,transparent)] px-3.5 py-3">
-            <div className="text-[11.5px] text-[var(--muted)]">Send to this account number</div>
-            <div className="mt-1 flex items-center justify-between gap-2">
-              <div className="font-bold text-[15.5px] md:text-[18px] md:tracking-wide tabular-nums whitespace-nowrap">{bank.accountNumber}</div>
-              <CopyButton value={bank.accountNumber} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 px-1">
+          <div className="rounded-xl bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))] border border-[color-mix(in_srgb,var(--accent)_14%,transparent)] px-3.5 divide-y divide-[color-mix(in_srgb,var(--accent)_12%,transparent)]">
+            <Detail label="Account number" value={bank.accountNumber} copyable />
+            {bank.iban && <Detail label="IBAN" value={bank.iban} copyable />}
             <Detail label="Bank" value={bank.bankName} />
             <Detail label="Account title" value={bank.accountTitle} />
           </div>
@@ -83,11 +77,16 @@ export default function PaymentCard({ message }: { message: Message }) {
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+const valueClass = "font-bold text-[15px] md:text-[16px] leading-snug";
+
+function Detail({ label, value, copyable = false }: { label: string; value: string; copyable?: boolean }) {
   return (
-    <div className="min-w-0">
+    <div className="py-2.5 min-w-0">
       <div className="text-[11px] text-[var(--muted)]">{label}</div>
-      <div className="font-semibold text-[14px] truncate">{value}</div>
+      <div className="flex items-center gap-2">
+        <span className={`${valueClass} tabular-nums break-all`}>{value}</span>
+        {copyable && <CopyButton value={value} />}
+      </div>
     </div>
   );
 }

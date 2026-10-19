@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Lock } from "lucide-react";
+import SecretInput from "@/components/SecretInput";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { signOut, updatePin } from "@/lib/store/customer";
 import { cleanDigits, limits, validatePin } from "@/lib/validation";
@@ -73,11 +74,11 @@ export default function ResetPinScreen() {
 
             <label className="block mt-5">
               <span className="text-[13.5px] font-semibold">New 6-digit PIN</span>
-              <input value={pin} onChange={(event) => setPin(cleanDigits(event.target.value, limits.pinLength))} type="password" inputMode="numeric" autoComplete="new-password" className={inputClass} />
+              <SecretInput value={pin} onChange={(event) => setPin(cleanDigits(event.target.value, limits.pinLength))} inputMode="numeric" autoComplete="new-password" className={inputClass} />
             </label>
             <label className="block mt-4">
               <span className="text-[13.5px] font-semibold">Confirm PIN</span>
-              <input value={confirmPin} onChange={(event) => setConfirmPin(cleanDigits(event.target.value, limits.pinLength))} type="password" inputMode="numeric" autoComplete="new-password" className={inputClass} />
+              <SecretInput value={confirmPin} onChange={(event) => setConfirmPin(cleanDigits(event.target.value, limits.pinLength))} inputMode="numeric" autoComplete="new-password" className={inputClass} />
             </label>
 
             {error && <p className="mt-3 text-[13px] text-red-600">{error}</p>}
