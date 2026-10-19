@@ -44,7 +44,7 @@ export default function TicketCard({ ticket }: { ticket: Ticket }) {
           <button onClick={() => setReplying(true)} className="h-9 rounded-xl border border-zinc-200 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center justify-center gap-1.5 transition">
             Reply
           </button>
-          <button onClick={() => setConfirmingResolve(true)} className="h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
+          <button onClick={() => setConfirmingResolve(true)} className="h-9 rounded-xl bg-[#0C2660] hover:bg-[#0a1f52] text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
             Resolved
           </button>
         </div>

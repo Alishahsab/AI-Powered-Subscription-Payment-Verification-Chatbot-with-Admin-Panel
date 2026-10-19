@@ -100,7 +100,7 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
       )}
       {dialog === "unused" && (
         <ConfirmDialog
-          description={order.codeUnused ? `Code ${order.code} will move back to Completed.` : `Code ${order.code} will move to Unused.`}
+          description={order.codeUnused ? `Code ${order.code} will be marked as used.` : `Code ${order.code} will be marked as unused.`}
           confirmLabel={order.codeUnused ? "Yes, mark as used" : "Yes, mark as unused"}
           onConfirm={() => setCodeUnused(order.id, !order.codeUnused)}
           onClose={() => setDialog(null)}
@@ -118,11 +118,11 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
         <div className="px-4 pb-4">
           {order.codeUnused ? (
             <button onClick={() => setDialog("unused")} className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
-              Code used, move to Completed
+              Mark as used
             </button>
           ) : (
             <button onClick={() => setDialog("unused")} className="w-full h-10 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
-              Code not used, move to Unused
+              Mark as unused
             </button>
           )}
         </div>

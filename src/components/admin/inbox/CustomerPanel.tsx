@@ -15,7 +15,7 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
 
   const orders = state.orders.filter((order) => order.customerId === customerId).sort((a, b) => b.createdAt - a.createdAt);
   const completed = orders.filter((order) => order.status === "completed");
-  const focusOrder = orders.find((order) => order.status === "pending_review" || order.status === "rejected") ?? completed[0];
+  const pending = orders.filter((order) => order.status === "pending_review" || order.status === "rejected");
   const customerTickets = state.tickets.filter((ticket) => ticket.customerId === customerId);
   const tickets = customerTickets.filter((ticket) => ticket.status === "open");
   const issuesResolved = customerTickets.filter((ticket) => ticket.status === "resolved").length;
@@ -34,7 +34,9 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
         <Stat label="Issues resolved" value={String(issuesResolved)} />
       </div>
 
-      {focusOrder && <OrderReview key={focusOrder.id + focusOrder.status} order={focusOrder} customerEmail={customer.email} />}
+      {[...pending, ...completed].map((order) => (
+        <OrderReview key={order.id + order.status} order={order} customerEmail={customer.email} />
+      ))}
 
       {tickets.map((ticket) => (
         <TicketCard key={ticket.id} ticket={ticket} />
