@@ -1,7 +1,7 @@
 "use client";
 
-import { classNames, formatDate, formatMoney } from "@/lib/format";
-import { customerNumberLabel, findLatestCode } from "@/lib/store/helpers";
+import { formatDate } from "@/lib/format";
+import { customerNumberLabel } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import Avatar from "../ui/Avatar";
 import BlockCustomerButton from "../customers/BlockCustomerButton";
@@ -16,9 +16,9 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
   const orders = state.orders.filter((order) => order.customerId === customerId).sort((a, b) => b.createdAt - a.createdAt);
   const focusOrder = orders.find((order) => order.status === "pending_review" || order.status === "rejected") ?? orders[0];
   const completed = orders.filter((order) => order.status === "completed");
-  const totalSpent = completed.reduce((sum, order) => sum + order.amount, 0);
-  const tickets = state.tickets.filter((ticket) => ticket.customerId === customerId && ticket.status === "open");
-  const latestCode = findLatestCode(state, customerId);
+  const customerTickets = state.tickets.filter((ticket) => ticket.customerId === customerId);
+  const tickets = customerTickets.filter((ticket) => ticket.status === "open");
+  const issuesResolved = customerTickets.filter((ticket) => ticket.status === "resolved").length;
 
   return (
     <div className="p-5 space-y-4">
@@ -31,19 +31,7 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
 
       <div className="grid grid-cols-2 gap-2">
         <Stat label="Completed orders" value={String(completed.length)} />
-        <Stat label="Total spent" value={formatMoney(totalSpent)} />
-      </div>
-
-      <div className="rounded-xl bg-[#f5f6f8] px-3.5 py-3">
-        <div className="text-[11.5px] text-zinc-500">Current code</div>
-        <div className="font-bold text-[14.5px] text-zinc-900 truncate mt-0.5" title={latestCode?.code}>
-          {latestCode?.code ?? "No code sent yet"}
-        </div>
-        {latestCode && (
-          <div className={classNames("text-[11.5px] mt-0.5 font-medium", latestCode.codeUnused ? "text-amber-700" : "text-zinc-500")}>
-            {latestCode.planName} · {latestCode.codeUnused ? "Not used yet" : "Used"}
-          </div>
-        )}
+        <Stat label="Issues resolved" value={String(issuesResolved)} />
       </div>
 
       {focusOrder && <OrderReview key={focusOrder.id + focusOrder.status} order={focusOrder} customerEmail={customer.email} />}

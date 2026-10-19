@@ -15,6 +15,13 @@ const statuses: { status: AdminStatus; label: string; description: string; dot: 
   { status: "offline", label: "Offline", description: "Buying paused, support open", dot: "bg-zinc-400" },
 ];
 
+const supportLabels: Record<AdminStatus, string> = {
+  active: "Active: after a support request is sent",
+  away: "Away (accepting): after a support request is sent",
+  away_closed: "Away (not accepting): after a support request is sent",
+  offline: "Offline: after a support request is sent",
+};
+
 const messageLabels: Record<AdminStatus, string> = {
   active: "Active: after the payment screenshot is sent",
   away: "Away (accepting): after the payment screenshot is sent",
@@ -24,7 +31,7 @@ const messageLabels: Record<AdminStatus, string> = {
 
 export default function AvailabilityTab({ draft, updateDraft }: SettingsTabProps) {
   const state = useAppState();
-  const { hours, statusMessages } = draft.settings;
+  const { hours, statusMessages, supportMessages } = draft.settings;
 
   return (
     <>
@@ -68,11 +75,21 @@ export default function AvailabilityTab({ draft, updateDraft }: SettingsTabProps
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Status messages" description="What the customer sees. Use {hours}, {back_in} (time until you open) and {timer} as placeholders.">
+      <SettingsSection title="Order messages" description="What the customer sees when buying. Use {hours}, {back_in} (time until you open) and {timer} as placeholders.">
         <div className="space-y-4">
           {(Object.keys(messageLabels) as AdminStatus[]).map((status) => (
             <Field key={status} label={messageLabels[status]}>
               <textarea rows={2} maxLength={limits.longTextMax} value={statusMessages[status]} onChange={(event) => updateDraft((draft) => (draft.settings.statusMessages[status] = event.target.value))} className={textareaClass} />
+            </Field>
+          ))}
+        </div>
+      </SettingsSection>
+
+      <SettingsSection title="Support messages" description="What the customer sees after sending a support request. Customer Support stays open in every status. Use {ticket_id} for the request number.">
+        <div className="space-y-4">
+          {(Object.keys(supportLabels) as AdminStatus[]).map((status) => (
+            <Field key={status} label={supportLabels[status]}>
+              <textarea rows={2} maxLength={limits.longTextMax} value={supportMessages[status]} onChange={(event) => updateDraft((draft) => (draft.settings.supportMessages[status] = event.target.value))} className={textareaClass} />
             </Field>
           ))}
         </div>

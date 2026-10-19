@@ -40,6 +40,12 @@ export function createDefaultConfig(): StoreConfig {
         away_closed: "Our admin is away right now and isn't taking new orders. Please try again later.",
         offline: "We are offline right now. Back in {back_in}. Subscriptions are available daily between {hours}. Customer Support remains open 24/7.",
       },
+      supportMessages: {
+        active: "Thanks, your request {ticket_id} has been sent to our team. An agent will join you shortly and reply right here.",
+        away: "Your request {ticket_id} is listed. Our admin is away right now and will reply here as soon as they are back.",
+        away_closed: "Your request {ticket_id} is listed. Our admin is away right now and will reply here as soon as they are back.",
+        offline: "Your request {ticket_id} is listed. We are offline right now and will reply here as soon as we are back.",
+      },
       terms: [
         "Create an order only when you are ready to pay.",
         "Payment must be completed within {timer} minutes of creating the order.",

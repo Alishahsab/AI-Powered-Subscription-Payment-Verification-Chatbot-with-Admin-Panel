@@ -210,7 +210,7 @@ export function deleteAdminMessage(messageId: string) {
 export function cancelOrderAsAdmin(orderId: string) {
   updateState((state) => {
     const order = state.orders.find((item) => item.id === orderId);
-    if (!order || order.status !== "pending_review") return;
+    if (!order || (order.status !== "pending_review" && order.status !== "rejected")) return;
 
     order.status = "cancelled";
     order.rejectReason = ADMIN_CANCEL_REASON;

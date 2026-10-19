@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { Ban, Check, Info, PackageX, X } from "lucide-react";
 import StoredImage from "@/components/StoredImage";
-import { formatDateTime, formatMoney } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
 import { cancelOrderAsAdmin, setCodeUnused } from "@/lib/store/admin";
-import { useAppState } from "@/lib/store/state";
 import type { Order } from "@/lib/types";
 import Badge from "../ui/Badge";
 import ConfirmDialog from "../ui/ConfirmDialog";
@@ -21,24 +20,20 @@ type OrderReviewProps = {
 export default function OrderReview({ order, customerEmail }: OrderReviewProps) {
   const [zoomed, setZoomed] = useState(false);
   const [dialog, setDialog] = useState<"approve" | "reject" | "cancel" | "unused" | null>(null);
-  const state = useAppState();
   const badge = orderStatusBadge[order.status];
-  const completedOrders = state.orders.filter((item) => item.customerId === order.customerId && item.status === "completed").length;
-  const issuesReported = state.tickets.filter((ticket) => ticket.customerId === order.customerId).length;
+  const isPending = order.status === "pending_review" || order.status === "rejected";
 
   return (
     <div className="rounded-2xl border border-zinc-200/80 overflow-hidden">
       <div className="px-4 py-3 flex items-center justify-between bg-[#f8f9fb] border-b border-zinc-200/80">
         <div>
-          <div className="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Latest order</div>
+          <div className="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">{isPending ? "Pending order" : "Latest order"}</div>
           <div className="text-[13.5px] font-bold text-zinc-900">{order.id}</div>
         </div>
         <Badge tone={badge.tone}>{badge.label}</Badge>
       </div>
 
       <dl className="px-4 py-3 space-y-2 text-[13px]">
-        <Row label="Completed orders" value={String(completedOrders)} />
-        <Row label="App issues reported" value={String(issuesReported)} />
         <Row label="Plan" value={order.planName} />
         <Row label="Sender name" value={order.senderName ?? "Not sent yet"} />
         <div className="flex items-start justify-between gap-3">
@@ -53,38 +48,29 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
             )}
           </dd>
         </div>
-        <Row label="Proof sent" value={order.submittedAt ? formatDateTime(order.submittedAt) : "Not sent yet"} />
-      </dl>
-
-      <dl className="px-4 pb-3 pt-2.5 space-y-2 text-[12.5px] border-t border-zinc-100">
-        <Row label="Amount" value={formatMoney(order.amount)} strong />
-        <Row label="Method" value={order.methodName} />
-        {order.bank && <Row label="Paid to" value={`${order.bank.bankName} · ${order.bank.accountNumber}`} />}
+        <Row label="Submitted" value={order.submittedAt ? formatDateTime(order.submittedAt) : "Not sent yet"} />
         {order.code && <Row label="Code" value={order.code} strong />}
-        <Row label="Order created" value={formatDateTime(order.createdAt)} />
       </dl>
 
       {order.status === "rejected" && (
         <div className="mx-4 mb-3 text-[12.5px] text-red-700 bg-red-50 rounded-xl px-3 py-2.5">
-          Rejected: {order.rejectReason}. The customer can reply once; approve it here if the payment turns out to be fine.
+          Rejected: {order.rejectReason}. The customer can reply once and can’t place a new order until you approve or cancel this one.
         </div>
       )}
 
-      {(order.status === "pending_review" || order.status === "rejected") && (
+      {isPending && (
         <div className="px-4 pb-4 space-y-2">
           <button onClick={() => setDialog("approve")} className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
             <Check size={15} /> {order.status === "rejected" ? "Approve anyway" : "Approve payment"}
           </button>
           {order.status === "pending_review" && (
             <button onClick={() => setDialog("reject")} className="w-full h-10 rounded-xl text-red-600 hover:bg-red-50 text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
-              <X size={14} /> Reject
+              <X size={14} /> Reject payment
             </button>
           )}
-          {order.status === "pending_review" && (
-            <button onClick={() => setDialog("cancel")} className="w-full h-10 rounded-xl text-zinc-600 hover:bg-zinc-100 text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
-              <Ban size={14} /> Cancel order
-            </button>
-          )}
+          <button onClick={() => setDialog("cancel")} className="w-full h-10 rounded-xl text-zinc-600 hover:bg-zinc-100 text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
+            <Ban size={14} /> Cancel order
+          </button>
         </div>
       )}
 

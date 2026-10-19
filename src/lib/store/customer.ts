@@ -165,7 +165,7 @@ function startBuying(state: AppState, customerId: string) {
     return;
   }
 
-  const pendingOrder = state.orders.find((order) => order.customerId === customerId && order.status === "pending_review");
+  const pendingOrder = state.orders.find((order) => order.customerId === customerId && (order.status === "pending_review" || order.status === "rejected"));
   if (pendingOrder) {
     addMessage(state, customerId, "bot", botText(state, "orderPendingReview", { order_id: pendingOrder.id }));
     conversation.stage = "menu";
@@ -458,8 +458,8 @@ export async function submitSupportIssue(customerId: string, description: string
   });
 
   replyAsBot(customerId, (state) => {
-    const away = getEffectiveStatus(state.settings) !== "active";
-    addMessage(state, customerId, "bot", botText(state, away ? "supportAwayListed" : "issueReceived", { ticket_id: ticketId }));
+    const message = state.settings.supportMessages[getEffectiveStatus(state.settings)];
+    addMessage(state, customerId, "bot", fillPlaceholders(message, state).replaceAll("{ticket_id}", ticketId));
     state.conversations[customerId].stage = "waiting_agent";
   });
 }

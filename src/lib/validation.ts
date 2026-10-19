@@ -122,9 +122,10 @@ export function validateConfig(config: StoreConfig) {
     settings.rejectionMessage,
     settings.waitForAdminMessage,
     ...Object.values(settings.statusMessages),
+    ...Object.values(settings.supportMessages),
   ];
   if (longTexts.some((text) => text.length > limits.longTextMax)) errors.push(`Messages can be at most ${limits.longTextMax} characters.`);
-  if (Object.values(settings.statusMessages).some((text) => !text.trim())) errors.push("Status messages cannot be empty.");
+  if ([...Object.values(settings.statusMessages), ...Object.values(settings.supportMessages)].some((text) => !text.trim())) errors.push("Status messages cannot be empty.");
 
   const { bankName, accountTitle, accountNumber } = settings.bank;
   if (validateName(bankName, "Bank name")) errors.push("Bank name can only contain letters and spaces.");

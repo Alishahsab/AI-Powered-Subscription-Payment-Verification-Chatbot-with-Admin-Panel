@@ -17,12 +17,10 @@ export const defaultBotMessages: BotMessages = {
   paymentIssueReceived: "Thanks for letting us know. Please don't send any payment right now, we're checking our account details. Please try again after {time_left}. Our team will reply here.",
   supportIntro: "How can we help? Pick a question below, or choose Other issues to contact our team.",
   describeIssue: "Please describe your issue and attach a screenshot.",
-  issueReceived: "Thanks, your request {ticket_id} has been sent to our team. An agent will join you shortly and reply right here.",
   issueResolvedByCustomer: "Glad it's sorted. Anything else we can help with?",
   issueResolvedByAdmin: "Your request {ticket_id} has been marked as resolved. If you need anything else, choose Customer Support from the menu.",
   openRequestExists: "You already have an open request ({ticket_id}). Please wait for our reply here before sending a new one.",
   issueAutoResolved: "Your request {ticket_id} has been resolved because there was no reply for a while. If you still need help, choose Customer Support from the menu.",
-  supportAwayListed: "Your request {ticket_id} is listed. Our admin is away right now and will reply here as soon as they are back.",
 };
 
 type MessageField = { key: BotMessageKey; label: string; variables?: string };
@@ -62,17 +60,10 @@ export const botMessageGroups: { title: string; fields: MessageField[] }[] = [
     fields: [
       { key: "supportIntro", label: "Customer opens Support" },
       { key: "describeIssue", label: "Customer chooses Other issues" },
-      { key: "issueReceived", label: "Request sent to the team", variables: "{ticket_id}" },
       { key: "openRequestExists", label: "Customer opens Support while a request is still open", variables: "{ticket_id}" },
       { key: "issueResolvedByCustomer", label: "Customer marks the request resolved" },
       { key: "issueResolvedByAdmin", label: "You mark the request resolved", variables: "{ticket_id}" },
       { key: "issueAutoResolved", label: "Request resolved after no reply", variables: "{ticket_id}" },
-    ],
-  },
-  {
-    title: "While you are away",
-    fields: [
-      { key: "supportAwayListed", label: "Admin not active: after a request is sent", variables: "{ticket_id}" },
     ],
   },
 ];

@@ -61,12 +61,10 @@ export type BotMessageKey =
   | "paymentIssueReceived"
   | "supportIntro"
   | "describeIssue"
-  | "issueReceived"
   | "issueResolvedByCustomer"
   | "issueResolvedByAdmin"
   | "issueAutoResolved"
-  | "openRequestExists"
-  | "supportAwayListed";
+  | "openRequestExists";
 
 export type BotMessages = Record<BotMessageKey, string>;
 
@@ -100,6 +98,7 @@ export type Settings = {
   status: AdminStatus;
   hours: { start: string; end: string; enforce: boolean };
   statusMessages: Record<AdminStatus, string>;
+  supportMessages: Record<AdminStatus, string>;
   terms: string[];
   howItWorks: string;
   usageSteps: GuideStep[];

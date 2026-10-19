@@ -23,7 +23,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
   const stats: { label: string; value: string; note: string; icon: React.ReactNode; highlight?: boolean; target?: NavTarget }[] = [
     { label: "Revenue today", value: formatMoney(revenueToday), note: `${completedToday.length} orders completed`, icon: <Wallet size={17} /> },
     {
-      label: "Pending review",
+      label: "Pending orders",
       value: String(pendingOrders.length),
       note: "Waiting for your approval",
       icon: <Clock size={17} />,
