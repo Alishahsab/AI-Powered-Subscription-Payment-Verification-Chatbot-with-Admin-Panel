@@ -1,9 +1,9 @@
 "use client";
 
-import { CheckCircle2, Clock, LifeBuoy, MessageCircleQuestion } from "lucide-react";
+import { CheckCircle2, Clock, MessageCircleQuestion } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
 import { formatCountdown } from "@/lib/format";
-import { chooseMenuOption, confirmIssueResolved, continueIssue, findOpenTicket, isIssueExpired } from "@/lib/store/customer";
+import { confirmIssueResolved, continueIssue, findOpenTicket } from "@/lib/store/customer";
 import { useAppState } from "@/lib/store/state";
 import BackToMenuButton from "./BackToMenuButton";
 import { primaryButtonClass, secondaryButtonClass } from "./buttonStyles";
@@ -19,16 +19,7 @@ export default function IssueStatus({ customerId, agentReplied }: IssueStatusPro
   const { support } = state.settings;
   const ticket = findOpenTicket(state, customerId);
 
-  if (isIssueExpired(state, customerId, now)) {
-    return (
-      <div className="max-w-[560px] mx-auto space-y-2.5">
-        <Notice icon={<Clock size={17} />}>{support.expiredMessage}</Notice>
-        <button onClick={() => chooseMenuOption(customerId, "support")} className={primaryButtonClass}>
-          <LifeBuoy size={17} /> Customer Support
-        </button>
-      </div>
-    );
-  }
+  if (!ticket) return <BackToMenuButton customerId={customerId} />;
 
   if (agentReplied) {
     return (
@@ -43,7 +34,7 @@ export default function IssueStatus({ customerId, agentReplied }: IssueStatusPro
     );
   }
 
-  const waitingSince = state.messages.filter((message) => message.customerId === customerId && message.sender === "customer").at(-1)?.createdAt ?? ticket?.createdAt ?? now;
+  const waitingSince = state.messages.filter((message) => message.customerId === customerId && message.sender === "customer").at(-1)?.createdAt ?? ticket.createdAt;
 
   return (
     <div className="max-w-[560px] mx-auto">

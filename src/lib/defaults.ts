@@ -36,7 +36,8 @@ export function createDefaultConfig(): StoreConfig {
       hours: { start: "09:00", end: "22:00", enforce: false },
       statusMessages: {
         active: "Thank you. Your payment is being verified. Your code will arrive right here in a few minutes.",
-        away: "Thank you, your payment is recorded. Our admin is briefly away. Your code will be sent here and to your email as soon as it's verified.",
+        away: "Thank you, your payment is recorded. Our admin is away right now, so your payment will be checked and your code sent here as soon as they are back.",
+        away_closed: "Our admin is away right now and isn't taking new orders. Please try again later.",
         offline: "We are offline right now. Back in {back_in}. Subscriptions are available daily between {hours}. Customer Support remains open 24/7.",
       },
       terms: [
@@ -63,7 +64,6 @@ export function createDefaultConfig(): StoreConfig {
       rejectReasons: ["Screenshot is unclear", "Amount does not match", "Payment not received", "Sender name does not match"],
       support: {
         waitingMessage: "Your request is with our team. An agent will join and reply here soon.",
-        expiredMessage: "This request was closed because there was no reply for a while. Please create a new request from Customer Support.",
         stillFacingLabel: "Still facing the issue",
         resolvedLabel: "Resolved",
         issueScreenshotRequired: true,
@@ -84,7 +84,7 @@ export function createDefaultConfig(): StoreConfig {
         { key: "blocked", label: "Blocked" },
       ],
       bank: { bankName: "Meezan Bank", accountTitle: "Premium Store", accountNumber: "0123 4567 8901 2345" },
-      timers: { orderMinutes: 15, inactiveMinutes: 20, retryMinutes: 30, cancelCooldownMinutes: 30, issueInactiveMinutes: 24 * 60 },
+      timers: { orderMinutes: 15, inactiveMinutes: 20, retryMinutes: 30, cancelCooldownMinutes: 30, issueInactiveMinutes: 6 * 60 },
       limits: { cancelsBeforeCooldown: 2, repliesAfterRejection: 1 },
       accent: "#0C2660",
     },

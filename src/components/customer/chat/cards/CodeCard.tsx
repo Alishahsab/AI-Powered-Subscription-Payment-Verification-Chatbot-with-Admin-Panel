@@ -1,21 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { createPortal } from "react-dom";
 import { BookOpen, KeyRound, ShieldCheck } from "lucide-react";
 import { useAppState } from "@/lib/store/state";
-import type { GuideStep, Message } from "@/lib/types";
+import type { Message } from "@/lib/types";
 import { extractCode } from "@/lib/validation";
-import { CHAT_ROOT_ID } from "../chatRoot";
 import CopyButton from "../CopyButton";
-import Sheet from "../sheets/Sheet";
-
-type Guide = "usage" | "next_time";
-
-const guideTitles: Record<Guide, string> = {
-  usage: "How to use",
-  next_time: "Instructions for next time",
-};
+import GuideSheet, { guideTitles, type Guide } from "../sheets/GuideSheet";
 
 export default function CodeCard({ message }: { message: Message }) {
   const state = useAppState();
@@ -45,37 +36,8 @@ export default function CodeCard({ message }: { message: Message }) {
         <GuideButton icon={<ShieldCheck size={14} />} label={guideTitles.next_time} onClick={() => setGuide("next_time")} />
       </div>
 
-      {guide &&
-        createPortal(
-          <Sheet title={guideTitles[guide]} onClose={() => setGuide(null)}>
-            <GuideSteps steps={guide === "usage" ? state.settings.usageSteps : state.settings.nextTimeSteps} />
-            <button onClick={() => setGuide(null)} className="mt-5 w-full h-12 rounded-xl bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-[15px]">
-              Got it
-            </button>
-          </Sheet>,
-          document.getElementById(CHAT_ROOT_ID) ?? document.body
-        )}
+      {guide && <GuideSheet guide={guide} onClose={() => setGuide(null)} />}
     </div>
-  );
-}
-
-function GuideSteps({ steps }: { steps: GuideStep[] }) {
-  return (
-    <ol className="space-y-2.5">
-      {steps.map((step, index) => (
-        <li key={step.id} className="rounded-xl bg-[var(--bg)] border border-[var(--line)] px-4 py-3 text-[14px] leading-snug">
-          <div className="flex items-start gap-3">
-            <span className="size-6 shrink-0 rounded-full bg-[var(--accent)] text-[var(--accent-ink)] text-[12px] font-bold grid place-items-center">{index + 1}</span>
-            <span className="pt-0.5">{step.text}</span>
-          </div>
-          {step.image && (
-            <a href={step.image} target="_blank" rel="noreferrer" className="mt-2.5 ml-9 block">
-              <img src={step.image} alt={`Step ${index + 1}`} className="max-h-56 rounded-lg border border-[var(--line)] object-contain bg-white" />
-            </a>
-          )}
-        </li>
-      ))}
-    </ol>
   );
 }
 

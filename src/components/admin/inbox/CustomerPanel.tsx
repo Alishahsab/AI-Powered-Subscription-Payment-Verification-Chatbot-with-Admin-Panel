@@ -5,7 +5,6 @@ import { customerNumberLabel, findLatestCode } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import Avatar from "../ui/Avatar";
 import BlockCustomerButton from "../customers/BlockCustomerButton";
-import DeleteCustomerButton from "../customers/DeleteCustomerButton";
 import OrderReview from "./OrderReview";
 import TicketCard from "./TicketCard";
 
@@ -18,7 +17,7 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
   const focusOrder = orders.find((order) => order.status === "pending_review" || order.status === "rejected") ?? orders[0];
   const completed = orders.filter((order) => order.status === "completed");
   const totalSpent = completed.reduce((sum, order) => sum + order.amount, 0);
-  const tickets = state.tickets.filter((ticket) => ticket.customerId === customerId);
+  const tickets = state.tickets.filter((ticket) => ticket.customerId === customerId && ticket.status === "open");
   const latestCode = findLatestCode(state, customerId);
 
   return (
@@ -59,10 +58,7 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2">
-        <BlockCustomerButton customer={customer} />
-        <DeleteCustomerButton customerId={customer.id} email={customer.email} />
-      </div>
+      <BlockCustomerButton customer={customer} />
     </div>
   );
 }

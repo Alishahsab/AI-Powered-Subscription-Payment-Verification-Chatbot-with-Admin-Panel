@@ -220,6 +220,7 @@ export function configFromRow(row: Row): StoreConfig {
     settings: {
       ...defaults.settings,
       ...saved,
+      statusMessages: { ...defaults.settings.statusMessages, ...saved.statusMessages },
       timers: { ...defaults.settings.timers, ...saved.timers },
       limits: { ...defaults.settings.limits, ...saved.limits },
       support: { ...defaults.settings.support, ...saved.support },

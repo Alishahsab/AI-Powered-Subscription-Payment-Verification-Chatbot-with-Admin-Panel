@@ -66,7 +66,7 @@ function updateStageAfterReply(state: AppState, customerId: string, containsCode
   conversation.unreadByAdmin = 0;
   const hasOpenTicket = state.tickets.some((ticket) => ticket.customerId === customerId && ticket.status === "open");
   const keepsStage = conversation.stage === "awaiting_payment" || conversation.stage === "rejected";
-  if (containsCode) conversation.stage = "menu";
+  if (containsCode) conversation.stage = "code_delivered";
   else if (hasOpenTicket) conversation.stage = "agent_replied";
   else if (!keepsStage) conversation.stage = "live";
 }
@@ -160,7 +160,7 @@ export function approveOrder(orderId: string, codeMessage: string, code: string,
 
     const conversation = state.conversations[current.customerId];
     if (conversation.activeOrderId === orderId) conversation.activeOrderId = undefined;
-    conversation.stage = "menu";
+    conversation.stage = "code_delivered";
     conversation.unreadByAdmin = 0;
     markNotificationsRead(state, current.customerId);
   });

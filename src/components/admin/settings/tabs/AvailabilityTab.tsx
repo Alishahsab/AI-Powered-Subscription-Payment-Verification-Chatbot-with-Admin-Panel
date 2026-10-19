@@ -9,15 +9,17 @@ import type { SettingsTabProps } from "../Settings";
 import { Field, SettingsSection } from "../SettingsSection";
 
 const statuses: { status: AdminStatus; label: string; description: string; dot: string }[] = [
-  { status: "active", label: "Active", description: "Codes sent in chat right away", dot: "bg-emerald-500" },
-  { status: "away", label: "Temporarily away", description: "Code sent later, also by email", dot: "bg-amber-400" },
+  { status: "active", label: "Active", description: "Orders and support work normally", dot: "bg-emerald-500" },
+  { status: "away", label: "Away (accepting)", description: "Orders and requests are taken and answered when you're back", dot: "bg-amber-400" },
+  { status: "away_closed", label: "Away (not accepting)", description: "No new orders or support requests", dot: "bg-orange-500" },
   { status: "offline", label: "Offline", description: "Buying paused, support open", dot: "bg-zinc-400" },
 ];
 
 const messageLabels: Record<AdminStatus, string> = {
-  active: "When active (after payment)",
-  away: "When away (after payment)",
-  offline: "When offline (on Buy)",
+  active: "Active: after the payment screenshot is sent",
+  away: "Away (accepting): after the payment screenshot is sent",
+  away_closed: "Away (not accepting): when the customer taps Buy",
+  offline: "Offline: when the customer taps Buy",
 };
 
 export default function AvailabilityTab({ draft, updateDraft }: SettingsTabProps) {
@@ -27,7 +29,7 @@ export default function AvailabilityTab({ draft, updateDraft }: SettingsTabProps
   return (
     <>
       <SettingsSection title="Your status" description="Switches instantly. Also available in the top bar.">
-        <div className="grid sm:grid-cols-3 gap-2">
+        <div className="grid sm:grid-cols-2 gap-2">
           {statuses.map((item) => (
             <button
               key={item.status}

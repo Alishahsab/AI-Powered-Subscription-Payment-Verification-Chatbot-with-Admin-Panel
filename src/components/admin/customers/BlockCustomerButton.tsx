@@ -21,7 +21,7 @@ export default function BlockCustomerButton({ customer, compact = false }: Block
 
   const buttonClass = compact
     ? "h-8 px-3 rounded-lg text-[12.5px] font-medium text-zinc-600 hover:bg-zinc-100 transition"
-    : "h-10 rounded-xl border border-zinc-200 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center justify-center gap-1.5 transition";
+    : "w-full h-10 rounded-xl border border-zinc-200 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center justify-center gap-1.5 transition";
 
   if (customer.blocked) {
     return (

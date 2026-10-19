@@ -1,4 +1,4 @@
-export type AdminStatus = "active" | "away" | "offline";
+export type AdminStatus = "active" | "away" | "away_closed" | "offline";
 
 export type Plan = {
   id: string;
@@ -61,7 +61,11 @@ export type BotMessageKey =
   | "describeIssue"
   | "issueReceived"
   | "issueResolvedByCustomer"
-  | "issueResolvedByAdmin";
+  | "issueResolvedByAdmin"
+  | "issueAutoResolved"
+  | "openRequestExists"
+  | "supportAwayListed"
+  | "supportAwayClosed";
 
 export type BotMessages = Record<BotMessageKey, string>;
 
@@ -78,7 +82,6 @@ export type BlockingSettings = {
 
 export type SupportSettings = {
   waitingMessage: string;
-  expiredMessage: string;
   stillFacingLabel: string;
   resolvedLabel: string;
   issueScreenshotRequired: boolean;
@@ -155,6 +158,7 @@ export type Stage =
   | "rejected"
   | "waiting_agent"
   | "agent_replied"
+  | "code_delivered"
   | "live";
 
 export type Conversation = {

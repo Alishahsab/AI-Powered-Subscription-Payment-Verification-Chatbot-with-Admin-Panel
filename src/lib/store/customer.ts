@@ -2,7 +2,7 @@ import type { User } from "@supabase/supabase-js";
 import { formatDuration, getEffectiveStatus } from "../availability";
 import { getSupabase } from "../supabase/client";
 import { uploadScreenshot } from "../supabase/screenshots";
-import type { AppState, Customer, Stage } from "../types";
+import type { AppState, Customer, Stage, Ticket } from "../types";
 import { validateName } from "../validation";
 import { addMessage, botText, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
 import { getState, updateState } from "./state";
@@ -180,8 +180,9 @@ function startBuying(state: AppState, customerId: string) {
     return;
   }
 
-  if (getEffectiveStatus(state.settings) === "offline") {
-    addMessage(state, customerId, "bot", fillPlaceholders(state.settings.statusMessages.offline, state));
+  const status = getEffectiveStatus(state.settings);
+  if (status === "offline" || status === "away_closed") {
+    addMessage(state, customerId, "bot", fillPlaceholders(state.settings.statusMessages[status], state));
     conversation.stage = "menu";
     return;
   }
@@ -200,6 +201,7 @@ export function chooseMenuOption(customerId: string, option: MenuOption) {
       startBuying(state, customerId);
       return;
     }
+    if (blockSupport(state, customerId)) return;
     addMessage(state, customerId, "bot", botText(state, "supportIntro"));
     state.conversations[customerId].stage = "support";
   });
@@ -414,9 +416,34 @@ export function chooseOtherIssue(customerId: string) {
   });
 
   replyAsBot(customerId, (state) => {
+    if (blockSupport(state, customerId)) return;
     addMessage(state, customerId, "bot", botText(state, "describeIssue"));
     state.conversations[customerId].stage = "support_other";
   });
+}
+
+function blockSupport(state: AppState, customerId: string) {
+  const conversation = state.conversations[customerId];
+  const openTicket = findOpenTicket(state, customerId);
+
+  if (openTicket) {
+    addMessage(state, customerId, "bot", botText(state, "openRequestExists", { ticket_id: openTicket.id }));
+    conversation.stage = issueStage(state, customerId);
+    return true;
+  }
+  if (getEffectiveStatus(state.settings) === "away_closed") {
+    addMessage(state, customerId, "bot", botText(state, "supportAwayClosed"));
+    conversation.stage = "menu";
+    return true;
+  }
+  return false;
+}
+
+function issueStage(state: AppState, customerId: string): Stage {
+  const messages = state.messages.filter((message) => message.customerId === customerId);
+  const lastAdmin = messages.filter((message) => message.sender === "admin").at(-1)?.createdAt ?? 0;
+  const lastCustomer = messages.filter((message) => message.sender === "customer").at(-1)?.createdAt ?? 0;
+  return lastAdmin > lastCustomer ? "agent_replied" : "waiting_agent";
 }
 
 export async function submitSupportIssue(customerId: string, description: string, screenshot?: string) {
@@ -433,7 +460,8 @@ export async function submitSupportIssue(customerId: string, description: string
   });
 
   replyAsBot(customerId, (state) => {
-    addMessage(state, customerId, "bot", botText(state, "issueReceived", { ticket_id: ticketId }));
+    const away = getEffectiveStatus(state.settings) === "away";
+    addMessage(state, customerId, "bot", botText(state, away ? "supportAwayListed" : "issueReceived", { ticket_id: ticketId }));
     state.conversations[customerId].stage = "waiting_agent";
   });
 }
@@ -441,9 +469,19 @@ export async function submitSupportIssue(customerId: string, description: string
 export function sendCustomerMessage(customerId: string, text: string) {
   updateState((state) => {
     addMessage(state, customerId, "customer", text);
+    state.conversations[customerId].unreadByAdmin += 1;
+  });
+}
+
+export async function sendIssueFollowUp(customerId: string, text: string, screenshot?: string) {
+  const screenshotPath = await uploadOptional(customerId, screenshot);
+
+  updateState((state) => {
+    addMessage(state, customerId, "customer", text);
+    if (screenshotPath) addMessage(state, customerId, "customer", "Screenshot", { kind: "image", image: screenshotPath });
     const conversation = state.conversations[customerId];
     conversation.unreadByAdmin += 1;
-    if (findOpenTicket(state, customerId)) conversation.stage = "waiting_agent";
+    conversation.stage = "waiting_agent";
   });
 }
 
@@ -451,13 +489,31 @@ export function findOpenTicket(state: AppState, customerId: string) {
   return state.tickets.find((ticket) => ticket.customerId === customerId && ticket.status === "open");
 }
 
-export function isIssueExpired(state: AppState, customerId: string, now = Date.now()) {
-  const ticket = findOpenTicket(state, customerId);
-  if (!ticket) return false;
+export function resolveIdleIssues(customerId?: string) {
+  const state = getState();
+  if (getEffectiveStatus(state.settings) === "away") return;
 
-  const lastCustomerMessage = state.messages.filter((message) => message.customerId === customerId && message.sender === "customer").at(-1)?.createdAt ?? 0;
-  const lastActivity = Math.max(ticket.createdAt, lastCustomerMessage);
-  return now - lastActivity > state.settings.timers.issueInactiveMinutes * MINUTE;
+  const now = Date.now();
+  const idleAfter = state.settings.timers.issueInactiveMinutes * MINUTE;
+  const isIdle = (ticket: Ticket) => {
+    const customer = state.customers.find((item) => item.id === ticket.customerId);
+    return now - Math.max(ticket.createdAt, customer?.lastSeenAt ?? 0) > idleAfter;
+  };
+  const idle = state.tickets.filter((ticket) => ticket.status === "open" && (!customerId || ticket.customerId === customerId) && isIdle(ticket));
+  if (idle.length === 0) return;
+
+  updateState((draft) => {
+    for (const { id } of idle) {
+      const ticket = draft.tickets.find((item) => item.id === id);
+      if (!ticket || ticket.status !== "open") continue;
+      ticket.status = "resolved";
+      addMessage(draft, ticket.customerId, "bot", botText(draft, "issueAutoResolved", { ticket_id: ticket.id }));
+
+      const conversation = draft.conversations[ticket.customerId];
+      const inIssue = conversation && ["waiting_agent", "agent_replied", "live"].includes(conversation.stage);
+      if (inIssue && !findOpenTicket(draft, ticket.customerId)) conversation.stage = "menu";
+    }
+  });
 }
 
 export function continueIssue(customerId: string) {

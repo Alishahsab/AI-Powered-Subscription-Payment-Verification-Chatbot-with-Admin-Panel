@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
+import { useIssueAutoResolve } from "@/hooks/useIssueAutoResolve";
 import { useOrderExpiry } from "@/hooks/useOrderExpiry";
 import { usePresence } from "@/hooks/usePresence";
 import { textColorFor } from "@/lib/format";
@@ -42,6 +43,7 @@ export default function CustomerApp() {
 
   useOrderExpiry();
   usePresence(customer?.id);
+  useIssueAutoResolve(Boolean(customer), customer?.id);
 
   const handleSignOut = async () => {
     await signOut();

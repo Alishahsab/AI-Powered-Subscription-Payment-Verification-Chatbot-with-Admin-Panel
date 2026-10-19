@@ -48,6 +48,7 @@ export function workingHoursLabel(settings: Settings) {
 
 export const statusDetails: Record<AdminStatus, { label: string; dot: string; hint: string }> = {
   active: { label: "Online", dot: "bg-emerald-500", hint: "Typically replies in a few minutes" },
-  away: { label: "Away", dot: "bg-amber-400", hint: "Back shortly" },
+  away: { label: "Away", dot: "bg-amber-400", hint: "Orders are checked when we're back" },
+  away_closed: { label: "Away", dot: "bg-amber-400", hint: "Not taking new orders right now" },
   offline: { label: "Offline", dot: "bg-zinc-400", hint: "Outside working hours" },
 };

@@ -8,6 +8,7 @@ import type { AdminStatus } from "@/lib/types";
 const options: { status: AdminStatus; label: string; dot: string }[] = [
   { status: "active", label: "Active", dot: "bg-emerald-500" },
   { status: "away", label: "Away", dot: "bg-amber-400" },
+  { status: "away_closed", label: "Away · Closed", dot: "bg-orange-500" },
   { status: "offline", label: "Offline", dot: "bg-zinc-400" },
 ];
 

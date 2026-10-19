@@ -271,6 +271,12 @@ drop policy if exists "customer creates own tickets" on public.tickets;
 create policy "customer creates own tickets" on public.tickets
 for insert to authenticated with check (customer_id = auth.uid());
 
+drop policy if exists "customer resolves own tickets" on public.tickets;
+create policy "customer resolves own tickets" on public.tickets
+for update to authenticated
+using (customer_id = auth.uid())
+with check (customer_id = auth.uid() and status = 'resolved');
+
 drop policy if exists "admin updates tickets" on public.tickets;
 create policy "admin updates tickets" on public.tickets
 for update to authenticated using (public.is_admin()) with check (public.is_admin());

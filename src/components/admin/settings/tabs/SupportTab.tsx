@@ -39,9 +39,6 @@ export default function SupportTab({ draft, updateDraft }: SettingsTabProps) {
               <input value={support.resolvedLabel} maxLength={30} onChange={(event) => updateDraft((next) => (next.settings.support.resolvedLabel = event.target.value))} className={inputClass} />
             </Field>
           </div>
-          <Field label="Message when a request is closed for inactivity">
-            <textarea rows={2} maxLength={limits.longTextMax} value={support.expiredMessage} onChange={(event) => updateDraft((next) => (next.settings.support.expiredMessage = event.target.value))} className={textareaClass} />
-          </Field>
           <div className="space-y-2.5 pt-1">
             <Toggle on={support.issueScreenshotRequired} onChange={(value) => updateDraft((next) => (next.settings.support.issueScreenshotRequired = value))} label="Screenshot required for Other issues" />
             <Toggle on={support.problemScreenshotRequired} onChange={(value) => updateDraft((next) => (next.settings.support.problemScreenshotRequired = value))} label="Screenshot required for payment problems" />
