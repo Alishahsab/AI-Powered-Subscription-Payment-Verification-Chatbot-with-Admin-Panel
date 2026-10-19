@@ -102,8 +102,10 @@ export function validateConfig(config: StoreConfig) {
   }
   if (!settings.welcome.trim()) errors.push("Welcome message cannot be empty.");
   if (!settings.howItWorks.trim()) errors.push("\"How does it work\" answer cannot be empty.");
-  if (!settings.codeMessage.trim()) errors.push("The code message cannot be empty.");
-  if (!settings.activationGuide.trim() || !settings.nextTimeGuide.trim()) errors.push("Activation and next time instructions cannot be empty.");
+  const guideSteps = [...settings.usageSteps, ...settings.nextTimeSteps];
+  if (settings.usageSteps.length === 0 || settings.nextTimeSteps.length === 0) errors.push("Add at least one step to How to use and Instructions for next time.");
+  if (guideSteps.some((step) => !step.text.trim())) errors.push("Steps cannot be empty. Delete the ones you don't need.");
+  if (guideSteps.some((step) => step.text.length > limits.longTextMax)) errors.push(`Each step can be at most ${limits.longTextMax} characters.`);
   if (!settings.rejectionMessage.trim()) errors.push("Rejection message cannot be empty.");
   if (!settings.waitForAdminMessage.trim()) errors.push("The waiting message cannot be empty.");
   if (settings.rejectReasons.length === 0) errors.push("Add at least one rejection reason.");
@@ -117,9 +119,6 @@ export function validateConfig(config: StoreConfig) {
   const longTexts = [
     settings.welcome,
     settings.howItWorks,
-    settings.codeMessage,
-    settings.activationGuide,
-    settings.nextTimeGuide,
     settings.rejectionMessage,
     settings.waitForAdminMessage,
     ...Object.values(settings.statusMessages),

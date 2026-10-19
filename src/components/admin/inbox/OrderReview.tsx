@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Check, Info, PackageX, X } from "lucide-react";
 import StoredImage from "@/components/StoredImage";
-import { formatDateTime, formatMoney, formatTime } from "@/lib/format";
+import { formatDateTime, formatMoney } from "@/lib/format";
 import { setCodeUnused } from "@/lib/store/admin";
+import { useAppState } from "@/lib/store/state";
 import type { Order } from "@/lib/types";
 import Badge from "../ui/Badge";
 import { orderStatusBadge } from "../ui/orderStatus";
@@ -19,7 +20,10 @@ type OrderReviewProps = {
 export default function OrderReview({ order, customerEmail }: OrderReviewProps) {
   const [zoomed, setZoomed] = useState(false);
   const [dialog, setDialog] = useState<"approve" | "reject" | null>(null);
+  const state = useAppState();
   const badge = orderStatusBadge[order.status];
+  const completedOrders = state.orders.filter((item) => item.customerId === order.customerId && item.status === "completed").length;
+  const issuesReported = state.tickets.filter((ticket) => ticket.customerId === order.customerId).length;
 
   return (
     <div className="rounded-2xl border border-zinc-200/80 overflow-hidden">
@@ -32,23 +36,32 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
       </div>
 
       <dl className="px-4 py-3 space-y-2 text-[13px]">
+        <Row label="Completed orders" value={String(completedOrders)} />
+        <Row label="App issues reported" value={String(issuesReported)} />
         <Row label="Plan" value={order.planName} />
+        <Row label="Sender name" value={order.senderName ?? "Not sent yet"} />
+        <div className="flex items-start justify-between gap-3">
+          <dt className="text-zinc-500 pt-1">Screenshot</dt>
+          <dd>
+            {order.screenshot ? (
+              <button onClick={() => setZoomed(true)} className="block size-16 rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50 hover:ring-2 hover:ring-[#0C2660]/30 transition" title="Open screenshot">
+                <StoredImage path={order.screenshot} alt="Payment screenshot" className="size-full object-cover object-top" />
+              </button>
+            ) : (
+              <span className="font-medium text-zinc-400">None</span>
+            )}
+          </dd>
+        </div>
+        <Row label="Proof sent" value={order.submittedAt ? formatDateTime(order.submittedAt) : "Not sent yet"} />
+      </dl>
+
+      <dl className="px-4 pb-3 pt-2.5 space-y-2 text-[12.5px] border-t border-zinc-100">
         <Row label="Amount" value={formatMoney(order.amount)} strong />
         <Row label="Method" value={order.methodName} />
         {order.bank && <Row label="Paid to" value={`${order.bank.bankName} · ${order.bank.accountNumber}`} />}
-        {order.senderName && <Row label="Sender name" value={order.senderName} />}
         {order.code && <Row label="Code" value={order.code} strong />}
-        <Row label="Created" value={formatDateTime(order.createdAt)} />
-        {order.submittedAt && <Row label="Proof sent" value={formatTime(order.submittedAt)} />}
+        <Row label="Order created" value={formatDateTime(order.createdAt)} />
       </dl>
-
-      {order.screenshot && (
-        <div className="px-4 pb-3">
-          <button onClick={() => setZoomed(true)} className="block w-full rounded-xl overflow-hidden border border-zinc-200 bg-zinc-50">
-            <StoredImage path={order.screenshot} alt="Payment screenshot" className="w-full h-64 object-contain" />
-          </button>
-        </div>
-      )}
 
       {order.status === "rejected" && (
         <div className="mx-4 mb-3 text-[12.5px] text-red-700 bg-red-50 rounded-xl px-3 py-2.5">

@@ -8,6 +8,7 @@ export const defaultBotMessages: BotMessages = {
   termsIntro: "Before you continue, please read our terms:",
   orderCreated: "Order {order_id} created for {plan}.",
   openOrderExists: "You already have an open order ({order_id}). Complete the payment below or cancel it to start a new one.",
+  orderPendingReview: "Your order {order_id} is still waiting for approval. You can place a new order once we approve or reject it.",
   orderCancelled: "Your order has been cancelled. Anything else we can help with?",
   ordersPausedAfterCancels: "Your order has been cancelled. Because several orders were cancelled in a row, new orders are paused for {time_left}. Customer Support is still open.",
   ordersPaused: "New orders are paused right now. You can create a new order in {time_left}.",
@@ -38,6 +39,7 @@ export const botMessageGroups: { title: string; fields: MessageField[] }[] = [
       { key: "termsIntro", label: "Before the terms" },
       { key: "orderCreated", label: "Order created", variables: "{order_id} {plan}" },
       { key: "openOrderExists", label: "Customer already has an open order", variables: "{order_id}" },
+      { key: "orderPendingReview", label: "Customer has an order waiting for approval", variables: "{order_id}" },
     ],
   },
   {

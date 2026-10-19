@@ -27,10 +27,10 @@ export default function ThreadMessage({ message, showMeta }: ThreadMessageProps)
   if (message.kind === "code") {
     return (
       <div className="flex justify-end">
-        <div className="flex flex-col items-end">
+        <div className="max-w-[72%] flex flex-col items-end">
           <div className="rounded-2xl rounded-br-md bg-[#0C2660] text-white px-4 py-2.5">
-            <div className="text-[11px] text-white/60">Code sent with copy button and instructions</div>
-            <div className="font-bold text-[15px] tracking-wider break-all">{message.text}</div>
+            <div className="text-[11px] text-white/60">Code sent{order?.code ? ` · ${order.code}` : ""}</div>
+            <div className="text-[14px] leading-relaxed whitespace-pre-wrap break-words">{message.text}</div>
           </div>
           <div className="text-[11px] text-zinc-400 mt-1 px-1 flex items-center gap-1">
             {formatTime(message.createdAt)}

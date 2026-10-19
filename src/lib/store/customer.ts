@@ -165,6 +165,13 @@ function startBuying(state: AppState, customerId: string) {
     return;
   }
 
+  const pendingOrder = state.orders.find((order) => order.customerId === customerId && order.status === "pending_review");
+  if (pendingOrder) {
+    addMessage(state, customerId, "bot", botText(state, "orderPendingReview", { order_id: pendingOrder.id }));
+    conversation.stage = "menu";
+    return;
+  }
+
   const pause = findOrderPause(customer, now);
   if (pause) {
     const minutesLeft = Math.ceil((pause.until - now) / MINUTE);

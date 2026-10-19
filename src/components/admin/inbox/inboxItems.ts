@@ -27,7 +27,7 @@ function describeMessage(message: Message) {
   if (message.kind === "proof") return "Payment proof submitted";
   if (message.kind === "steps") return "Payment steps shown";
   if (message.kind === "image") return "Screenshot";
-  if (message.kind === "code") return `Code sent: ${message.text}`;
+  if (message.kind === "code") return "Code sent";
   return message.text;
 }
 

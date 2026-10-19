@@ -1,8 +1,8 @@
 import { getSupabase } from "../supabase/client";
 import { sendEmailCopy } from "../supabase/email";
 import { deleteScreenshots, uploadScreenshot } from "../supabase/screenshots";
-import type { AdminStatus, AppState } from "../types";
-import { addMessage, botText, codeHeading, extractCodes, findCustomerEmail } from "./helpers";
+import type { AdminStatus, AppState, GuideStep } from "../types";
+import { addMessage, botText, extractCodes, findCustomerEmail } from "./helpers";
 import { applyRemoteChange, getState, updateState } from "./state";
 
 
@@ -57,7 +57,8 @@ export function sendAdminMessage(customerId: string, text: string, emailCopy: bo
 }
 
 function codeGuides(state: AppState) {
-  return `How to activate it:\n${state.settings.activationGuide}\n\nInstructions for next time:\n${state.settings.nextTimeGuide}`;
+  const list = (steps: GuideStep[]) => steps.map((step, index) => `${index + 1}. ${step.text}`).join("\n");
+  return `How to use:\n${list(state.settings.usageSteps)}\n\nInstructions for next time:\n${list(state.settings.nextTimeSteps)}`;
 }
 
 function updateStageAfterReply(state: AppState, customerId: string, containsCode: boolean) {
@@ -141,7 +142,7 @@ export function findCodeSentToSomeoneElse(customerId: string, text: string) {
   return null;
 }
 
-export function approveOrder(orderId: string, code: string, emailCopy: boolean) {
+export function approveOrder(orderId: string, codeMessage: string, code: string, emailCopy: boolean) {
   const order = getState().orders.find((item) => item.id === orderId);
   if (!order) return;
 
@@ -155,7 +156,7 @@ export function approveOrder(orderId: string, code: string, emailCopy: boolean) 
     current.codeUnused = false;
 
     const customer = state.customers.find((item) => item.id === current.customerId);
-    addMessage(state, current.customerId, "admin", code, { kind: "code", orderId, emailedTo: emailCopy ? customer?.email : undefined });
+    addMessage(state, current.customerId, "admin", codeMessage, { kind: "code", orderId, emailedTo: emailCopy ? customer?.email : undefined });
 
     const conversation = state.conversations[current.customerId];
     if (conversation.activeOrderId === orderId) conversation.activeOrderId = undefined;
@@ -164,10 +165,7 @@ export function approveOrder(orderId: string, code: string, emailCopy: boolean) 
     markNotificationsRead(state, current.customerId);
   });
 
-  if (emailCopy) {
-    const state = getState();
-    sendEmailCopy(order.customerId, `${codeHeading(state, order)}\n\n${code}`, codeGuides(state));
-  }
+  if (emailCopy) sendEmailCopy(order.customerId, codeMessage, codeGuides(getState()));
 }
 
 export function rejectOrder(orderId: string, reason: string) {

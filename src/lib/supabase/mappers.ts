@@ -1,5 +1,6 @@
-import { createDefaultConfig } from "../defaults";
-import type { AdminNotification, Conversation, Customer, InboxTabSetting, Message, Order, StoreConfig, Ticket } from "../types";
+import { createDefaultConfig, toGuideSteps } from "../defaults";
+import { stepLines } from "../store/helpers";
+import type { AdminNotification, Conversation, Customer, GuideStep, InboxTabSetting, Message, Order, StoreConfig, Ticket } from "../types";
 
 type Row = Record<string, unknown>;
 
@@ -199,6 +200,12 @@ export function notificationToRow(notification: AdminNotification): Row {
   };
 }
 
+function savedSteps(saved: Row, key: string, legacyKey: string, prefix: string): GuideStep[] | undefined {
+  if (Array.isArray(saved[key])) return saved[key] as GuideStep[];
+  if (typeof saved[legacyKey] === "string") return toGuideSteps(prefix, stepLines(saved[legacyKey] as string));
+  return undefined;
+}
+
 function mergeInboxTabs(defaults: InboxTabSetting[], saved?: InboxTabSetting[]) {
   if (!saved) return defaults;
   const known = saved.filter((tab) => defaults.some((item) => item.key === tab.key));
@@ -219,6 +226,8 @@ export function configFromRow(row: Row): StoreConfig {
       messages: { ...defaults.settings.messages, ...saved.messages },
       blocking: { ...defaults.settings.blocking, ...saved.blocking },
       inboxTabs: mergeInboxTabs(defaults.settings.inboxTabs, saved.inboxTabs),
+      usageSteps: savedSteps(row.settings as Row, "usageSteps", "activationGuide", "u") ?? defaults.settings.usageSteps,
+      nextTimeSteps: savedSteps(row.settings as Row, "nextTimeSteps", "nextTimeGuide", "n") ?? defaults.settings.nextTimeSteps,
     },
     plans: row.plans as StoreConfig["plans"],
     methods: row.methods as StoreConfig["methods"],

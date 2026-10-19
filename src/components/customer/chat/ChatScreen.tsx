@@ -6,6 +6,7 @@ import { findOrderMethod } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { Customer } from "@/lib/types";
 import ActionPanel from "./ActionPanel";
+import { CHAT_ROOT_ID } from "./chatRoot";
 import BlockedNotice from "./BlockedNotice";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
@@ -38,7 +39,7 @@ export default function ChatScreen({ customer, onSignOut }: ChatScreenProps) {
   if (!conversation) return null;
 
   return (
-    <section className="relative flex-1 min-w-0 flex flex-col">
+    <section id={CHAT_ROOT_ID} className="relative flex-1 min-w-0 flex flex-col">
       <ChatHeader typing={conversation.typing} onSignOut={onSignOut} />
       <MessageList messages={messages} typing={conversation.typing} stage={conversation.stage} />
 

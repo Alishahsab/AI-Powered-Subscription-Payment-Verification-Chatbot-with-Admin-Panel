@@ -16,6 +16,12 @@ export type PaymentMethod = {
   showIban?: boolean;
 };
 
+export type GuideStep = {
+  id: string;
+  text: string;
+  image?: string;
+};
+
 export type BankAccount = {
   bankName: string;
   accountTitle: string;
@@ -45,6 +51,7 @@ export type BotMessageKey =
   | "termsIntro"
   | "orderCreated"
   | "openOrderExists"
+  | "orderPendingReview"
   | "orderCancelled"
   | "ordersPausedAfterCancels"
   | "ordersPaused"
@@ -91,9 +98,8 @@ export type Settings = {
   statusMessages: Record<AdminStatus, string>;
   terms: string[];
   howItWorks: string;
-  codeMessage: string;
-  activationGuide: string;
-  nextTimeGuide: string;
+  usageSteps: GuideStep[];
+  nextTimeSteps: GuideStep[];
   rejectionMessage: string;
   waitForAdminMessage: string;
   rejectReasons: string[];

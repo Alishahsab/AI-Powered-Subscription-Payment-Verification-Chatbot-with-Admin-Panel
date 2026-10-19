@@ -1,5 +1,9 @@
 import { defaultBotMessages } from "./botMessages";
-import type { AppState, StoreConfig } from "./types";
+import type { AppState, GuideStep, StoreConfig } from "./types";
+
+export function toGuideSteps(prefix: string, lines: string[]): GuideStep[] {
+  return lines.map((text, index) => ({ id: `${prefix}${index + 1}`, text }));
+}
 
 const walletSteps = (app: string) =>
   [
@@ -42,18 +46,17 @@ export function createDefaultConfig(): StoreConfig {
       ],
       howItWorks:
         "1. Pick your plan and payment method.\n2. Create the order. Our account details appear for {timer} minutes.\n3. Send the exact amount and upload the payment screenshot with the sender account name.\n4. We verify your payment and send your premium code right here in the chat and to your email.",
-      codeMessage: "Your premium code for {plan} is ready. Copy it and paste it in the app under 'Activate with Premium Code'. Don't type it by hand to avoid mistakes.",
-      activationGuide: [
+      usageSteps: toGuideSteps("u", [
         "Open the app and go to Profile, then Subscription.",
         "Tap Activate with Premium Code.",
         "Paste the code and tap Activate.",
         "Stay logged in with the same email you used to activate the code.",
-      ].join("\n"),
-      nextTimeGuide: [
+      ]),
+      nextTimeSteps: toGuideSteps("n", [
         "Always create a new order in this chat before you pay.",
         "Pay only to the account shown in your active order. Our account can change.",
         "Never send payment to an account you got from anywhere else.",
-      ].join("\n"),
+      ]),
       rejectionMessage:
         "We couldn't verify the payment for order {order_id}. Reason: {reason}.\nIf you think this is a mistake, describe your side below and attach a screenshot.",
       waitForAdminMessage: "Thanks, we've received your reply. Please wait for our team to respond here.",
