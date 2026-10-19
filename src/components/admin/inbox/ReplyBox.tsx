@@ -1,10 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { ImagePlus, Mail, Send, Zap } from "lucide-react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { ImagePlus, Mail, Zap } from "lucide-react";
 import { compressImage } from "@/lib/browser";
 import { classNames, formatDateTime } from "@/lib/format";
 import { findCodeSentToSomeoneElse, sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
+
+const MAX_INPUT_HEIGHT = 200;
 
 const quickReplies = [
   "Payment received, verifying now. Please wait a few minutes.",
@@ -26,6 +28,14 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
   const [uploading, setUploading] = useState(false);
   const [imageError, setImageError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
+  const textArea = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    const element = textArea.current;
+    if (!element) return;
+    element.style.height = "auto";
+    element.style.height = `${Math.min(element.scrollHeight, MAX_INPUT_HEIGHT)}px`;
+  }, [text]);
 
   const sendImage = async (file?: File) => {
     if (!file || !file.type.startsWith("image/")) return;
@@ -52,8 +62,8 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
   };
 
   return (
-    <div className="bg-white border-t border-zinc-200/80 px-4 lg:px-10 py-3.5">
-      <div className="max-w-[760px] mx-auto">
+    <div className="bg-white border-t border-zinc-200/80 px-4 lg:px-6 py-3.5">
+      <div>
         {showQuickReplies && (
           <div className="mb-2.5 flex flex-wrap gap-1.5 fade-in">
             {quickReplies.map((reply) => (
@@ -93,6 +103,7 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
             <ImagePlus size={16} />
           </button>
           <textarea
+            ref={textArea}
             value={text}
             maxLength={1000}
             onChange={(event) => {
@@ -107,14 +118,14 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
             }}
             rows={1}
             placeholder={uploading ? "Sending image…" : "Type a message or code…"}
-            className="flex-1 resize-none min-h-9 max-h-32 bg-transparent px-1.5 py-2 text-[14px] outline-none placeholder:text-zinc-400"
+            className="flex-1 min-w-0 resize-none min-h-9 bg-transparent px-1.5 py-2 text-[14px] leading-5 outline-none placeholder:text-zinc-400 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           />
           <button
             onClick={() => send(text)}
             disabled={!text.trim()}
-            className="h-9 px-4 shrink-0 rounded-xl bg-[#0C2660] text-white text-[13.5px] font-semibold flex items-center gap-1.5 hover:bg-[#0a1f52] transition disabled:opacity-40"
+            className="h-9 px-5 shrink-0 rounded-xl bg-[#0C2660] text-white text-[13.5px] font-semibold hover:bg-[#0a1f52] transition disabled:opacity-40"
           >
-            <Send size={14} /> Send
+            Send
           </button>
         </div>
 
