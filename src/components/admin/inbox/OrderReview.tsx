@@ -78,11 +78,9 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
           <button onClick={() => setDialog("approve")} className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
             {order.status === "rejected" ? "Approve anyway" : "Approve payment"}
           </button>
-          {order.status === "pending_review" && (
-            <button onClick={() => setDialog("reject")} className="w-full h-10 rounded-xl text-red-600 hover:bg-red-50 text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
-              Reject payment
-            </button>
-          )}
+          <button onClick={() => setDialog("reject")} className="w-full h-10 rounded-xl text-red-600 hover:bg-red-50 text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
+            {order.status === "rejected" ? "Reject again" : "Reject payment"}
+          </button>
           <button onClick={() => setDialog("cancel")} className="w-full h-10 rounded-xl text-zinc-600 hover:bg-zinc-100 text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
             Cancel order
           </button>
