@@ -49,9 +49,9 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
 
         <main className="flex-1 min-h-0 overflow-hidden">
           {target.section === "dashboard" && <Dashboard onNavigate={navigate} />}
-          {target.section === "inbox" && <Inbox key={`inbox-${target.customerId}-${target.tab}`} view="inbox" initialTab={target.tab} initialCustomerId={target.customerId} />}
-          {target.section === "bot" && <Inbox key={`bot-${target.customerId}`} view="bot" initialCustomerId={target.customerId} />}
           {target.section === "customers" && <Customers onNavigate={navigate} />}
+          {target.section === "inbox" && <Inbox key={`inbox-${target.customerId}-${target.tab}`} view="inbox" initialTab={target.tab} initialCustomerId={target.customerId} />}
+          {target.section === "bot" && <Inbox key={`bot-${target.customerId}-${target.botFilter}`} view="bot" initialCustomerId={target.customerId} initialBotFilter={target.botFilter} />}
           {target.section === "settings" && <Settings />}
           {target.section === "search" && <SearchResults query={searchQuery} onNavigate={navigate} />}
         </main>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, Inbox, LayoutDashboard, Settings, Users } from "lucide-react";
+import { Bot, Inbox, LayoutDashboard, Settings } from "lucide-react";
 import { classNames } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import { countInboxTabs, countUnreadChats } from "../inbox/inboxItems";
@@ -20,7 +20,6 @@ export default function AdminSidebar({ current, onNavigate, onSignOut }: AdminSi
     { section: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={17} /> },
     { section: "inbox", label: "Inbox", icon: <Inbox size={17} />, count: inboxCounts.pending + inboxCounts.issues },
     { section: "bot", label: "Bot chat", icon: <Bot size={17} />, count: countUnreadChats(state) },
-    { section: "customers", label: "Customers", icon: <Users size={17} /> },
     { section: "settings", label: "Settings", icon: <Settings size={17} /> },
   ];
 
@@ -41,7 +40,7 @@ export default function AdminSidebar({ current, onNavigate, onSignOut }: AdminSi
             onClick={() => onNavigate({ section: item.section })}
             className={classNames(
               "w-full flex items-center gap-3 h-10 px-3 rounded-lg text-[13.5px] transition",
-              current === item.section ? "bg-white/[0.12] text-white font-medium shadow-[inset_3px_0_0_#C9A45C]" : "hover:bg-white/[0.06] hover:text-white"
+              current === item.section || (item.section === "dashboard" && current === "customers") ? "bg-white/[0.12] text-white font-medium shadow-[inset_3px_0_0_#C9A45C]" : "hover:bg-white/[0.06] hover:text-white"
             )}
           >
             {item.icon}

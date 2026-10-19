@@ -1,27 +1,24 @@
 "use client";
 
-import { AlertTriangle, ArrowRight, Clock, LifeBuoy, MessageCircle, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowRight, Clock, LifeBuoy, MessageCircle, ShoppingBag, Users } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
-import { classNames, formatMoney, timeAgo } from "@/lib/format";
+import { classNames, timeAgo } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import type { Navigate, NavTarget } from "../navigation";
 import { Card, CardHeader } from "../ui/Card";
-import RecentOrders from "./RecentOrders";
+import { countBotFilters } from "../inbox/inboxItems";
 
 export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
   const state = useAppState();
   const now = useNow(30_000);
 
-  const startOfToday = new Date(now).setHours(0, 0, 0, 0);
-  const completedToday = state.orders.filter((order) => order.status === "completed" && (order.reviewedAt ?? 0) >= startOfToday);
-  const revenueToday = completedToday.reduce((sum, order) => sum + order.amount, 0);
+  const activeOrders = countBotFilters(state, now).active_orders;
   const pendingOrders = state.orders.filter((order) => order.status === "pending_review");
   const openIssues = state.tickets.filter((ticket) => ticket.status === "open");
   const inactiveAfter = state.settings.timers.inactiveMinutes * 60_000;
   const activeChats = state.customers.filter((customer) => now - customer.lastSeenAt < inactiveAfter);
 
   const stats: { label: string; value: string; note: string; icon: React.ReactNode; highlight?: boolean; target?: NavTarget }[] = [
-    { label: "Revenue today", value: formatMoney(revenueToday), note: `${completedToday.length} orders completed`, icon: <Wallet size={17} /> },
     {
       label: "Pending orders",
       value: String(pendingOrders.length),
@@ -30,13 +27,20 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
       highlight: pendingOrders.length > 0,
       target: { section: "inbox", tab: "pending" },
     },
-    { label: "Open issues", value: String(openIssues.length), note: "Support and payment issues", icon: <LifeBuoy size={17} />, target: { section: "inbox", tab: "issues" } },
+    { label: "App issues", value: String(openIssues.length), note: "Open support requests", icon: <LifeBuoy size={17} />, target: { section: "inbox", tab: "issues" } },
     {
       label: "Active chats",
       value: String(activeChats.length),
       note: `Active in the last ${state.settings.timers.inactiveMinutes} min`,
       icon: <MessageCircle size={17} />,
-      target: { section: "bot" },
+      target: { section: "bot", botFilter: "active_chats" },
+    },
+    {
+      label: "Active orders",
+      value: String(activeOrders),
+      note: "Created, waiting for payment",
+      icon: <ShoppingBag size={17} />,
+      target: { section: "bot", botFilter: "active_orders" },
     },
   ];
 
@@ -85,7 +89,19 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
         </div>
 
         <div className="grid lg:grid-cols-[1fr_340px] gap-5 items-start">
-          <RecentOrders onNavigate={onNavigate} />
+          <button
+            onClick={() => onNavigate({ section: "customers" })}
+            className="text-left bg-white rounded-xl border border-zinc-200/80 px-5 py-4 flex items-center gap-4 hover:border-zinc-300 transition"
+          >
+            <span className="size-11 rounded-xl bg-[#0C2660]/[0.07] text-[#0C2660] grid place-items-center shrink-0">
+              <Users size={20} />
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="block text-[15px] font-semibold text-zinc-900">Customer list</span>
+              <span className="block text-[12.5px] text-zinc-500">{state.customers.length} customers · tap to see all</span>
+            </span>
+            <ArrowRight size={18} className="text-zinc-400" />
+          </button>
 
           <div className="space-y-5">
             <Card>

@@ -40,7 +40,10 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
       <div className="h-full max-w-[1200px] mx-auto p-4 lg:p-7 flex flex-col gap-5">
         <div className="shrink-0 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-[22px] font-semibold tracking-tight">Customers</h1>
+            <button onClick={() => onNavigate({ section: "dashboard" })} className="text-[13px] font-medium text-zinc-500 hover:text-zinc-900 mb-1">
+              ← Dashboard
+            </button>
+            <h1 className="text-[22px] font-semibold tracking-tight">Customer list</h1>
             <p className="text-[13.5px] text-zinc-500 mt-0.5">{state.customers.length} customers. Each one sees only their own chat.</p>
           </div>
           <div className="relative w-full sm:w-72">

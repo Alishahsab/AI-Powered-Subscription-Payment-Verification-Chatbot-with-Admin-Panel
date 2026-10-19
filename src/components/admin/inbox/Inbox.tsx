@@ -19,13 +19,14 @@ type InboxProps = {
   view: "inbox" | "bot";
   initialTab?: InboxTab;
   initialCustomerId?: string;
+  initialBotFilter?: BotFilter;
 };
 
-export default function Inbox({ view, initialTab, initialCustomerId }: InboxProps) {
+export default function Inbox({ view, initialTab, initialCustomerId, initialBotFilter }: InboxProps) {
   const state = useAppState();
   const now = useNow(15_000);
   const [tab, setTab] = useState<InboxTab>(initialTab ?? state.settings.inboxTabs[0]?.key ?? "pending");
-  const [botFilter, setBotFilter] = useState<BotFilter>("active_chats");
+  const [botFilter, setBotFilter] = useState<BotFilter>(initialBotFilter ?? "active_chats");
   const [chosenCustomerId, setChosenCustomerId] = useState(initialCustomerId);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [isWideScreen] = useState(() => window.innerWidth >= 1024);
