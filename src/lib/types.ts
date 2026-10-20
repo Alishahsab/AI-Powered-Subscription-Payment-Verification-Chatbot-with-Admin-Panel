@@ -99,6 +99,7 @@ export type Settings = {
   hours: { start: string; end: string; enforce: boolean };
   statusMessages: Record<AdminStatus, string>;
   supportMessages: Record<AdminStatus, string>;
+  supportClosedMessages: Record<Exclude<AdminStatus, "active">, string>;
   terms: string[];
   howItWorks: string;
   usageSteps: GuideStep[];

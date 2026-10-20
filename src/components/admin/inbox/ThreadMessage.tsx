@@ -155,7 +155,7 @@ function ImageMessage({ image, title, detail, alignRight = false, action }: Imag
       {action}
       <div className="w-[220px] rounded-2xl rounded-bl-md overflow-hidden bg-white shadow-[0_1px_2px_rgba(16,24,40,0.06)]">
         {image ? (
-          <StoredImage path={image} alt={title} className="w-full h-36 object-cover object-top" />
+          <StoredImage zoomable path={image} alt={title} className="w-full h-36 object-cover object-top" />
         ) : (
           <div className="h-16 grid place-items-center text-[12px] text-zinc-400">
             <span className="flex items-center gap-1">

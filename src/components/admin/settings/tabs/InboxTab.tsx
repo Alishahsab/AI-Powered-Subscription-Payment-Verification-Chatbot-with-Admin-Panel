@@ -48,7 +48,7 @@ export default function InboxTab({ draft, updateDraft }: SettingsTabProps) {
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Quick replies" description="Ready-made replies you can send from the chat with the Quick replies button. Use the arrows to change the order.">
+      <SettingsSection title="Quick replies" description="Ready-made replies you can send from the chat with the quick replies button next to the image button. Use the arrows to change the order.">
         <QuickRepliesEditor replies={draft.settings.quickReplies} onChange={(replies) => updateDraft((next) => (next.settings.quickReplies = replies))} />
       </SettingsSection>
 

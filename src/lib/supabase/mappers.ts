@@ -222,6 +222,7 @@ export function configFromRow(row: Row): StoreConfig {
       ...saved,
       statusMessages: { ...defaults.settings.statusMessages, ...saved.statusMessages },
       supportMessages: { ...defaults.settings.supportMessages, ...saved.supportMessages },
+      supportClosedMessages: { ...defaults.settings.supportClosedMessages, ...saved.supportClosedMessages },
       timers: { ...defaults.settings.timers, ...saved.timers },
       limits: { ...defaults.settings.limits, ...saved.limits },
       support: { ...defaults.settings.support, ...saved.support },

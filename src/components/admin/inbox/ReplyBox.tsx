@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { ImagePlus } from "lucide-react";
+import { ImagePlus, MessageSquareText } from "lucide-react";
 import { compressImage } from "@/lib/browser";
 import { classNames, formatDateTime } from "@/lib/format";
 import { findCodeSentToSomeoneElse, sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
@@ -78,23 +78,7 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
           </div>
         )}
 
-        <div className="flex items-end gap-1.5 rounded-2xl border border-zinc-200 bg-[#f8f9fb] p-1.5 focus-within:border-[#0C2660]/40 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0C2660]/[0.06] transition">
-          <button
-            onClick={() => setShowQuickReplies(!showQuickReplies)}
-            className={classNames("h-9 px-3 shrink-0 rounded-xl text-[12.5px] font-semibold whitespace-nowrap transition", showQuickReplies ? "bg-[#0C2660] text-white" : "text-zinc-600 hover:bg-zinc-200/60")}
-          >
-            Quick replies
-          </button>
-          <input ref={fileInput} type="file" accept="image/*" hidden onChange={(event) => sendImage(event.target.files?.[0])} />
-          <button
-            onClick={() => fileInput.current?.click()}
-            disabled={uploading}
-            className="size-9 shrink-0 grid place-items-center rounded-xl text-zinc-500 hover:bg-zinc-200/60 transition disabled:opacity-40"
-            aria-label="Send an image"
-            title="Send an image"
-          >
-            <ImagePlus size={16} />
-          </button>
+        <div className="rounded-2xl border border-zinc-200 bg-[#f8f9fb] focus-within:border-[#0C2660]/40 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0C2660]/[0.06] transition">
           <textarea
             ref={textArea}
             value={text}
@@ -111,15 +95,35 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
             }}
             rows={1}
             placeholder={uploading ? "Sending image…" : "Type a message or code…"}
-            className="flex-1 min-w-0 resize-none min-h-9 bg-transparent px-1.5 py-2 text-[14px] leading-5 outline-none placeholder:text-zinc-400 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="block w-full resize-none min-h-11 bg-transparent px-3.5 pt-3 pb-1 text-[14px] leading-5 outline-none placeholder:text-zinc-400 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           />
-          <button
-            onClick={() => send(text)}
-            disabled={!text.trim()}
-            className="h-9 px-5 shrink-0 rounded-xl bg-[#0C2660] text-white text-[13.5px] font-semibold hover:bg-[#0a1f52] transition disabled:opacity-40"
-          >
-            Send
-          </button>
+          <div className="flex items-center gap-1 px-1.5 pb-1.5">
+            <button
+              onClick={() => setShowQuickReplies(!showQuickReplies)}
+              className={classNames("size-9 grid place-items-center rounded-xl transition", showQuickReplies ? "bg-[#0C2660] text-white" : "text-zinc-500 hover:bg-zinc-200/60")}
+              aria-label="Quick replies"
+              title="Quick replies"
+            >
+              <MessageSquareText size={17} />
+            </button>
+            <input ref={fileInput} type="file" accept="image/*" hidden onChange={(event) => sendImage(event.target.files?.[0])} />
+            <button
+              onClick={() => fileInput.current?.click()}
+              disabled={uploading}
+              className="size-9 grid place-items-center rounded-xl text-zinc-500 hover:bg-zinc-200/60 transition disabled:opacity-40"
+              aria-label="Send an image"
+              title="Send an image"
+            >
+              <ImagePlus size={17} />
+            </button>
+            <button
+              onClick={() => send(text)}
+              disabled={!text.trim()}
+              className="ml-auto h-9 px-5 rounded-xl bg-[#0C2660] text-white text-[13.5px] font-semibold hover:bg-[#0a1f52] transition disabled:opacity-40"
+            >
+              Send
+            </button>
+          </div>
         </div>
 
         {imageError && <p className="mt-2 text-[12px] text-red-600">{imageError}</p>}

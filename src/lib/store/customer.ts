@@ -420,6 +420,14 @@ export function chooseOtherIssue(customerId: string) {
 
   replyAsBot(customerId, (state) => {
     if (blockSupport(state, customerId)) return;
+
+    const status = getEffectiveStatus(state.settings);
+    if (status !== "active") {
+      addMessage(state, customerId, "bot", fillPlaceholders(state.settings.supportClosedMessages[status], state));
+      state.conversations[customerId].stage = "support";
+      return;
+    }
+
     addMessage(state, customerId, "bot", botText(state, "describeIssue"));
     state.conversations[customerId].stage = "support_other";
   });
@@ -458,8 +466,7 @@ export async function submitSupportIssue(customerId: string, description: string
   });
 
   replyAsBot(customerId, (state) => {
-    const message = state.settings.supportMessages[getEffectiveStatus(state.settings)];
-    addMessage(state, customerId, "bot", fillPlaceholders(message, state).replaceAll("{ticket_id}", ticketId));
+    addMessage(state, customerId, "bot", fillPlaceholders(state.settings.supportMessages.active, state).replaceAll("{ticket_id}", ticketId));
     state.conversations[customerId].stage = "waiting_agent";
   });
 }

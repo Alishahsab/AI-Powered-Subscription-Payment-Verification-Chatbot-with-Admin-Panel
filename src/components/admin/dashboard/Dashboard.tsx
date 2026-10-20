@@ -2,11 +2,11 @@
 
 import { AlertTriangle, ArrowRight, Clock, LifeBuoy, MessageCircle, ShoppingBag, Users } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
-import { classNames, timeAgo } from "@/lib/format";
+import { classNames } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import type { Navigate, NavTarget } from "../navigation";
-import { Card, CardHeader } from "../ui/Card";
 import { countBotFilters } from "../inbox/inboxItems";
+import CompletedOrdersChart from "./CompletedOrdersChart";
 
 export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
   const state = useAppState();
@@ -88,48 +88,21 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_340px] gap-5 items-start">
-          <button
-            onClick={() => onNavigate({ section: "customers" })}
-            className="text-left bg-white rounded-xl border border-zinc-200/80 px-5 py-4 flex items-center gap-4 hover:border-zinc-300 transition"
-          >
-            <span className="size-11 rounded-xl bg-[#0C2660]/[0.07] text-[#0C2660] grid place-items-center shrink-0">
-              <Users size={20} />
-            </span>
-            <span className="flex-1 min-w-0">
-              <span className="block text-[15px] font-semibold text-zinc-900">Customer list</span>
-              <span className="block text-[12.5px] text-zinc-500">{state.customers.length} customers · tap to see all</span>
-            </span>
-            <ArrowRight size={18} className="text-zinc-400" />
-          </button>
+        <CompletedOrdersChart now={now} />
 
-          <div className="space-y-5">
-            <Card>
-              <CardHeader title="Payment account" description="Shown to customers for every order" action={<button onClick={() => onNavigate({ section: "settings" })} className="text-[12.5px] text-zinc-500 hover:text-zinc-900">Change</button>} />
-              <div className="px-5 pb-4 text-[13px] space-y-1">
-                <div className="font-semibold text-zinc-900">{state.settings.bank.bankName}</div>
-                <div className="text-zinc-600 tabular-nums">{state.settings.bank.accountNumber}</div>
-                <div className="text-zinc-500">{state.settings.bank.accountTitle}</div>
-              </div>
-            </Card>
-
-            <Card>
-              <CardHeader title="Activity" />
-              <div className="px-5 pb-4 space-y-3">
-                {state.notifications.slice(0, 5).map((notification) => (
-                  <div key={notification.id} className="flex gap-3 text-[12.5px]">
-                    <span className={classNames("mt-1.5 size-1.5 rounded-full shrink-0", notification.kind === "payment" ? "bg-amber-500" : "bg-red-500")} />
-                    <div className="min-w-0">
-                      <div className="font-medium text-zinc-800">{notification.title}</div>
-                      <div className="text-zinc-500 truncate">{notification.body}</div>
-                    </div>
-                    <span className="ml-auto text-zinc-400 shrink-0">{timeAgo(notification.createdAt, now)}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-        </div>
+        <button
+          onClick={() => onNavigate({ section: "customers" })}
+          className="text-left bg-white rounded-xl border border-zinc-200/80 px-5 py-4 flex items-center gap-4 hover:border-zinc-300 transition"
+        >
+          <span className="size-11 rounded-xl bg-[#0C2660]/[0.07] text-[#0C2660] grid place-items-center shrink-0">
+            <Users size={20} />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block text-[15px] font-semibold text-zinc-900">Customer list</span>
+            <span className="block text-[12.5px] text-zinc-500">{state.customers.length} customers · tap to see all</span>
+          </span>
+          <ArrowRight size={18} className="text-zinc-400" />
+        </button>
       </div>
     </div>
   );

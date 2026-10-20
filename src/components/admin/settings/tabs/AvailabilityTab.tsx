@@ -10,16 +10,15 @@ import { Field, SettingsSection } from "../SettingsSection";
 
 const statuses: { status: AdminStatus; label: string; description: string; dot: string }[] = [
   { status: "active", label: "Active", description: "Orders and support work normally", dot: "bg-emerald-500" },
-  { status: "away", label: "Away (accepting)", description: "Orders and requests are taken and answered when you're back", dot: "bg-amber-400" },
-  { status: "away_closed", label: "Away (not accepting)", description: "No new orders, support open", dot: "bg-orange-500" },
-  { status: "offline", label: "Offline", description: "Buying paused, support open", dot: "bg-zinc-400" },
+  { status: "away", label: "Away (accepting)", description: "Orders are taken and checked when you're back. No new support requests", dot: "bg-amber-400" },
+  { status: "away_closed", label: "Away (not accepting)", description: "No new orders or support requests", dot: "bg-orange-500" },
+  { status: "offline", label: "Offline", description: "No new orders or support requests", dot: "bg-zinc-400" },
 ];
 
-const supportLabels: Record<AdminStatus, string> = {
-  active: "Active: after a support request is sent",
-  away: "Away (accepting): after a support request is sent",
-  away_closed: "Away (not accepting): after a support request is sent",
-  offline: "Offline: after a support request is sent",
+const closedSupportLabels: Record<Exclude<AdminStatus, "active">, string> = {
+  away: "Away (accepting): when the customer taps Other issues",
+  away_closed: "Away (not accepting): when the customer taps Other issues",
+  offline: "Offline: when the customer taps Other issues",
 };
 
 const messageLabels: Record<AdminStatus, string> = {
@@ -31,7 +30,7 @@ const messageLabels: Record<AdminStatus, string> = {
 
 export default function AvailabilityTab({ draft, updateDraft }: SettingsTabProps) {
   const state = useAppState();
-  const { hours, statusMessages, supportMessages } = draft.settings;
+  const { hours, statusMessages, supportMessages, supportClosedMessages } = draft.settings;
 
   return (
     <>
@@ -85,11 +84,14 @@ export default function AvailabilityTab({ draft, updateDraft }: SettingsTabProps
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Support messages" description="What the customer sees after sending a support request. Customer Support stays open in every status. Use {ticket_id} for the request number.">
+      <SettingsSection title="Support messages" description="New support requests (Other issues) are only taken while you are Active. Common questions stay open in every status.">
         <div className="space-y-4">
-          {(Object.keys(supportLabels) as AdminStatus[]).map((status) => (
-            <Field key={status} label={supportLabels[status]}>
-              <textarea rows={2} maxLength={limits.longTextMax} value={supportMessages[status]} onChange={(event) => updateDraft((draft) => (draft.settings.supportMessages[status] = event.target.value))} className={textareaClass} />
+          <Field label="Active: after a support request is sent" hint="Use {ticket_id} for the request number">
+            <textarea rows={2} maxLength={limits.longTextMax} value={supportMessages.active} onChange={(event) => updateDraft((draft) => (draft.settings.supportMessages.active = event.target.value))} className={textareaClass} />
+          </Field>
+          {(Object.keys(closedSupportLabels) as (keyof typeof closedSupportLabels)[]).map((status) => (
+            <Field key={status} label={closedSupportLabels[status]}>
+              <textarea rows={2} maxLength={limits.longTextMax} value={supportClosedMessages[status]} onChange={(event) => updateDraft((draft) => (draft.settings.supportClosedMessages[status] = event.target.value))} className={textareaClass} />
             </Field>
           ))}
         </div>
