@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { Lock } from "lucide-react";
 import BrandIcon from "@/components/BrandIcon";
+import { useAppState } from "@/lib/store/state";
 import type { Message, Stage } from "@/lib/types";
 import MessageItem from "./MessageItem";
 
@@ -12,7 +13,10 @@ type MessageListProps = {
   stage: Stage;
 };
 
+const MINUTE = 60_000;
+
 export default function MessageList({ messages, typing, stage }: MessageListProps) {
+  const inactiveAfter = useAppState().settings.timers.inactiveMinutes * MINUTE;
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -46,16 +50,31 @@ export default function MessageList({ messages, typing, stage }: MessageListProp
   return (
     <div ref={scrollRef} className="flex-1 overflow-y-auto">
       <div ref={contentRef} className="max-w-[860px] mx-auto px-4 md:px-8 py-5 md:py-7 space-y-1.5">
-        <div className="mx-auto mb-5 w-fit text-center text-[12px] text-[var(--muted)] bg-[var(--surface)] border border-[var(--line)] rounded-full px-3.5 py-1.5 flex items-center gap-1.5">
-          <Lock size={12} /> Private chat, visible only to you and Premium Store
-        </div>
+        <PrivacyNote />
 
-        {messages.map((message, index) => (
-          <MessageItem key={message.id} message={message} startsGroup={messages[index - 1]?.sender !== message.sender} />
-        ))}
+        {messages.map((message, index) => {
+          const previous = messages[index - 1];
+          // A new visit (after the customer was away) shows the privacy note again.
+          const newVisit = previous && message.createdAt - previous.createdAt > inactiveAfter;
+          return (
+            <div key={message.id}>
+              {newVisit && <PrivacyNote />}
+              <MessageItem message={message} startsGroup={newVisit || previous?.sender !== message.sender} />
+            </div>
+          );
+        })}
 
         {typing && <TypingIndicator />}
       </div>
+    </div>
+  );
+}
+
+function PrivacyNote() {
+  return (
+    <div className="mx-auto my-4 w-fit max-w-full text-center text-[12px] leading-snug text-[var(--muted)] bg-[var(--surface)] border border-[var(--line)] rounded-2xl px-3.5 py-1.5">
+      <Lock size={12} className="inline -mt-0.5 mr-1" />
+      Private chat, visible only to you and Premium Store. Messages are deleted after 15 days.
     </div>
   );
 }

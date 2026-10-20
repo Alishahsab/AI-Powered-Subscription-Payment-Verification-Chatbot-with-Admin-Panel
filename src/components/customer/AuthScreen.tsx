@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { History, Lock, ShieldCheck, Zap } from "lucide-react";
+import { Lock, ShieldCheck, Timer, Zap } from "lucide-react";
 import { classNames } from "@/lib/format";
 import SecretInput from "@/components/SecretInput";
 import { checkEmailStatus, requestPinReset, signIn, signUp } from "@/lib/store/customer";
@@ -12,7 +12,7 @@ type Step = "email" | "login" | "create" | "forgot";
 const features = [
   { icon: <Zap size={17} />, title: "Code in minutes", text: "Pay, upload proof, get your code right in the chat." },
   { icon: <ShieldCheck size={17} />, title: "Private & secure", text: "Only you can see your chat and payment details." },
-  { icon: <History size={17} />, title: "Every code saved", text: "Your codes stay safe in your chat." },
+  { icon: <Timer size={17} />, title: "Auto-deleted in 15 days", text: "Your chat is cleared after 15 days for your privacy." },
 ];
 
 const titles: Record<Step, { heading: string; text: string; button: string }> = {
