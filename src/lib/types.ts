@@ -106,6 +106,7 @@ export type Settings = {
   rejectionMessage: string;
   waitForAdminMessage: string;
   rejectReasons: string[];
+  quickReplies: string[];
   support: SupportSettings;
   messages: BotMessages;
   blocking: BlockingSettings;

@@ -5,15 +5,9 @@ import { ImagePlus, Zap } from "lucide-react";
 import { compressImage } from "@/lib/browser";
 import { classNames, formatDateTime } from "@/lib/format";
 import { findCodeSentToSomeoneElse, sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
+import { useAppState } from "@/lib/store/state";
 
 const MAX_INPUT_HEIGHT = 200;
-
-const quickReplies = [
-  "Payment received, verifying now. Please wait a few minutes.",
-  "Please share a clearer screenshot of the payment.",
-  "Our account details have changed. Please create a new order.",
-  "Please make sure you're logged in with the same Gmail in the app.",
-];
 
 type ReplyBoxProps = {
   customerId: string;
@@ -21,6 +15,7 @@ type ReplyBoxProps = {
 };
 
 export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
+  const quickReplies = useAppState().settings.quickReplies.filter((reply) => reply.trim());
   const [text, setText] = useState("");
   const [emailCopy, setEmailCopy] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(false);

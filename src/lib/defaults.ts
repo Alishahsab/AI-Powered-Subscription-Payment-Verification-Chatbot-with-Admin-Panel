@@ -68,6 +68,12 @@ export function createDefaultConfig(): StoreConfig {
         "We couldn't verify the payment for order {order_id}. Reason: {reason}.\nIf you think this is a mistake, describe your side below and attach a screenshot.",
       waitForAdminMessage: "Thanks, we've received your reply. Please wait for our team to respond here.",
       rejectReasons: ["Screenshot is unclear", "Amount does not match", "Payment not received", "Sender name does not match"],
+      quickReplies: [
+        "Payment received, verifying now. Please wait a few minutes.",
+        "Please share a clearer screenshot of the payment.",
+        "Our account details have changed. Please create a new order.",
+        "Please make sure you're logged in with the same Gmail in the app.",
+      ],
       support: {
         waitingMessage: "Your request is with our team. An agent will join and reply here soon.",
         stillFacingLabel: "Still facing the issue",

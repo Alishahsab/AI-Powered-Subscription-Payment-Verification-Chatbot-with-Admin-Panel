@@ -112,7 +112,7 @@ function DeleteMessageButton({ message }: { message: Message }) {
     <>
       <button
         onClick={() => setConfirming(true)}
-        className="size-8 shrink-0 grid place-items-center rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 focus:opacity-100 transition"
+        className="size-8 shrink-0 grid place-items-center rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 transition"
         aria-label="Delete message"
         title="Delete message"
       >

@@ -5,6 +5,7 @@ import { GripVertical } from "lucide-react";
 import { classNames } from "@/lib/format";
 import { cleanEmail, limits } from "@/lib/validation";
 import { inputClass, textareaClass } from "../../ui/styles";
+import QuickRepliesEditor from "../QuickRepliesEditor";
 import type { SettingsTabProps } from "../Settings";
 import { Field, SettingsSection } from "../SettingsSection";
 
@@ -45,6 +46,10 @@ export default function InboxTab({ draft, updateDraft }: SettingsTabProps) {
             </div>
           ))}
         </div>
+      </SettingsSection>
+
+      <SettingsSection title="Quick replies" description="Ready-made replies you can send from the chat with the ⚡ button. Use the arrows to change the order.">
+        <QuickRepliesEditor replies={draft.settings.quickReplies} onChange={(replies) => updateDraft((next) => (next.settings.quickReplies = replies))} />
       </SettingsSection>
 
       <SettingsSection title="Blocking" description="What a blocked customer sees, and the reasons you can pick when you block someone.">
