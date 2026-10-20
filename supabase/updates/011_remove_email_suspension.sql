@@ -1,4 +1,3 @@
--- Customers are no longer deleted from the admin panel, so emails are never suspended.
 drop trigger if exists block_suspended_signup on auth.users;
 drop function if exists public.block_suspended_signup();
 drop function if exists public.delete_customer(uuid);
