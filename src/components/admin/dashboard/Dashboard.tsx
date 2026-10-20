@@ -14,7 +14,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
 
   const activeOrders = countBotFilters(state, now).active_orders;
   const pendingOrders = state.orders.filter((order) => order.status === "pending_review");
-  const openIssues = state.tickets.filter((ticket) => ticket.status === "open");
+  const openIssues = state.tickets.filter((ticket) => ticket.status === "open" && ticket.kind === "support");
   const inactiveAfter = state.settings.timers.inactiveMinutes * 60_000;
   const activeChats = state.customers.filter((customer) => now - customer.lastSeenAt < inactiveAfter);
 
@@ -88,8 +88,6 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
           ))}
         </div>
 
-        <CompletedOrdersChart now={now} />
-
         <button
           onClick={() => onNavigate({ section: "customers" })}
           className="text-left bg-white rounded-xl border border-zinc-200/80 px-5 py-4 flex items-center gap-4 hover:border-zinc-300 transition"
@@ -103,6 +101,8 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
           </span>
           <ArrowRight size={18} className="text-zinc-400" />
         </button>
+
+        <CompletedOrdersChart now={now} />
       </div>
     </div>
   );

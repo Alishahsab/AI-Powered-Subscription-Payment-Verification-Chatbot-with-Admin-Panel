@@ -68,7 +68,7 @@ export type BotMessageKey =
 
 export type BotMessages = Record<BotMessageKey, string>;
 
-export type InboxTab = "pending" | "issues" | "completed" | "unused" | "blocked";
+export type InboxTab = "pending" | "issues" | "payment_issues" | "completed" | "unused" | "blocked";
 
 export type InboxTabSetting = { key: InboxTab; label: string };
 

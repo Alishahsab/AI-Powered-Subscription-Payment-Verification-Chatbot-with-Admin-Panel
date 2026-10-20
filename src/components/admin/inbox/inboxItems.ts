@@ -1,6 +1,6 @@
 import { formatMoney, timeAgo } from "@/lib/format";
 import { canStillPay, customerNumberLabel, findCustomerEmail } from "@/lib/store/helpers";
-import type { AppState, InboxTab, Message, Order, OrderStatus } from "@/lib/types";
+import type { AppState, InboxTab, Message, Order, OrderStatus, Ticket } from "@/lib/types";
 
 export type BotFilter = "active_orders" | "cancelled" | "active_chats" | "inactive_chats";
 
@@ -125,9 +125,11 @@ function cancelledItems(state: AppState): InboxItem[] {
     .map((order) => orderItem(state, order, order.createdAt, `${order.planName} · ${formatMoney(order.amount)}`, { label: cancelledLabels[order.status] ?? "Cancelled", tone: "gray" }));
 }
 
-function issueItems(state: AppState): InboxItem[] {
+const isOpenTicket = (kind: Ticket["kind"]) => (ticket: Ticket) => ticket.status === "open" && ticket.kind === kind;
+
+function issueItems(state: AppState, kind: Ticket["kind"]): InboxItem[] {
   return state.tickets
-    .filter((ticket) => ticket.status === "open")
+    .filter(isOpenTicket(kind))
     .sort((a, b) => b.createdAt - a.createdAt)
     .map((ticket) => ({
       key: ticket.id,
@@ -167,7 +169,8 @@ export type InboxList = InboxTab | "bot";
 
 export function buildInboxItems(state: AppState, list: InboxList, botFilter: BotFilter, now: number) {
   if (list === "pending") return pendingItems(state, now);
-  if (list === "issues") return issueItems(state);
+  if (list === "issues") return issueItems(state, "support");
+  if (list === "payment_issues") return issueItems(state, "payment");
   if (list === "completed") return completedItems(state, false);
   if (list === "unused") return completedItems(state, true);
   if (list === "blocked") return blockedItems(state);
@@ -177,7 +180,8 @@ export function buildInboxItems(state: AppState, list: InboxList, botFilter: Bot
 export function countInboxTabs(state: AppState): Record<InboxTab, number> {
   return {
     pending: state.orders.filter(isPending).length,
-    issues: state.tickets.filter((ticket) => ticket.status === "open").length,
+    issues: state.tickets.filter(isOpenTicket("support")).length,
+    payment_issues: state.tickets.filter(isOpenTicket("payment")).length,
     completed: 0,
     unused: state.orders.filter((order) => order.status === "completed" && order.codeUnused).length,
     blocked: state.customers.filter((customer) => customer.blocked).length,

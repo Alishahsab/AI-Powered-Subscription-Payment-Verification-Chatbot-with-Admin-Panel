@@ -11,7 +11,7 @@ import type { InboxTab, Navigate } from "../navigation";
 
 export const tabForNotification: Record<NotificationKind, InboxTab> = {
   payment: "pending",
-  payment_issue: "issues",
+  payment_issue: "payment_issues",
   support: "issues",
 };
 

@@ -44,7 +44,7 @@ export default function PaymentCard({ message }: { message: Message }) {
       {payable ? (
         <div className="px-4 pb-4 space-y-3">
           <div className="rounded-xl bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))] border border-[color-mix(in_srgb,var(--accent)_14%,transparent)] px-3.5 divide-y divide-[color-mix(in_srgb,var(--accent)_12%,transparent)]">
-            <Detail label="Account number" value={bank.accountNumber} copyable />
+            <Detail label="Account number" value={bank.accountNumber.replace(/\s/g, "")} copyable />
             {bank.iban && <Detail label="IBAN" value={bank.iban} copyable />}
             <Detail label="Bank" value={bank.bankName} />
             <Detail label="Account title" value={bank.accountTitle} />

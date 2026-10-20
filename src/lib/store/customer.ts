@@ -500,9 +500,12 @@ export function resolveIdleIssues(customerId?: string) {
 
   const now = Date.now();
   const idleAfter = state.settings.timers.issueInactiveMinutes * MINUTE;
+  // Only a request the admin has answered can close itself; an unanswered one waits for the admin.
   const isIdle = (ticket: Ticket) => {
+    const adminReplyAt = state.messages.filter((message) => message.customerId === ticket.customerId && message.sender === "admin" && message.createdAt > ticket.createdAt).at(-1)?.createdAt;
+    if (!adminReplyAt) return false;
     const customer = state.customers.find((item) => item.id === ticket.customerId);
-    return now - Math.max(ticket.createdAt, customer?.lastSeenAt ?? 0) > idleAfter;
+    return now - Math.max(adminReplyAt, customer?.lastSeenAt ?? 0) > idleAfter;
   };
   const idle = state.tickets.filter((ticket) => ticket.status === "open" && (!customerId || ticket.customerId === customerId) && isIdle(ticket));
   if (idle.length === 0) return;

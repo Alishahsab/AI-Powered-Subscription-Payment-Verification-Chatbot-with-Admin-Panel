@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Ban, CheckCircle2, Hourglass, Inbox as InboxIcon, PackageX } from "lucide-react";
+import { AlertTriangle, Ban, CheckCircle2, CreditCard, Hourglass, Inbox as InboxIcon, PackageX } from "lucide-react";
 import { classNames, timeAgo } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import type { InboxTab } from "@/lib/types";
@@ -14,12 +14,13 @@ const iconProps = { size: 15, strokeWidth: 2 };
 const tabIcons: Record<InboxTab, React.ReactNode> = {
   pending: <Hourglass {...iconProps} />,
   issues: <AlertTriangle {...iconProps} />,
+  payment_issues: <CreditCard {...iconProps} />,
   completed: <CheckCircle2 {...iconProps} />,
   unused: <PackageX {...iconProps} />,
   blocked: <Ban {...iconProps} />,
 };
 
-const urgentTabs: InboxTab[] = ["pending", "issues"];
+const urgentTabs: InboxTab[] = ["pending", "issues", "payment_issues"];
 
 const botFilters: { key: BotFilter; label: string; dot: string }[] = [
   { key: "active_orders", label: "Active orders", dot: "bg-sky-500" },
@@ -30,7 +31,8 @@ const botFilters: { key: BotFilter; label: string; dot: string }[] = [
 
 const emptyText: Record<InboxTab | BotFilter, string> = {
   pending: "New payment submissions and rejected payments show up here.",
-  issues: "No problems reported. All caught up.",
+  issues: "No app issues reported. All caught up.",
+  payment_issues: "Payment problems reported from the payment card show up here.",
   completed: "Approved orders will show up here.",
   unused: "Move a completed order here when its code has not been used yet.",
   blocked: "Customers you block show up here.",

@@ -1,8 +1,6 @@
 "use client";
 
 import { Clock } from "lucide-react";
-import { useNow } from "@/hooks/useNow";
-import { formatCountdown } from "@/lib/format";
 import { confirmIssueResolved, continueIssue, findOpenTicket } from "@/lib/store/customer";
 import { useAppState } from "@/lib/store/state";
 import BackToMenuButton from "./BackToMenuButton";
@@ -15,7 +13,6 @@ type IssueStatusProps = {
 
 export default function IssueStatus({ customerId, agentReplied }: IssueStatusProps) {
   const state = useAppState();
-  const now = useNow(1000);
   const { support } = state.settings;
   const ticket = findOpenTicket(state, customerId);
 
@@ -34,11 +31,9 @@ export default function IssueStatus({ customerId, agentReplied }: IssueStatusPro
     );
   }
 
-  const waitingSince = state.messages.filter((message) => message.customerId === customerId && message.sender === "customer").at(-1)?.createdAt ?? ticket.createdAt;
-
   return (
     <div className="max-w-[560px] mx-auto">
-      <Notice icon={<Clock size={17} />} trailing={<span className="font-bold tabular-nums">{formatCountdown(now - waitingSince)}</span>}>
+      <Notice icon={<Clock size={17} />}>
         {support.waitingMessage}
       </Notice>
       <BackToMenuButton customerId={customerId} />

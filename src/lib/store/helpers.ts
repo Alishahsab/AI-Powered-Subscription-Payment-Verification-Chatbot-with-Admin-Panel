@@ -14,7 +14,7 @@ export function fillPlaceholders(text: string, state: AppState, bank: BankAccoun
     .replaceAll("{hours}", workingHoursLabel(state.settings))
     .replaceAll("{back_in}", formatDuration(minutesUntilOpen(state.settings)))
     .replaceAll("{bank}", bank.bankName)
-    .replaceAll("{account}", bank.accountNumber)
+    .replaceAll("{account}", bank.accountNumber.replace(/\s/g, ""))
     .replaceAll("{iban}", bank.iban ?? "")
     .replaceAll("{title}", bank.accountTitle);
 }
