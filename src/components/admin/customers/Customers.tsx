@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Users } from "lucide-react";
+import { ArrowLeft, Search, Users } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
 import { formatMoney, timeAgo } from "@/lib/format";
 import { customerNumberLabel, findLatestCode } from "@/lib/store/helpers";
@@ -13,7 +13,6 @@ import Button from "../ui/Button";
 import { Card } from "../ui/Card";
 import EmptyState from "../ui/EmptyState";
 import BlockCustomerButton from "./BlockCustomerButton";
-import DeleteCustomerButton from "./DeleteCustomerButton";
 import { inputClass } from "../ui/styles";
 
 export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
@@ -40,8 +39,11 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
       <div className="h-full max-w-[1200px] mx-auto p-4 lg:p-7 flex flex-col gap-5">
         <div className="shrink-0 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <button onClick={() => onNavigate({ section: "dashboard" })} className="text-[13px] font-medium text-zinc-500 hover:text-zinc-900 mb-1">
-              ← Dashboard
+            <button
+              onClick={() => onNavigate({ section: "dashboard" })}
+              className="mb-3 inline-flex items-center gap-1.5 h-9 pl-2.5 pr-3.5 rounded-xl bg-[#0C2660] text-white text-[13px] font-semibold shadow-[0_6px_16px_-8px_rgba(12,38,96,0.6)] hover:bg-[#0a1f52] active:scale-[0.98] transition"
+            >
+              <ArrowLeft size={16} /> Dashboard
             </button>
             <h1 className="text-[22px] font-semibold tracking-tight">Customer list</h1>
             <p className="text-[13.5px] text-zinc-500 mt-0.5">{state.customers.length} customers. Each one sees only their own chat.</p>
@@ -105,7 +107,6 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
                             Chat
                           </Button>
                           <BlockCustomerButton customer={customer} compact />
-                          <DeleteCustomerButton customerId={customer.id} email={customer.email} compact />
                         </div>
                       </td>
                     </tr>

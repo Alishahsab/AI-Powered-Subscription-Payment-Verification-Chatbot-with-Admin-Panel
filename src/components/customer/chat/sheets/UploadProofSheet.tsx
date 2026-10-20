@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useNow } from "@/hooks/useNow";
-import { createSampleReceipt } from "@/lib/demo/receipt";
 import { formatCountdown } from "@/lib/format";
 import { submitPaymentProof } from "@/lib/store/customer";
 import { getActiveOrder } from "@/lib/store/helpers";
@@ -30,12 +29,6 @@ export default function UploadProofSheet({ customerId, onClose }: UploadProofShe
   const updateSenderName = (value: string) => {
     setSenderName(cleanLetters(value));
     setError("");
-  };
-
-  const fillSampleReceipt = () => {
-    const name = senderName.trim() || "Ali Raza";
-    setSenderName(name);
-    setScreenshot(createSampleReceipt(order.amount, name, order.methodName, now));
   };
 
   const submit = async () => {
@@ -71,9 +64,6 @@ export default function UploadProofSheet({ customerId, onClose }: UploadProofShe
 
       <button onClick={submit} disabled={busy} className="mt-5 w-full h-12 rounded-xl bg-[var(--accent)] text-[var(--accent-ink)] font-semibold text-[15px] disabled:opacity-60">
         {busy ? "Uploading…" : "Submit for verification"}
-      </button>
-      <button onClick={fillSampleReceipt} className="mt-3 w-full text-[12px] text-[var(--muted)] hover:text-[var(--text)]">
-        Use a sample receipt (demo)
       </button>
     </Sheet>
   );

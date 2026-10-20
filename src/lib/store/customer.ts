@@ -15,9 +15,7 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-export type EmailStatus = "new" | "registered" | "suspended";
-
-export const suspendedEmailMessage = "This email can no longer be used. Please contact us on our official channel.";
+export type EmailStatus = "new" | "registered";
 
 export async function checkEmailStatus(email: string): Promise<EmailStatus | null> {
   const { data, error } = await getSupabase("customer").rpc("email_status", { check_email: normalizeEmail(email) });
@@ -36,7 +34,6 @@ export async function signUp(email: string, pin: string): Promise<AuthResult> {
   if (error) {
     const message = error.message.toLowerCase();
     if (message.includes("already")) return { error: "This email already has an account. Go back and enter your PIN." };
-    if (message.includes("database error")) return { error: suspendedEmailMessage };
     return { error: error.message };
   }
   if (!data.session) return { error: "Please confirm your email address, then log in." };

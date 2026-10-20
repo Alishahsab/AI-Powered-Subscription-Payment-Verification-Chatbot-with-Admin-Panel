@@ -3,8 +3,7 @@ import { sendEmailCopy } from "../supabase/email";
 import { deleteScreenshots, uploadScreenshot } from "../supabase/screenshots";
 import type { AdminStatus, AppState, GuideStep, Message } from "../types";
 import { ADMIN_CANCEL_REASON, addMessage, botText, extractCodes, findCustomerEmail, liftPaymentPause } from "./helpers";
-import { applyRemoteChange, getState, updateState } from "./state";
-
+import { getState, updateState } from "./state";
 
 export async function isSignedInAdmin() {
   const client = getSupabase("admin");
@@ -98,26 +97,6 @@ export function setCodeUnused(orderId: string, unused: boolean) {
     const order = state.orders.find((item) => item.id === orderId);
     if (order) order.codeUnused = unused;
   });
-}
-
-
-export async function deleteCustomer(customerId: string): Promise<string | null> {
-  const client = getSupabase("admin");
-  const { data: files } = await client.storage.from("screenshots").list(customerId, { limit: 1000 });
-  if (files && files.length > 0) await deleteScreenshots(files.map((file) => `${customerId}/${file.name}`));
-
-  const { error } = await client.rpc("delete_customer", { target: customerId });
-  if (error) return error.message;
-
-  applyRemoteChange((state) => {
-    state.customers = state.customers.filter((customer) => customer.id !== customerId);
-    delete state.conversations[customerId];
-    state.messages = state.messages.filter((message) => message.customerId !== customerId);
-    state.orders = state.orders.filter((order) => order.customerId !== customerId);
-    state.tickets = state.tickets.filter((ticket) => ticket.customerId !== customerId);
-    state.notifications = state.notifications.filter((notification) => notification.customerId !== customerId);
-  });
-  return null;
 }
 
 export function findCodeSentToSomeoneElse(customerId: string, text: string) {

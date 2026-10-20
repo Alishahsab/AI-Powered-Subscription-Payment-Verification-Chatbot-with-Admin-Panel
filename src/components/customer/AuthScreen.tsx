@@ -4,7 +4,7 @@ import { useState } from "react";
 import { History, Lock, ShieldCheck, Zap } from "lucide-react";
 import { classNames } from "@/lib/format";
 import SecretInput from "@/components/SecretInput";
-import { checkEmailStatus, requestPinReset, signIn, signUp, suspendedEmailMessage } from "@/lib/store/customer";
+import { checkEmailStatus, requestPinReset, signIn, signUp } from "@/lib/store/customer";
 import { cleanDigits, cleanEmail, limits, validateEmail, validatePin } from "@/lib/validation";
 
 type Step = "email" | "login" | "create" | "forgot";
@@ -68,7 +68,6 @@ export default function AuthScreen() {
       const status = await checkEmailStatus(email);
       setBusy(false);
       if (status === null) setError("We couldn't check this email right now. Please try again.");
-      else if (status === "suspended") setError(suspendedEmailMessage);
       else goTo(status === "registered" ? "login" : "create");
       return;
     }
