@@ -3,6 +3,7 @@ import Toggle from "../../ui/Toggle";
 import { inputClass, textareaClass } from "../../ui/styles";
 import type { SettingsTabProps } from "../Settings";
 import { Field, SettingsSection } from "../SettingsSection";
+import { BotMessageSections, SupportMessagesSection } from "../MessageSections";
 import FaqsSection from "./FaqsSection";
 
 export default function SupportTab({ draft, updateDraft }: SettingsTabProps) {
@@ -20,10 +21,6 @@ export default function SupportTab({ draft, updateDraft }: SettingsTabProps) {
             <textarea rows={2} maxLength={limits.longTextMax} value={settings.welcome} onChange={(event) => updateDraft((next) => (next.settings.welcome = event.target.value))} className={textareaClass} />
           </Field>
         </div>
-      </SettingsSection>
-
-      <SettingsSection title="Terms & conditions" description="Shown before every order. One rule per line. Use {timer} for the payment timer.">
-        <textarea rows={4} maxLength={limits.longTextMax} value={settings.terms.join("\n")} onChange={(event) => updateDraft((next) => (next.settings.terms = event.target.value.split("\n")))} className={textareaClass} />
       </SettingsSection>
 
       <SettingsSection title="Support requests" description="How a support or payment problem request behaves after the customer sends it.">
@@ -45,6 +42,9 @@ export default function SupportTab({ draft, updateDraft }: SettingsTabProps) {
           </div>
         </div>
       </SettingsSection>
+
+      <SupportMessagesSection draft={draft} updateDraft={updateDraft} />
+      <BotMessageSections tab="support" draft={draft} updateDraft={updateDraft} />
 
       <FaqsSection draft={draft} updateDraft={updateDraft} />
     </>

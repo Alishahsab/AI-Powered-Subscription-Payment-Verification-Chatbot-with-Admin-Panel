@@ -1,10 +1,9 @@
 import { classNames } from "@/lib/format";
 import { setAdminStatus } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
-import { limits } from "@/lib/validation";
 import type { AdminStatus } from "@/lib/types";
 import Toggle from "../../ui/Toggle";
-import { inputClass, textareaClass } from "../../ui/styles";
+import { inputClass } from "../../ui/styles";
 import type { SettingsTabProps } from "../Settings";
 import { Field, SettingsSection } from "../SettingsSection";
 
@@ -15,22 +14,9 @@ const statuses: { status: AdminStatus; label: string; description: string; dot: 
   { status: "offline", label: "Offline", description: "No new orders or support requests", dot: "bg-zinc-400" },
 ];
 
-const closedSupportLabels: Record<Exclude<AdminStatus, "active">, string> = {
-  away: "Away (accepting): when the customer taps Other issues",
-  away_closed: "Away (not accepting): when the customer taps Other issues",
-  offline: "Offline: when the customer taps Other issues",
-};
-
-const messageLabels: Record<AdminStatus, string> = {
-  active: "Active: after the payment screenshot is sent",
-  away: "Away (accepting): after the payment screenshot is sent",
-  away_closed: "Away (not accepting): when the customer taps Buy",
-  offline: "Offline: when the customer taps Buy",
-};
-
 export default function AvailabilityTab({ draft, updateDraft }: SettingsTabProps) {
   const state = useAppState();
-  const { hours, statusMessages, supportMessages, supportClosedMessages } = draft.settings;
+  const { hours } = draft.settings;
 
   return (
     <>
@@ -74,28 +60,6 @@ export default function AvailabilityTab({ draft, updateDraft }: SettingsTabProps
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Order messages" description="What the customer sees when buying. Use {hours}, {back_in} (time until you open) and {timer} as placeholders.">
-        <div className="space-y-4">
-          {(Object.keys(messageLabels) as AdminStatus[]).map((status) => (
-            <Field key={status} label={messageLabels[status]}>
-              <textarea rows={2} maxLength={limits.longTextMax} value={statusMessages[status]} onChange={(event) => updateDraft((draft) => (draft.settings.statusMessages[status] = event.target.value))} className={textareaClass} />
-            </Field>
-          ))}
-        </div>
-      </SettingsSection>
-
-      <SettingsSection title="Support messages" description="New support requests (Other issues) are only taken while you are Active. Common questions stay open in every status.">
-        <div className="space-y-4">
-          <Field label="Active: after a support request is sent" hint="Use {ticket_id} for the request number">
-            <textarea rows={2} maxLength={limits.longTextMax} value={supportMessages.active} onChange={(event) => updateDraft((draft) => (draft.settings.supportMessages.active = event.target.value))} className={textareaClass} />
-          </Field>
-          {(Object.keys(closedSupportLabels) as (keyof typeof closedSupportLabels)[]).map((status) => (
-            <Field key={status} label={closedSupportLabels[status]}>
-              <textarea rows={2} maxLength={limits.longTextMax} value={supportClosedMessages[status]} onChange={(event) => updateDraft((draft) => (draft.settings.supportClosedMessages[status] = event.target.value))} className={textareaClass} />
-            </Field>
-          ))}
-        </div>
-      </SettingsSection>
     </>
   );
 }

@@ -46,7 +46,7 @@ export function createDefaultConfig(): StoreConfig {
         offline: "We are offline right now and can't take new requests. Please try again later.",
       },
       supportMessages: {
-        active: "Thanks, your request {ticket_id} has been sent to our team. An agent will join you shortly and reply right here.",
+        active: "Thanks, your request {ticket_id} has been sent to our team. Our admin will reply right here shortly.",
         away: "Your request {ticket_id} is listed. Our admin is away right now and will reply here as soon as they are back.",
         away_closed: "Your request {ticket_id} is listed. Our admin is away right now and will reply here as soon as they are back.",
         offline: "Your request {ticket_id} is listed. We are offline right now and will reply here as soon as we are back.",
@@ -80,7 +80,7 @@ export function createDefaultConfig(): StoreConfig {
         "Please make sure you're logged in with the same Gmail in the app.",
       ],
       support: {
-        waitingMessage: "Your request is with our team. An agent will join and reply here soon.",
+        waitingMessage: "Your request is submitted. Our admin will reply here soon.",
         stillFacingLabel: "Still facing the issue",
         resolvedLabel: "Resolved",
         issueScreenshotRequired: true,

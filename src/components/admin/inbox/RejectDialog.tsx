@@ -55,7 +55,7 @@ export default function RejectDialog({ order, onClose }: RejectDialogProps) {
           Cancel
         </button>
         <button onClick={reject} disabled={!reason} className="h-11 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[14px] font-semibold flex items-center justify-center gap-1.5 transition disabled:opacity-40">
-          Reject payment
+          Reject
         </button>
       </div>
     </Modal>

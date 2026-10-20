@@ -75,15 +75,15 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
       )}
 
       {isPending && (
-        <div className="px-4 pb-4 space-y-2">
-          <button onClick={() => setDialog("approve")} className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
-            {order.status === "rejected" ? "Approve anyway" : "Approve payment"}
+        <div className="px-4 pb-4 grid grid-cols-3 gap-2">
+          <button onClick={() => setDialog("approve")} className="h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13.5px] font-semibold transition">
+            Approve
           </button>
-          <button onClick={() => setDialog("reject")} className="w-full h-10 rounded-xl text-red-600 hover:bg-red-50 text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
-            {order.status === "rejected" ? "Reject again" : "Reject payment"}
+          <button onClick={() => setDialog("reject")} className="h-10 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-[13.5px] font-semibold transition">
+            Reject
           </button>
-          <button onClick={() => setDialog("cancel")} className="w-full h-10 rounded-xl text-zinc-600 hover:bg-zinc-100 text-[13.5px] font-semibold flex items-center justify-center gap-1.5 transition">
-            Cancel order
+          <button onClick={() => setDialog("cancel")} className="h-10 rounded-xl border border-zinc-200 text-zinc-600 hover:bg-zinc-100 text-[13.5px] font-semibold transition">
+            Cancel
           </button>
         </div>
       )}

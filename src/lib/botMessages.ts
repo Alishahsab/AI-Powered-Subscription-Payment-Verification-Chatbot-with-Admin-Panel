@@ -25,9 +25,12 @@ export const defaultBotMessages: BotMessages = {
 
 type MessageField = { key: BotMessageKey; label: string; variables?: string };
 
-export const botMessageGroups: { title: string; fields: MessageField[] }[] = [
+export type MessageTab = "messages" | "payments" | "support";
+
+export const botMessageGroups: { title: string; tab: MessageTab; fields: MessageField[] }[] = [
   {
     title: "Menu",
+    tab: "messages",
     fields: [
       { key: "welcomeBack", label: "When a customer comes back" },
       { key: "menuPrompt", label: "Main menu" },
@@ -35,6 +38,7 @@ export const botMessageGroups: { title: string; fields: MessageField[] }[] = [
   },
   {
     title: "Buying",
+    tab: "payments",
     fields: [
       { key: "choosePlan", label: "Choose a plan" },
       { key: "chooseMethod", label: "Choose a payment method" },
@@ -46,6 +50,7 @@ export const botMessageGroups: { title: string; fields: MessageField[] }[] = [
   },
   {
     title: "Cancelled and paused orders",
+    tab: "payments",
     fields: [
       { key: "orderCancelled", label: "Order cancelled" },
       { key: "orderCancelledByAdmin", label: "Order cancelled by admin", variables: "{order_id}" },
@@ -57,6 +62,7 @@ export const botMessageGroups: { title: string; fields: MessageField[] }[] = [
   },
   {
     title: "Support",
+    tab: "support",
     fields: [
       { key: "supportIntro", label: "Customer opens Support" },
       { key: "describeIssue", label: "Customer chooses Other issues" },

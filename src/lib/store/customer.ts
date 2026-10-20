@@ -4,7 +4,7 @@ import { getSupabase } from "../supabase/client";
 import { uploadScreenshot } from "../supabase/screenshots";
 import type { AppState, Customer, Stage, Ticket } from "../types";
 import { validateName } from "../validation";
-import { ADMIN_CANCEL_REASON, addMessage, botText, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
+import { ADMIN_CANCEL_REASON, addMessage, botText, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, liftPaymentPause, notifyAdmin, replyAsBot } from "./helpers";
 import { getState, updateState } from "./state";
 
 const MINUTE = 60_000;
@@ -201,7 +201,6 @@ export function chooseMenuOption(customerId: string, option: MenuOption) {
       startBuying(state, customerId);
       return;
     }
-    if (blockSupport(state, customerId)) return;
     addMessage(state, customerId, "bot", botText(state, "supportIntro"));
     state.conversations[customerId].stage = "support";
   });
@@ -515,6 +514,7 @@ export function resolveIdleIssues(customerId?: string) {
       const ticket = draft.tickets.find((item) => item.id === id);
       if (!ticket || ticket.status !== "open") continue;
       ticket.status = "resolved";
+      if (ticket.kind === "payment") liftPaymentPause(draft, ticket.customerId);
       addMessage(draft, ticket.customerId, "bot", botText(draft, "issueAutoResolved", { ticket_id: ticket.id }));
 
       const conversation = draft.conversations[ticket.customerId];
@@ -535,7 +535,10 @@ export function confirmIssueResolved(customerId: string) {
   updateState((state) => {
     addMessage(state, customerId, "customer", state.settings.support.resolvedLabel);
     for (const ticket of state.tickets) {
-      if (ticket.customerId === customerId && ticket.status === "open") ticket.status = "resolved";
+      if (ticket.customerId === customerId && ticket.status === "open") {
+        ticket.status = "resolved";
+        if (ticket.kind === "payment") liftPaymentPause(state, customerId);
+      }
     }
   });
 

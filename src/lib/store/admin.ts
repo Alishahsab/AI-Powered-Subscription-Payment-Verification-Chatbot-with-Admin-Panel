@@ -2,7 +2,7 @@ import { getSupabase } from "../supabase/client";
 import { sendEmailCopy } from "../supabase/email";
 import { deleteScreenshots, uploadScreenshot } from "../supabase/screenshots";
 import type { AdminStatus, AppState, GuideStep, Message } from "../types";
-import { ADMIN_CANCEL_REASON, addMessage, botText, extractCodes, findCustomerEmail } from "./helpers";
+import { ADMIN_CANCEL_REASON, addMessage, botText, extractCodes, findCustomerEmail, liftPaymentPause } from "./helpers";
 import { applyRemoteChange, getState, updateState } from "./state";
 
 
@@ -231,6 +231,7 @@ export function setTicketResolved(ticketId: string, resolved: boolean) {
     const ticket = state.tickets.find((item) => item.id === ticketId);
     if (!ticket) return;
     ticket.status = resolved ? "resolved" : "open";
+    if (resolved && ticket.kind === "payment") liftPaymentPause(state, ticket.customerId);
 
     const conversation = state.conversations[ticket.customerId];
     const stillOpen = state.tickets.some((item) => item.customerId === ticket.customerId && item.status === "open");

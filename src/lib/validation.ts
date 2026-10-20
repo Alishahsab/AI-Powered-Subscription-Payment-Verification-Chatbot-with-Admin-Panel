@@ -48,6 +48,10 @@ export function extractCode(text: string) {
   const trimmed = text.trim();
   if (!/\s/.test(trimmed)) return cleanCode(trimmed);
 
+  // The portal puts the code on a line of its own, so a line that is only the code wins.
+  const ownLine = trimmed.split("\n").map((line) => line.trim()).find((line) => /^[A-Za-z0-9]{6}$/.test(line));
+  if (ownLine) return ownLine;
+
   const codeLike = (part: string) => (part.match(/\b[A-Za-z0-9]{6}\b/g) ?? []).filter((word) => /\d/.test(word) || /^[A-Z]+$/.test(word));
   const colon = trimmed.indexOf(":");
   const code = (colon >= 0 ? codeLike(trimmed.slice(colon + 1))[0] : undefined) ?? codeLike(trimmed)[0];

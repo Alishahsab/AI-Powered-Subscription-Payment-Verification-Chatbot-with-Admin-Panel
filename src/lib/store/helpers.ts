@@ -99,6 +99,11 @@ export function customerNumberLabel(customer?: Customer) {
   return customer?.number ? `#${customer.number}` : "New";
 }
 
+export function liftPaymentPause(state: AppState, customerId: string) {
+  const customer = state.customers.find((item) => item.id === customerId);
+  if (customer) customer.paymentBlockedUntil = undefined;
+}
+
 export function findLatestCode(state: AppState, customerId: string) {
   return state.orders.filter((order) => order.customerId === customerId && order.code).sort((a, b) => (b.reviewedAt ?? 0) - (a.reviewedAt ?? 0))[0];
 }
