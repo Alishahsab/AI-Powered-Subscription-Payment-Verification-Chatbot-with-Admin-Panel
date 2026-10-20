@@ -12,15 +12,20 @@ let channel: RealtimeChannel | null = null;
 let pushQueue: Promise<void> = Promise.resolve();
 
 const LOCAL_WRITE_WINDOW_MS = 5000;
-const recentLocalWrites = new Map<string, number>();
+const recentLocalWrites = new Map<string, { at: number; columns: Set<string> }>();
 
-function rememberLocalWrite(tableName: string, id: string) {
-  recentLocalWrites.set(`${tableName}:${id}`, Date.now());
+function rememberLocalWrite(tableName: string, row: Row, key: string) {
+  const id = `${tableName}:${row[key]}`;
+  const previous = recentLocalWrites.get(id);
+  const columns = previous && Date.now() - previous.at < LOCAL_WRITE_WINDOW_MS ? previous.columns : new Set<string>();
+  for (const column of Object.keys(row)) if (column !== key) columns.add(column);
+  recentLocalWrites.set(id, { at: Date.now(), columns });
 }
 
-function isOwnRecentWrite(tableName: string, id: string) {
-  const writtenAt = recentLocalWrites.get(`${tableName}:${id}`);
-  return writtenAt !== undefined && Date.now() - writtenAt < LOCAL_WRITE_WINDOW_MS;
+// Columns this client wrote in the last few seconds. Their echoes can be older than local state, so they are ignored.
+function recentlyWrittenColumns(tableName: string, id: string) {
+  const write = recentLocalWrites.get(`${tableName}:${id}`);
+  return write && Date.now() - write.at < LOCAL_WRITE_WINDOW_MS ? write.columns : null;
 }
 
 export function getActiveClient() {
@@ -48,10 +53,19 @@ function findTableChanges(table: TableSync, before: AppState, after: AppState): 
   const newRows = table.readRows(after);
 
   const inserted = newRows.filter((row) => !oldRows.has(String(row[table.key])));
-  const updated = newRows.filter((row) => {
+
+  // Send only the columns that changed, so a write never overwrites what someone else changed in another column.
+  const updated: Row[] = [];
+  for (const row of newRows) {
     const previous = oldRows.get(String(row[table.key]));
-    return previous !== undefined && previous !== JSON.stringify(row);
-  });
+    if (previous === undefined || previous === JSON.stringify(row)) continue;
+    const before = JSON.parse(previous) as Row;
+    const changed: Row = { [table.key]: row[table.key] };
+    for (const [column, value] of Object.entries(row)) {
+      if (JSON.stringify(value) !== JSON.stringify(before[column])) changed[column] = value;
+    }
+    updated.push(changed);
+  }
 
   const newIds = new Set(newRows.map((row) => String(row[table.key])));
   const deletedIds = [...oldRows.keys()].filter((id) => !newIds.has(id));
@@ -83,7 +97,7 @@ function handleLocalChange(before: AppState, after: AppState) {
 
   for (const change of changes) {
     for (const row of [...change.inserted, ...change.updated]) {
-      rememberLocalWrite(change.table.name, String(row[change.table.key]));
+      rememberLocalWrite(change.table.name, row, change.table.key);
     }
   }
 
@@ -128,11 +142,21 @@ function listenForChanges(client: SupabaseClient) {
       }
 
       const row = payload.new as Row;
-      if (isOwnRecentWrite(table.name, String(row[table.key]))) {
-        if (table.applyServerFields) applyRemoteChange((draft) => table.applyServerFields?.(draft, row));
+      const ownColumns = recentlyWrittenColumns(table.name, String(row[table.key]));
+      if (!ownColumns) {
+        applyRemoteChange((draft) => table.apply(draft, row));
         return;
       }
-      applyRemoteChange((draft) => table.apply(draft, row));
+
+      // Keep our own recent values, but take every column someone else changed.
+      applyRemoteChange((draft) => {
+        const local = table.readRows(draft).find((item) => String(item[table.key]) === String(row[table.key]));
+        if (!local) return table.apply(draft, row);
+        const merged: Row = { ...row };
+        for (const column of ownColumns) if (column in local) merged[column] = local[column];
+        table.apply(draft, merged);
+        table.applyServerFields?.(draft, row);
+      });
     });
   }
 

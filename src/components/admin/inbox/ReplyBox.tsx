@@ -4,7 +4,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { ImagePlus, MessageSquareText } from "lucide-react";
 import { compressImage } from "@/lib/browser";
 import { classNames, formatDateTime } from "@/lib/format";
-import { findCodeSentToSomeoneElse, sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
+import { findCodeAlreadySent, sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 
 const MAX_INPUT_HEIGHT = 200;
@@ -40,13 +40,13 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
     if (fileInput.current) fileInput.current.value = "";
   };
 
-  const send = (message: string, skipDuplicateCheck = false) => {
+  const send = (message: string) => {
     const content = message.trim();
     if (!content) return;
 
-    const duplicate = findCodeSentToSomeoneElse(customerId, content);
-    if (duplicate && !skipDuplicateCheck) {
-      setWarning(`Code ${duplicate.code} was already sent to ${duplicate.customerEmail} on ${formatDateTime(duplicate.sentAt)}.`);
+    const duplicate = findCodeAlreadySent(content);
+    if (duplicate) {
+      setWarning(`Code ${duplicate.code} was already sent to ${duplicate.customerEmail} on ${formatDateTime(duplicate.sentAt)}. A code can only be sent once.`);
       return;
     }
 
@@ -70,12 +70,7 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
         )}
 
         {warning && (
-          <div className="mb-2.5 rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 text-[12.5px] text-red-700 flex items-center justify-between gap-3">
-            <span>{warning}</span>
-            <button onClick={() => send(text, true)} className="font-semibold whitespace-nowrap hover:underline">
-              Send anyway
-            </button>
-          </div>
+          <div className="mb-2.5 rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 text-[12.5px] text-red-700">{warning}</div>
         )}
 
         <div className="rounded-2xl border border-zinc-200 bg-[#f8f9fb] focus-within:border-[#0C2660]/40 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0C2660]/[0.06] transition">

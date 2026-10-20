@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
-import { approveOrder, findCodeSentToSomeoneElse } from "@/lib/store/admin";
+import { approveOrder, findCodeAlreadySent } from "@/lib/store/admin";
 import type { Order } from "@/lib/types";
 import { cleanCode, extractCode, limits, validateCode } from "@/lib/validation";
 import Modal from "../ui/Modal";
@@ -18,15 +18,14 @@ type ApproveDialogProps = {
 export default function ApproveDialog({ order, customerEmail, onClose }: ApproveDialogProps) {
   const [message, setMessage] = useState("");
   const [emailCopy, setEmailCopy] = useState(false);
-  const [confirmedDuplicate, setConfirmedDuplicate] = useState(false);
   const [typedCode, setTypedCode] = useState("");
 
   const foundCode = extractCode(message);
   const codeFound = !validateCode(foundCode);
   const code = codeFound ? foundCode : typedCode;
   const codeProblem = message.trim() ? validateCode(code) : null;
-  const duplicate = code && !codeProblem ? findCodeSentToSomeoneElse(order.customerId, code) : null;
-  const canApprove = Boolean(message.trim()) && !codeProblem && !(duplicate && !confirmedDuplicate);
+  const duplicate = code && !codeProblem ? findCodeAlreadySent(code) : null;
+  const canApprove = Boolean(message.trim()) && !codeProblem && !duplicate;
 
   const approve = () => {
     if (!canApprove) return;
@@ -45,7 +44,6 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
           maxLength={limits.longTextMax}
           onChange={(event) => {
             setMessage(event.target.value);
-            setConfirmedDuplicate(false);
           }}
           placeholder="Paste the message from your portal"
           className={`${textareaClass} mt-1.5 text-[14px]`}
@@ -59,8 +57,7 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
             value={typedCode}
             onChange={(event) => {
               setTypedCode(cleanCode(event.target.value));
-              setConfirmedDuplicate(false);
-            }}
+              }}
             placeholder={`${limits.codeLength}-character code`}
             className="mt-2 w-full h-10 rounded-lg border border-red-200 bg-white px-3 text-[14px] font-semibold tracking-wider outline-none focus:border-red-400"
           />
@@ -68,16 +65,12 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
       )}
 
       {duplicate && (
-        <label className="mt-3 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-[12.5px] text-red-700 cursor-pointer">
+        <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-[12.5px] text-red-700">
           <AlertTriangle size={15} className="shrink-0 mt-0.5" />
-          <span className="flex-1">
-            This code was already sent to {duplicate.customerEmail} on {formatDateTime(duplicate.sentAt)}.
-            <span className="mt-1.5 flex items-center gap-2 font-semibold">
-              <input type="checkbox" checked={confirmedDuplicate} onChange={(event) => setConfirmedDuplicate(event.target.checked)} className="accent-red-600" />
-              Send it anyway
-            </span>
+          <span>
+            Code {duplicate.code} was already sent to {duplicate.customerEmail} on {formatDateTime(duplicate.sentAt)}. A code can only be sent once, please use a new code.
           </span>
-        </label>
+        </div>
       )}
 
       <label className="mt-4 inline-flex items-center gap-2 text-[13px] text-zinc-700 cursor-pointer select-none">

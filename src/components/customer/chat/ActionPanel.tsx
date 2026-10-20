@@ -14,6 +14,7 @@ import MenuOptions from "./actions/MenuOptions";
 import MessageComposer from "./actions/MessageComposer";
 import MethodOptions from "./actions/MethodOptions";
 import PaymentActions from "./actions/PaymentActions";
+import PendingOrderNotice from "./actions/PendingOrderNotice";
 import PlanOptions from "./actions/PlanOptions";
 import RejectionReply from "./actions/RejectionReply";
 import SupportOptions from "./actions/SupportOptions";
@@ -62,8 +63,13 @@ function StageActions({ customerId, conversation, onOpenSheet }: ActionPanelProp
       return <IssueStatus customerId={customerId} agentReplied />;
     case "code_delivered":
       return <CodeDeliveredActions customerId={customerId} />;
-    case "live":
-      if (findOpenTicket(getState(), customerId)) return <IssueFollowUp customerId={customerId} />;
+    case "live": {
+      // No free typing while a request or an order is waiting for the admin.
+      const state = getState();
+      if (findOpenTicket(state, customerId)) return <IssueFollowUp customerId={customerId} />;
+      const pendingOrder = state.orders.find((order) => order.customerId === customerId && (order.status === "pending_review" || order.status === "rejected"));
+      if (pendingOrder) return <PendingOrderNotice customerId={customerId} order={pendingOrder} />;
       return <MessageComposer customerId={customerId} />;
+    }
   }
 }

@@ -2,6 +2,7 @@ import { getSupabase } from "../supabase/client";
 import { sendEmailCopy } from "../supabase/email";
 import { deleteScreenshots, uploadScreenshot } from "../supabase/screenshots";
 import type { AdminStatus, AppState, GuideStep, Message } from "../types";
+import { extractCode } from "../validation";
 import { ADMIN_CANCEL_REASON, addMessage, botText, extractCodes, findCustomerEmail, liftPaymentPause } from "./helpers";
 import { getState, updateState } from "./state";
 
@@ -99,24 +100,26 @@ export function setCodeUnused(orderId: string, unused: boolean) {
   });
 }
 
-export function findCodeSentToSomeoneElse(customerId: string, text: string) {
-  const state = getState();
-  const wanted = text.trim().toLowerCase();
-  const earlierOrder = state.orders.find((order) => order.customerId !== customerId && order.code?.toLowerCase() === wanted);
-  if (earlierOrder) {
-    return { code: earlierOrder.code ?? text, customerEmail: findCustomerEmail(state, earlierOrder.customerId), sentAt: earlierOrder.reviewedAt ?? earlierOrder.createdAt };
-  }
+// Order and request numbers (PS-…, T-…) are not codes.
+function codesIn(text: string) {
+  const cleaned = text.replace(/\b(PS|T)-[A-Za-z0-9]+/gi, " ");
+  return [...new Set([extractCode(cleaned), ...extractCodes(cleaned)].filter((code) => code.length === 6).map((code) => code.toLowerCase()))];
+}
 
-  const codes = extractCodes(text);
+export function findCodeAlreadySent(text: string) {
+  const state = getState();
+  const codes = codesIn(text);
   if (codes.length === 0) return null;
 
-  for (const message of state.messages) {
-    if (message.sender !== "admin" || message.customerId === customerId) continue;
+  const earlierOrder = state.orders.find((order) => order.code && codes.includes(order.code.toLowerCase()));
+  if (earlierOrder) {
+    return { code: earlierOrder.code ?? "", customerEmail: findCustomerEmail(state, earlierOrder.customerId), sentAt: earlierOrder.reviewedAt ?? earlierOrder.createdAt };
+  }
 
-    const repeated = codes.find((code) => extractCodes(message.text).includes(code));
-    if (repeated) {
-      return { code: repeated, customerEmail: findCustomerEmail(state, message.customerId), sentAt: message.createdAt };
-    }
+  for (const message of state.messages) {
+    if (message.sender !== "admin" || message.kind === "deleted") continue;
+    const repeated = codesIn(message.text).find((code) => codes.includes(code));
+    if (repeated) return { code: repeated.toUpperCase(), customerEmail: findCustomerEmail(state, message.customerId), sentAt: message.createdAt };
   }
   return null;
 }
