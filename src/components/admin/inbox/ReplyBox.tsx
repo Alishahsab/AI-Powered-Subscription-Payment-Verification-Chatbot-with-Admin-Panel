@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { ImagePlus, Zap } from "lucide-react";
+import { ImagePlus } from "lucide-react";
 import { compressImage } from "@/lib/browser";
 import { classNames, formatDateTime } from "@/lib/format";
 import { findCodeSentToSomeoneElse, sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
@@ -81,11 +81,9 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
         <div className="flex items-end gap-1.5 rounded-2xl border border-zinc-200 bg-[#f8f9fb] p-1.5 focus-within:border-[#0C2660]/40 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0C2660]/[0.06] transition">
           <button
             onClick={() => setShowQuickReplies(!showQuickReplies)}
-            className={classNames("size-9 shrink-0 grid place-items-center rounded-xl transition", showQuickReplies ? "bg-[#0C2660] text-white" : "text-zinc-500 hover:bg-zinc-200/60")}
-            aria-label="Quick replies"
-            title="Quick replies"
+            className={classNames("h-9 px-3 shrink-0 rounded-xl text-[12.5px] font-semibold whitespace-nowrap transition", showQuickReplies ? "bg-[#0C2660] text-white" : "text-zinc-600 hover:bg-zinc-200/60")}
           >
-            <Zap size={16} />
+            Quick replies
           </button>
           <input ref={fileInput} type="file" accept="image/*" hidden onChange={(event) => sendImage(event.target.files?.[0])} />
           <button
