@@ -190,10 +190,6 @@ export function countInboxTabs(state: AppState): Record<InboxTab, number> {
   };
 }
 
-export function countUnreadChats(state: AppState) {
-  return Object.values(state.conversations).filter((conversation) => conversation.unreadByAdmin > 0).length;
-}
-
 export function countBotFilters(state: AppState, now: number): Record<BotFilter, number> {
   return {
     active_orders: activeItems(state, now).length,
