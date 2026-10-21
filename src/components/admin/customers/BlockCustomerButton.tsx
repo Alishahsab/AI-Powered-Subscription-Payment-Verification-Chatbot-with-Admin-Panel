@@ -7,7 +7,7 @@ import { useAppState } from "@/lib/store/state";
 import type { Customer } from "@/lib/types";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import Modal from "../ui/Modal";
-import { inputClass } from "../ui/styles";
+import { actionButton, inputClass } from "../ui/styles";
 
 const OTHER = "other";
 
@@ -21,7 +21,7 @@ export default function BlockCustomerButton({ customer, compact = false }: Block
 
   const buttonClass = compact
     ? "h-8 px-3 rounded-lg text-[12.5px] font-medium text-zinc-600 hover:bg-zinc-100 transition"
-    : "w-full h-10 rounded-xl border border-zinc-200 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center justify-center gap-1.5 transition";
+    : `w-full ${actionButton.neutral}`;
 
   if (customer.blocked) {
     return (

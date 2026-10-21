@@ -47,6 +47,7 @@ function StageActions({ customerId, conversation, onOpenSheet }: ActionPanelProp
       return <TermsActions customerId={customerId} />;
     case "awaiting_payment": {
       const order = getActiveOrder(getState(), customerId);
+      if (order?.status === "pending_review") return <PendingOrderNotice customerId={customerId} order={order} />;
       if (!order || !canStillPay(order)) return <BackToMenuButton customerId={customerId} />;
       return <PaymentActions customerId={customerId} method={findOrderMethod(getState(), customerId)} onOpenSheet={onOpenSheet} />;
     }

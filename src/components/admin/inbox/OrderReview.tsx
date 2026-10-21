@@ -75,8 +75,8 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
       )}
 
       {isPending && (
-        <div className="px-4 pb-4 grid grid-cols-3 gap-2">
-          <button onClick={() => setDialog("approve")} className={actionButton.primary}>
+        <div className="px-4 pb-4 grid grid-cols-2 gap-2">
+          <button onClick={() => setDialog("approve")} className={`col-span-2 ${actionButton.primary}`}>
             Approve
           </button>
           <button onClick={() => setDialog("reject")} className={actionButton.neutral}>
