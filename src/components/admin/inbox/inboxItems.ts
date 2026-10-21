@@ -36,12 +36,16 @@ function customerTag(state: AppState, customerId: string) {
   return customerNumberLabel(state.customers.find((customer) => customer.id === customerId));
 }
 
-export function isCustomerActive(state: AppState, customerId: string, now: number) {
+// When the customer last did something: a tap, a message, or coming back to the chat.
+// A customer who just sent a message counts, even if their last-seen update has not arrived yet.
+function lastActivityAt(state: AppState, customerId: string) {
   const customer = state.customers.find((item) => item.id === customerId);
-  if (!customer) return false;
-  // A customer who just sent a message is active, even if their last-seen update has not arrived yet.
   const lastSent = state.messages.reduce((latest, message) => (message.customerId === customerId && message.sender === "customer" ? Math.max(latest, message.createdAt) : latest), 0);
-  return now - Math.max(customer.lastSeenAt, lastSent) < state.settings.timers.inactiveMinutes * 60_000;
+  return Math.max(customer?.lastSeenAt ?? 0, lastSent);
+}
+
+export function isCustomerActive(state: AppState, customerId: string, now: number) {
+  return now - lastActivityAt(state, customerId) < state.settings.timers.inactiveMinutes * 60_000;
 }
 
 function isCancelled(order: Order) {
@@ -65,8 +69,9 @@ function chatItems(state: AppState, active: boolean, now: number): InboxItem[] {
   return Object.values(state.conversations)
     .filter((conversation) => state.messages.some((message) => message.customerId === conversation.customerId))
     .filter((conversation) => isCustomerActive(state, conversation.customerId, now) === active)
-    .sort((a, b) => b.lastMessageAt - a.lastMessageAt)
-    .map((conversation) => {
+    .map((conversation) => ({ conversation, activeAt: lastActivityAt(state, conversation.customerId) }))
+    .sort((a, b) => b.activeAt - a.activeAt)
+    .map(({ conversation, activeAt }) => {
       const lastMessage = state.messages.filter((message) => message.customerId === conversation.customerId).at(-1);
       const prefix = lastMessage && lastMessage.sender !== "customer" ? "You: " : "";
       return {
@@ -75,7 +80,8 @@ function chatItems(state: AppState, active: boolean, now: number): InboxItem[] {
         title: findCustomerEmail(state, conversation.customerId),
         tag: customerTag(state, conversation.customerId),
         subtitle: lastMessage ? prefix + describeMessage(lastMessage) : "",
-        time: conversation.lastMessageAt,
+        // The time shown is the customer's last activity, the same time that decides Active or Inactive.
+        time: activeAt,
         unread: conversation.unreadByAdmin > 0,
       };
     });
