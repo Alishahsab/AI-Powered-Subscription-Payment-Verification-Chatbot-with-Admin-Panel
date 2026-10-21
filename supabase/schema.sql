@@ -729,6 +729,11 @@ begin
   if new.kind <> 'payment' then return null; end if;
 
   if tg_op = 'INSERT' and not public.is_admin() then
+    -- One payment issue at a time: a new report closes the customer's older open ones first.
+    -- (Closing one lifts the wait, so the new wait is set after it.)
+    perform public.set_trusted(true);
+    update public.tickets set status = 'resolved'
+    where customer_id = new.customer_id and kind = 'payment' and status = 'open' and id <> new.id;
     perform public.set_trusted(true);
     update public.customers
     set payment_blocked_until = greatest(coalesce(payment_blocked_until, 0), now_ms + public.setting_minutes('retryMinutes', 30) * 60000)
@@ -844,13 +849,15 @@ declare
   message_text text;
   closed int := 0;
 begin
-  -- Payment issues end with their wait, whatever the admin status.
-  update public.tickets t
+  -- Each payment issue ends when its own wait ends (counted from when the server received it),
+  -- whatever the admin status. Trusted mode lets the server change a payment issue's status.
+  perform public.set_trusted(true);
+  update public.tickets
   set status = 'resolved'
-  from public.customers c
-  where t.kind = 'payment' and t.status = 'open' and c.id = t.customer_id
-    and (c.payment_blocked_until is null or c.payment_blocked_until <= now_ms);
+  where kind = 'payment' and status = 'open'
+    and (extract(epoch from inserted_at) * 1000)::bigint + public.setting_minutes('retryMinutes', 30) * 60000 <= now_ms;
   get diagnostics closed = row_count;
+  perform public.set_trusted(false);
 
   if public.effective_status() <> 'active' then return closed; end if;
 
