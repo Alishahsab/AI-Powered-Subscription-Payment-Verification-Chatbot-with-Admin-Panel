@@ -39,7 +39,9 @@ function customerTag(state: AppState, customerId: string) {
 export function isCustomerActive(state: AppState, customerId: string, now: number) {
   const customer = state.customers.find((item) => item.id === customerId);
   if (!customer) return false;
-  return now - customer.lastSeenAt < state.settings.timers.inactiveMinutes * 60_000;
+  // A customer who just sent a message is active, even if their last-seen update has not arrived yet.
+  const lastSent = state.messages.reduce((latest, message) => (message.customerId === customerId && message.sender === "customer" ? Math.max(latest, message.createdAt) : latest), 0);
+  return now - Math.max(customer.lastSeenAt, lastSent) < state.settings.timers.inactiveMinutes * 60_000;
 }
 
 function isCancelled(order: Order) {

@@ -12,24 +12,27 @@ let channel: RealtimeChannel | null = null;
 let pushQueue: Promise<void> = Promise.resolve();
 
 const LOCAL_WRITE_WINDOW_MS = 5000;
-const recentLocalWrites = new Map<string, { at: number; values: Map<string, string> }>();
+const recentLocalWrites = new Map<string, { at: number; columns: Set<string> }>();
 
-const asJson = (value: unknown) => JSON.stringify(value ?? null);
-
-function rememberLocalWrite(tableName: string, row: Row, key: string) {
+// Empty columns of a new row are not ours to keep: the other side fills them in (delivered and seen ticks).
+function rememberLocalWrite(tableName: string, row: Row, key: string, inserted: boolean) {
   const id = `${tableName}:${row[key]}`;
   const previous = recentLocalWrites.get(id);
-  const values = previous && Date.now() - previous.at < LOCAL_WRITE_WINDOW_MS ? previous.values : new Map<string, string>();
-  for (const [column, value] of Object.entries(row)) if (column !== key) values.set(column, asJson(value));
-  recentLocalWrites.set(id, { at: Date.now(), values });
+  const columns = previous && Date.now() - previous.at < LOCAL_WRITE_WINDOW_MS ? previous.columns : new Set<string>();
+  for (const [column, value] of Object.entries(row)) {
+    if (column !== key && !(inserted && value == null)) columns.add(column);
+  }
+  recentLocalWrites.set(id, { at: Date.now(), columns });
 }
 
-// What this client wrote to a row in the last few seconds. An incoming value equal to it is our own echo
-// (and may be older than local state); a different value means someone else changed it.
-function recentlyWrittenValues(tableName: string, id: string) {
+// Columns this client wrote in the last few seconds. Their echoes can be older than local state, so they are ignored.
+function recentlyWrittenColumns(tableName: string, id: string) {
   const write = recentLocalWrites.get(`${tableName}:${id}`);
-  return write && Date.now() - write.at < LOCAL_WRITE_WINDOW_MS ? write.values : null;
+  return write && Date.now() - write.at < LOCAL_WRITE_WINDOW_MS ? write.columns : null;
 }
+
+// Counts local changes, so a reload that raced with a tap is thrown away instead of undoing the tap.
+let localVersion = 0;
 
 export function getActiveClient() {
   if (!activeRole) throw new Error("Data sync has not started");
@@ -97,11 +100,11 @@ async function writeTableChanges(client: SupabaseClient, changes: TableChanges) 
 
 function handleLocalChange(before: AppState, after: AppState) {
   const changes = tables.map((table) => findTableChanges(table, before, after));
+  localVersion += 1;
 
   for (const change of changes) {
-    for (const row of [...change.inserted, ...change.updated]) {
-      rememberLocalWrite(change.table.name, row, change.table.key);
-    }
+    for (const row of change.inserted) rememberLocalWrite(change.table.name, row, change.table.key, true);
+    for (const row of change.updated) rememberLocalWrite(change.table.name, row, change.table.key, false);
   }
 
   const configChanged = JSON.stringify(pickConfig(before)) !== JSON.stringify(pickConfig(after));
@@ -118,10 +121,17 @@ function handleLocalChange(before: AppState, after: AppState) {
   });
 }
 
-async function loadEverything(client: SupabaseClient) {
+async function fetchEverything(client: SupabaseClient) {
   const results = await Promise.all(tables.map((table) => client.from(table.name).select("*")));
   const config = await client.from("store_config").select("*").maybeSingle();
+  return { results, config };
+}
 
+async function loadEverything(client: SupabaseClient) {
+  await applyEverything(client, await fetchEverything(client));
+}
+
+async function applyEverything(client: SupabaseClient, { results, config }: Awaited<ReturnType<typeof fetchEverything>>) {
   applyRemoteChange((draft) => {
     tables.forEach((table, index) => table.replaceAll(draft, results[index].data ?? []));
     if (config.data) Object.assign(draft, configFromRow(config.data));
@@ -145,8 +155,8 @@ function listenForChanges(client: SupabaseClient) {
       }
 
       const row = payload.new as Row;
-      const ownValues = recentlyWrittenValues(table.name, String(row[table.key]));
-      if (!ownValues) {
+      const ownColumns = recentlyWrittenColumns(table.name, String(row[table.key]));
+      if (!ownColumns) {
         applyRemoteChange((draft) => table.apply(draft, row));
         return;
       }
@@ -156,9 +166,7 @@ function listenForChanges(client: SupabaseClient) {
         const local = table.readRows(draft).find((item) => String(item[table.key]) === String(row[table.key]));
         if (!local) return table.apply(draft, row);
         const merged: Row = { ...row };
-        for (const [column, written] of ownValues) {
-          if (column in local && asJson(row[column]) === written) merged[column] = local[column];
-        }
+        for (const column of ownColumns) if (column in local) merged[column] = local[column];
         table.apply(draft, merged);
         table.applyServerFields?.(draft, row);
       });
@@ -182,10 +190,17 @@ const CATCH_UP_AFTER_HIDDEN_MS = 10_000;
 let hiddenSince = 0;
 
 // Events sent while the connection was down are not replayed, so reload everything once.
+// A reload that overlapped a local change is older than the screen, so it is retried.
 async function catchUp() {
-  if (!activeRole) return;
-  await pushQueue;
-  if (activeRole) await loadEverything(getActiveClient());
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (!activeRole) return;
+    await pushQueue;
+    const version = localVersion;
+    const client = getActiveClient();
+    const data = await fetchEverything(client);
+    if (!activeRole) return;
+    if (version === localVersion) return applyEverything(client, data);
+  }
 }
 
 function handleVisibility() {

@@ -32,7 +32,7 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
   const sidebar = <AdminSidebar current={target.section} onNavigate={navigate} onSignOut={onSignOut} />;
 
   return (
-    <div className="admin-app h-dvh flex overflow-hidden">
+    <div className="admin-app fixed inset-0 flex overflow-hidden">
       <aside className="hidden lg:block w-[244px] shrink-0">{sidebar}</aside>
 
       {menuOpen && (
