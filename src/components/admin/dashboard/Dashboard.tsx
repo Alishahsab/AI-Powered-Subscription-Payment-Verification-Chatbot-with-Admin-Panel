@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ArrowRight, Clock, LifeBuoy, MessageCircle, ShoppingBag, Users } from "lucide-react";
+import { AlertTriangle, ArrowRight, Clock, CreditCard, LifeBuoy, MessageCircle, ShoppingBag, Users } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
 import { classNames } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
@@ -17,6 +17,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
   const activeOrders = botCounts.active_orders;
   const pendingOrders = state.orders.filter((order) => order.status === "pending_review" || order.status === "rejected");
   const openIssues = state.tickets.filter((ticket) => ticket.status === "open" && ticket.kind === "support");
+  const openPaymentIssues = state.tickets.filter((ticket) => ticket.status === "open" && ticket.kind === "payment");
   const activeChats = botCounts.active_chats;
 
   const stats: { label: string; value: string; note: string; icon: React.ReactNode; highlight?: boolean; target?: NavTarget }[] = [
@@ -29,6 +30,13 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
       target: { section: "inbox", tab: "pending" },
     },
     { label: "App issues", value: String(openIssues.length), note: "Open support requests", icon: <LifeBuoy size={17} />, target: { section: "inbox", tab: "issues" } },
+    {
+      label: "Payment issues",
+      value: String(openPaymentIssues.length),
+      note: "Reported payment problems",
+      icon: <CreditCard size={17} />,
+      target: { section: "inbox", tab: "payment_issues" },
+    },
     {
       label: "Active chats",
       value: String(activeChats),
@@ -71,7 +79,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
           </button>
         )}
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           {stats.map((stat) => (
             <button
               key={stat.label}
@@ -87,13 +95,28 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
               <div className="text-[11.5px] text-zinc-500">{stat.note}</div>
             </button>
           ))}
+
+          {/* On phones the five cards leave one empty cell, so the customer list fills it. */}
+          <button
+            onClick={() => onNavigate({ section: "customers" })}
+            className="lg:hidden text-left bg-white rounded-xl border border-zinc-200/80 px-3.5 py-3 hover:border-zinc-300 transition"
+          >
+            <div className="flex items-center justify-between text-zinc-500">
+              <span className="text-[12px] font-medium">Customer list</span>
+              <span className="size-7 rounded-lg grid place-items-center bg-[#0C2660]/[0.07] text-[#0C2660]">
+                <Users size={17} />
+              </span>
+            </div>
+            <div className="text-[20px] font-semibold tracking-tight mt-1 tabular-nums">{state.customers.length}</div>
+            <div className="text-[11.5px] text-zinc-500">Tap to see all</div>
+          </button>
         </div>
 
         <CompletedOrdersChart now={now} />
 
         <button
           onClick={() => onNavigate({ section: "customers" })}
-          className="w-full text-left bg-white rounded-xl border border-zinc-200/80 px-5 py-4 flex items-center gap-4 hover:border-zinc-300 transition"
+          className="hidden lg:flex w-full text-left bg-white rounded-xl border border-zinc-200/80 px-5 py-4 items-center gap-4 hover:border-zinc-300 transition"
         >
           <span className="size-11 rounded-xl bg-[#0C2660]/[0.07] text-[#0C2660] grid place-items-center shrink-0">
             <Users size={20} />

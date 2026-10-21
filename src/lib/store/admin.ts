@@ -1,4 +1,4 @@
-import { getSupabase } from "../supabase/client";
+import { createTemporaryClient, getSupabase } from "../supabase/client";
 import { sendEmailCopy } from "../supabase/email";
 import { deleteScreenshots, uploadScreenshot } from "../supabase/screenshots";
 import type { AdminStatus, AppState, Message } from "../types";
@@ -24,6 +24,38 @@ export async function adminSignIn(email: string, password: string): Promise<stri
     await client.auth.signOut();
     return "This account does not have admin access.";
   }
+  return null;
+}
+
+export async function requestAdminPasswordCode(email: string): Promise<string | null> {
+  const response = await fetch("/api/admin-reset", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email.trim().toLowerCase() }),
+  }).catch(() => null);
+  if (!response) return "Could not send the code. Please check your internet and try again.";
+  if (response.status === 403) return "This email cannot reset the admin password.";
+  if (response.status === 429) return "A code was sent a moment ago. Please wait a minute and try again.";
+  if (!response.ok) return "Could not send the code right now. Please try again in a few minutes.";
+  return null;
+}
+
+// Checks the emailed code and saves the new password, then signs out again so the admin logs in normally.
+export async function resetAdminPassword(email: string, code: string, password: string): Promise<string | null> {
+  const client = createTemporaryClient();
+  const { error } = await client.auth.verifyOtp({ email: email.trim().toLowerCase(), token: code, type: "email" });
+  if (error) return "This code is wrong or has expired. Please request a new one.";
+
+  const { data } = await client.auth.getUser();
+  const { data: adminRow } = await client.from("admins").select("user_id").eq("user_id", data.user?.id ?? "").maybeSingle();
+  if (!adminRow) {
+    await client.auth.signOut();
+    return "This account does not have admin access.";
+  }
+
+  const { error: updateError } = await client.auth.updateUser({ password });
+  await client.auth.signOut();
+  if (updateError) return updateError.message.includes("different") ? "Please choose a password different from the old one." : "Could not save the new password. Please try again.";
   return null;
 }
 

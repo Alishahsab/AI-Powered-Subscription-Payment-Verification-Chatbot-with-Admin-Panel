@@ -824,9 +824,10 @@ begin
 end;
 $$;
 
--- Closes app issues that have waited too long, while the admin is Active.
+-- Runs every minute.
+-- Payment issues close when their wait ends. App issues that waited too long close while the admin is Active:
 --   No admin reply since the request was sent  -> "issueClosedNoReply"
---   Admin replied, customer went quiet after it -> "issueAutoResolved"
+--   Admin replied, customer went quiet after it -> "issueAutoResolved" (timer starts at the admin reply)
 create or replace function public.close_idle_requests()
 returns int
 language plpgsql
@@ -839,12 +840,20 @@ declare
   idle_ms bigint := public.setting_minutes('issueInactiveMinutes', 360) * 60000;
   request record;
   admin_reply bigint;
-  last_seen bigint;
+  customer_reply bigint;
   message_key text;
   message_text text;
   closed int := 0;
 begin
-  if public.effective_status() <> 'active' then return 0; end if;
+  -- Payment issues end with their wait, whatever the admin status.
+  update public.tickets t
+  set status = 'resolved'
+  from public.customers c
+  where t.kind = 'payment' and t.status = 'open' and c.id = t.customer_id
+    and (c.payment_blocked_until is null or c.payment_blocked_until <= now_ms);
+  get diagnostics closed = row_count;
+
+  if public.effective_status() <> 'active' then return closed; end if;
 
   for request in select * from public.tickets where kind = 'support' and status = 'open' loop
     select max(created_at) into admin_reply
@@ -857,8 +866,15 @@ begin
       message_text := coalesce(settings -> 'messages' ->> message_key,
         'Our admin is not available right now, so your request {ticket_id} has been closed. You can send a new one from Customer Support.');
     else
-      select last_seen_at into last_seen from public.customers where id = request.customer_id;
-      if now_ms - greatest(admin_reply, coalesce(last_seen, 0)) <= idle_ms then continue; end if;
+      -- The customer answered after the admin (Still facing the issue, then a message): it is the admin's turn.
+      -- Tapping elsewhere in the menu does not count as an answer.
+      select max(created_at) into customer_reply
+      from public.messages
+      where customer_id = request.customer_id and sender = 'customer' and created_at > admin_reply;
+      if customer_reply is not null and exists (
+        select 1 from public.conversations where customer_id = request.customer_id and stage in ('live', 'waiting_agent')
+      ) then continue; end if;
+      if now_ms - admin_reply <= idle_ms then continue; end if;
       message_key := 'issueAutoResolved';
       message_text := coalesce(settings -> 'messages' ->> message_key,
         'Your request {ticket_id} has been resolved because there was no reply for a while. If you still need help, choose Customer Support from the menu.');
@@ -885,4 +901,4 @@ create extension if not exists pg_cron;
 select cron.unschedule('close-idle-requests')
 where exists (select 1 from cron.job where jobname = 'close-idle-requests');
 
-select cron.schedule('close-idle-requests', '*/10 * * * *', $$ select public.close_idle_requests(); $$);
+select cron.schedule('close-idle-requests', '* * * * *', $$ select public.close_idle_requests(); $$);
