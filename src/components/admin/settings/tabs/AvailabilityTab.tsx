@@ -5,6 +5,7 @@ import type { AdminStatus } from "@/lib/types";
 import Toggle from "../../ui/Toggle";
 import { inputClass } from "../../ui/styles";
 import type { SettingsTabProps } from "../Settings";
+import { OrderMessagesSection, SupportMessagesSection } from "../MessageSections";
 import { Field, SettingsSection } from "../SettingsSection";
 
 const statuses: { status: AdminStatus; label: string; description: string; dot: string }[] = [
@@ -59,7 +60,8 @@ export default function AvailabilityTab({ draft, updateDraft }: SettingsTabProps
           </div>
         </div>
       </SettingsSection>
-
+      <OrderMessagesSection draft={draft} updateDraft={updateDraft} />
+      <SupportMessagesSection draft={draft} updateDraft={updateDraft} />
     </>
   );
 }

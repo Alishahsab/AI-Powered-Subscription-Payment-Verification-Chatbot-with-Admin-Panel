@@ -113,7 +113,6 @@ export function validateConfig(config: StoreConfig) {
   if (!settings.rejectionMessage.trim()) errors.push("Rejection message cannot be empty.");
   if (!settings.waitForAdminMessage.trim()) errors.push("The waiting message cannot be empty.");
   if (settings.rejectReasons.length === 0) errors.push("Add at least one rejection reason.");
-  if (!settings.support.waitingMessage.trim()) errors.push("The waiting message cannot be empty.");
   if (!settings.support.stillFacingLabel.trim() || !settings.support.resolvedLabel.trim()) errors.push("Support button labels cannot be empty.");
   if (Object.values(settings.messages).some((text) => !text.trim())) errors.push("Bot messages cannot be empty.");
   if (settings.inboxTabs.some((tab) => !tab.label)) errors.push("Inbox tab names cannot be empty.");

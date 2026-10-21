@@ -18,22 +18,16 @@ export const defaultBotMessages: BotMessages = {
   describeIssue: "Please describe your issue and attach a screenshot.",
   issueResolvedByCustomer: "Glad it's sorted. Anything else we can help with?",
   issueResolvedByAdmin: "Your request {ticket_id} has been marked as resolved. If you need anything else, choose Customer Support from the menu.",
+  issueClosedNoReply: "Our admin is not available right now, so your request {ticket_id} has been closed. You can send a new one from Customer Support.",
+  paymentIssueResolved: "Your payment issue is resolved. You can place a new order now.",
   issueAutoResolved: "Your request {ticket_id} has been resolved because there was no reply for a while. If you still need help, choose Customer Support from the menu.",
 };
 
 type MessageField = { key: BotMessageKey; label: string; variables?: string };
 
-export type MessageTab = "messages" | "payments" | "support";
+export type MessageTab = "payments" | "support";
 
 export const botMessageGroups: { title: string; tab: MessageTab; fields: MessageField[] }[] = [
-  {
-    title: "Menu",
-    tab: "messages",
-    fields: [
-      { key: "welcomeBack", label: "When a customer comes back" },
-      { key: "menuPrompt", label: "Main menu" },
-    ],
-  },
   {
     title: "Buying",
     tab: "payments",
@@ -65,7 +59,9 @@ export const botMessageGroups: { title: string; tab: MessageTab; fields: Message
       { key: "describeIssue", label: "Customer chooses Other issues" },
       { key: "issueResolvedByCustomer", label: "Customer marks the request resolved" },
       { key: "issueResolvedByAdmin", label: "You mark the request resolved", variables: "{ticket_id}" },
-      { key: "issueAutoResolved", label: "Request resolved after no reply", variables: "{ticket_id}" },
+      { key: "issueAutoResolved", label: "Request closed: the customer stopped replying after your answer", variables: "{ticket_id}" },
+      { key: "issueClosedNoReply", label: "Request closed: you did not reply in time", variables: "{ticket_id}" },
+      { key: "paymentIssueResolved", label: "You mark a payment issue resolved" },
     ],
   },
 ];

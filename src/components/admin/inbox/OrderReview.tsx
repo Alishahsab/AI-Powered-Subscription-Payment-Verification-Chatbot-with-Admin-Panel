@@ -76,13 +76,13 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
 
       {isPending && (
         <div className="px-4 pb-4 grid grid-cols-2 gap-2">
-          <button onClick={() => setDialog("approve")} className={`col-span-2 ${actionButton.primary}`}>
+          <button onClick={() => setDialog("approve")} className={`col-span-2 ${actionButton.approve}`}>
             Approve
           </button>
-          <button onClick={() => setDialog("reject")} className={actionButton.neutral}>
+          <button onClick={() => setDialog("reject")} className={actionButton.reject}>
             Reject
           </button>
-          <button onClick={() => setDialog("cancel")} className={actionButton.neutral}>
+          <button onClick={() => setDialog("cancel")} className={actionButton.cancel}>
             Cancel
           </button>
         </div>
@@ -118,7 +118,7 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
       {order.status === "completed" && order.code && (
         <div className="px-4 pb-4">
           {order.codeUnused ? (
-            <button onClick={() => setDialog("unused")} className={`w-full ${actionButton.primary}`}>
+            <button onClick={() => setDialog("unused")} className={`w-full ${actionButton.unused}`}>
               Mark as used
             </button>
           ) : (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Clock, CreditCard, Inbox, LifeBuoy, MessageSquareText, Palette, Timer } from "lucide-react";
+import { Check, Clock, CreditCard, Inbox, LifeBuoy, Palette, Timer } from "lucide-react";
 import { classNames } from "@/lib/format";
 import { saveSettings, type EditableSettings } from "@/lib/store/admin";
 import { stepLines } from "@/lib/store/helpers";
@@ -12,7 +12,6 @@ import Button from "../ui/Button";
 import AppearanceTab from "./tabs/AppearanceTab";
 import AvailabilityTab from "./tabs/AvailabilityTab";
 import InboxTab from "./tabs/InboxTab";
-import MessagesTab from "./tabs/MessagesTab";
 import PaymentsTab from "./tabs/PaymentsTab";
 import SupportTab from "./tabs/SupportTab";
 import TimersTab from "./tabs/TimersTab";
@@ -28,7 +27,6 @@ const tabs = [
   { key: "availability", label: "Availability", icon: <Clock size={15} /> },
   { key: "payments", label: "Plans & payments", icon: <CreditCard size={15} /> },
   { key: "support", label: "Support", icon: <LifeBuoy size={15} /> },
-  { key: "messages", label: "Messages", icon: <MessageSquareText size={15} /> },
   { key: "inbox", label: "Inbox & blocking", icon: <Inbox size={15} /> },
   { key: "timers", label: "Timers & limits", icon: <Timer size={15} /> },
   { key: "appearance", label: "Appearance", icon: <Palette size={15} /> },
@@ -146,7 +144,6 @@ export default function Settings() {
           {tab === "availability" && <AvailabilityTab draft={draft} updateDraft={updateDraft} />}
           {tab === "payments" && <PaymentsTab draft={draft} updateDraft={updateDraft} />}
           {tab === "support" && <SupportTab draft={draft} updateDraft={updateDraft} />}
-          {tab === "messages" && <MessagesTab draft={draft} updateDraft={updateDraft} />}
           {tab === "inbox" && <InboxTab draft={draft} updateDraft={updateDraft} />}
           {tab === "timers" && <TimersTab draft={draft} updateDraft={updateDraft} />}
           {tab === "appearance" && <AppearanceTab draft={draft} updateDraft={updateDraft} />}

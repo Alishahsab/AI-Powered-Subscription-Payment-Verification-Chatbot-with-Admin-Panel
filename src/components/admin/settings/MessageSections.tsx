@@ -12,8 +12,7 @@ const orderMessageLabels: Record<AdminStatus, string> = {
   offline: "Offline: when the customer taps Buy",
 };
 
-const closedSupportLabels: Record<Exclude<AdminStatus, "active">, string> = {
-  away: "Away (accepting): when the customer taps Other issues",
+const closedSupportLabels: Record<"away_closed" | "offline", string> = {
   away_closed: "Away (not accepting): when the customer taps Other issues",
   offline: "Offline: when the customer taps Other issues",
 };
@@ -38,10 +37,13 @@ export function SupportMessagesSection({ draft, updateDraft }: SettingsTabProps)
   const { supportMessages, supportClosedMessages } = draft.settings;
 
   return (
-    <SettingsSection title="Support messages" description="New support requests (Other issues) are only taken while you are Active. Common questions stay open in every status.">
+    <SettingsSection title="Support messages" description="New support requests (Other issues) are taken while you are Active or Away (accepting). Common questions stay open in every status.">
       <div className="space-y-4">
         <Field label="Active: after a support request is sent" hint="Use {ticket_id} for the request number">
           <textarea rows={2} maxLength={limits.longTextMax} value={supportMessages.active} onChange={(event) => updateDraft((next) => (next.settings.supportMessages.active = event.target.value))} className={textareaClass} />
+        </Field>
+        <Field label="Away (accepting): after a support request is sent" hint="Use {ticket_id} for the request number">
+          <textarea rows={2} maxLength={limits.longTextMax} value={supportMessages.away} onChange={(event) => updateDraft((next) => (next.settings.supportMessages.away = event.target.value))} className={textareaClass} />
         </Field>
         {(Object.keys(closedSupportLabels) as (keyof typeof closedSupportLabels)[]).map((status) => (
           <Field key={status} label={closedSupportLabels[status]}>

@@ -2,9 +2,9 @@ import type { User } from "@supabase/supabase-js";
 import { formatDuration, getEffectiveStatus } from "../availability";
 import { getSupabase } from "../supabase/client";
 import { uploadScreenshot } from "../supabase/screenshots";
-import type { AppState, Customer, Stage, Ticket } from "../types";
+import type { AppState, Customer, Stage, TicketKind } from "../types";
 import { validateName } from "../validation";
-import { ADMIN_CANCEL_REASON, addMessage, botText, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, liftPaymentPause, notifyAdmin, replyAsBot } from "./helpers";
+import { ADMIN_CANCEL_REASON, addMessage, botText, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
 import { getState, updateState } from "./state";
 
 const MINUTE = 60_000;
@@ -425,7 +425,7 @@ export function chooseOtherIssue(customerId: string) {
     if (blockSupport(state, customerId)) return;
 
     const status = getEffectiveStatus(state.settings);
-    if (status !== "active") {
+    if (status === "away_closed" || status === "offline") {
       addMessage(state, customerId, "bot", fillPlaceholders(state.settings.supportClosedMessages[status], state));
       state.conversations[customerId].stage = "support";
       return;
@@ -469,7 +469,9 @@ export async function submitSupportIssue(customerId: string, description: string
   });
 
   replyAsBot(customerId, (state) => {
-    addMessage(state, customerId, "bot", fillPlaceholders(state.settings.supportMessages.active, state).replaceAll("{ticket_id}", ticketId));
+    const sentWhileAway = getEffectiveStatus(state.settings) === "away";
+    const message = sentWhileAway ? state.settings.supportMessages.away : state.settings.supportMessages.active;
+    addMessage(state, customerId, "bot", fillPlaceholders(message, state).replaceAll("{ticket_id}", ticketId));
     state.conversations[customerId].stage = "waiting_agent";
   });
 }
@@ -486,39 +488,9 @@ export async function sendIssueFollowUp(customerId: string, text: string, screen
   });
 }
 
-export function findOpenTicket(state: AppState, customerId: string) {
-  return state.tickets.find((ticket) => ticket.customerId === customerId && ticket.status === "open");
-}
-
-export function resolveIdleIssues(customerId?: string) {
-  const state = getState();
-  if (getEffectiveStatus(state.settings) !== "active") return;
-
-  const now = Date.now();
-  const idleAfter = state.settings.timers.issueInactiveMinutes * MINUTE;
-  // Only a request the admin has answered can close itself; an unanswered one waits for the admin.
-  const isIdle = (ticket: Ticket) => {
-    const adminReplyAt = state.messages.filter((message) => message.customerId === ticket.customerId && message.sender === "admin" && message.createdAt > ticket.createdAt).at(-1)?.createdAt;
-    if (!adminReplyAt) return false;
-    const customer = state.customers.find((item) => item.id === ticket.customerId);
-    return now - Math.max(adminReplyAt, customer?.lastSeenAt ?? 0) > idleAfter;
-  };
-  const idle = state.tickets.filter((ticket) => ticket.status === "open" && (!customerId || ticket.customerId === customerId) && isIdle(ticket));
-  if (idle.length === 0) return;
-
-  updateState((draft) => {
-    for (const { id } of idle) {
-      const ticket = draft.tickets.find((item) => item.id === id);
-      if (!ticket || ticket.status !== "open") continue;
-      ticket.status = "resolved";
-      if (ticket.kind === "payment") liftPaymentPause(draft, ticket.customerId);
-      addMessage(draft, ticket.customerId, "bot", botText(draft, "issueAutoResolved", { ticket_id: ticket.id }));
-
-      const conversation = draft.conversations[ticket.customerId];
-      const inIssue = conversation && ["waiting_agent", "agent_replied", "live"].includes(conversation.stage);
-      if (inIssue && !findOpenTicket(draft, ticket.customerId)) conversation.stage = "menu";
-    }
-  });
+// App issues ("support") and payment issues are separate: each kind has its own open request.
+export function findOpenTicket(state: AppState, customerId: string, kind: TicketKind = "support") {
+  return state.tickets.find((ticket) => ticket.customerId === customerId && ticket.kind === kind && ticket.status === "open");
 }
 
 export function continueIssue(customerId: string) {
@@ -532,10 +504,7 @@ export function confirmIssueResolved(customerId: string) {
   updateState((state) => {
     addMessage(state, customerId, "customer", state.settings.support.resolvedLabel);
     for (const ticket of state.tickets) {
-      if (ticket.customerId === customerId && ticket.status === "open") {
-        ticket.status = "resolved";
-        if (ticket.kind === "payment") liftPaymentPause(state, customerId);
-      }
+      if (ticket.customerId === customerId && ticket.kind === "support" && ticket.status === "open") ticket.status = "resolved";
     }
   });
 

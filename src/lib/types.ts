@@ -62,7 +62,9 @@ export type BotMessageKey =
   | "describeIssue"
   | "issueResolvedByCustomer"
   | "issueResolvedByAdmin"
-  | "issueAutoResolved";
+  | "issueAutoResolved"
+  | "issueClosedNoReply"
+  | "paymentIssueResolved";
 
 export type BotMessages = Record<BotMessageKey, string>;
 
@@ -78,7 +80,6 @@ export type BlockingSettings = {
 };
 
 export type SupportSettings = {
-  waitingMessage: string;
   stillFacingLabel: string;
   resolvedLabel: string;
   issueScreenshotRequired: boolean;

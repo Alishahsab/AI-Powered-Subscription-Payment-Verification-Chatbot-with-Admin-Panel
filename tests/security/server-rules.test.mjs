@@ -109,11 +109,16 @@ test("a payment problem pauses orders, and the customer cannot lift the pause", 
   assert.equal(after.data.payment_blocked_until, before.data.payment_blocked_until);
 });
 
-test("resolving the payment problem lifts the pause", async () => {
+test("a customer cannot close their own payment issue", async () => {
   const { data: ticket } = await db.from("tickets").select("id").eq("customer_id", userId).eq("kind", "payment").eq("status", "open").single();
-  assert.ifError((await db.from("tickets").update({ status: "resolved" }).eq("id", ticket.id)).error);
-  const { data } = await db.from("customers").select("payment_blocked_until").eq("id", userId).single();
-  assert.equal(data.payment_blocked_until, null);
+  await db.from("tickets").update({ status: "resolved" }).eq("id", ticket.id);
+  const { data } = await db.from("tickets").select("status").eq("id", ticket.id).single();
+  assert.equal(data.status, "open");
+});
+
+test("the idle-request job cannot be called from outside", async () => {
+  const { error } = await db.rpc("close_idle_requests");
+  assert.ok(error);
 });
 
 test("a customer cannot unblock themselves or clear the admin's unread count", async () => {

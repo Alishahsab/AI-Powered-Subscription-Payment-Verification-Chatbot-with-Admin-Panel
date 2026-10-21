@@ -66,7 +66,7 @@ function codeGuides(state: AppState) {
 function updateStageAfterReply(state: AppState, customerId: string, containsCode: boolean, ticketReply: boolean) {
   const conversation = state.conversations[customerId];
   conversation.unreadByAdmin = 0;
-  const hasOpenTicket = state.tickets.some((ticket) => ticket.customerId === customerId && ticket.status === "open");
+  const hasOpenTicket = state.tickets.some((ticket) => ticket.customerId === customerId && ticket.kind === "support" && ticket.status === "open");
   const pendingOrder = state.orders.find((order) => order.customerId === customerId && order.status === "pending_review");
 
   if (containsCode) {
@@ -228,11 +228,16 @@ export function setTicketResolved(ticketId: string, resolved: boolean) {
     if (resolved && ticket.kind === "payment") liftPaymentPause(state, ticket.customerId);
 
     const conversation = state.conversations[ticket.customerId];
-    const stillOpen = state.tickets.some((item) => item.customerId === ticket.customerId && item.status === "open");
-    if (resolved && !stillOpen && conversation) {
-      addMessage(state, ticket.customerId, "bot", botText(state, "issueResolvedByAdmin", { ticket_id: ticket.id }));
-      conversation.stage = "menu";
+    if (!resolved || !conversation) return;
+
+    if (ticket.kind === "payment") {
+      addMessage(state, ticket.customerId, "bot", botText(state, "paymentIssueResolved", { ticket_id: ticket.id }));
+      if (conversation.stage === "waiting_agent") conversation.stage = "menu";
+      return;
     }
+
+    addMessage(state, ticket.customerId, "bot", botText(state, "issueResolvedByAdmin", { ticket_id: ticket.id }));
+    if (["waiting_agent", "agent_replied", "live"].includes(conversation.stage)) conversation.stage = "menu";
   });
 }
 

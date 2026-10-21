@@ -3,7 +3,7 @@ import Toggle from "../../ui/Toggle";
 import { inputClass, textareaClass } from "../../ui/styles";
 import type { SettingsTabProps } from "../Settings";
 import { Field, SettingsSection } from "../SettingsSection";
-import { BotMessageSections, SupportMessagesSection } from "../MessageSections";
+import { BotMessageSections } from "../MessageSections";
 import FaqsSection from "./FaqsSection";
 
 export default function SupportTab({ draft, updateDraft }: SettingsTabProps) {
@@ -20,14 +20,17 @@ export default function SupportTab({ draft, updateDraft }: SettingsTabProps) {
           <Field label="Welcome message">
             <textarea rows={2} maxLength={limits.longTextMax} value={settings.welcome} onChange={(event) => updateDraft((next) => (next.settings.welcome = event.target.value))} className={textareaClass} />
           </Field>
+          <Field label="When a customer comes back">
+            <textarea rows={2} maxLength={limits.longTextMax} value={settings.messages.welcomeBack} onChange={(event) => updateDraft((next) => (next.settings.messages.welcomeBack = event.target.value))} className={textareaClass} />
+          </Field>
+          <Field label="Main menu">
+            <textarea rows={2} maxLength={limits.longTextMax} value={settings.messages.menuPrompt} onChange={(event) => updateDraft((next) => (next.settings.messages.menuPrompt = event.target.value))} className={textareaClass} />
+          </Field>
         </div>
       </SettingsSection>
 
       <SettingsSection title="Support requests" description="How a support or payment problem request behaves after the customer sends it.">
         <div className="space-y-4">
-          <Field label="While waiting for an agent">
-            <textarea rows={2} maxLength={limits.longTextMax} value={support.waitingMessage} onChange={(event) => updateDraft((next) => (next.settings.support.waitingMessage = event.target.value))} className={textareaClass} />
-          </Field>
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Button to keep the request open">
               <input value={support.stillFacingLabel} maxLength={30} onChange={(event) => updateDraft((next) => (next.settings.support.stillFacingLabel = event.target.value))} className={inputClass} />
@@ -43,7 +46,6 @@ export default function SupportTab({ draft, updateDraft }: SettingsTabProps) {
         </div>
       </SettingsSection>
 
-      <SupportMessagesSection draft={draft} updateDraft={updateDraft} />
       <BotMessageSections tab="support" draft={draft} updateDraft={updateDraft} />
 
       <FaqsSection draft={draft} updateDraft={updateDraft} />

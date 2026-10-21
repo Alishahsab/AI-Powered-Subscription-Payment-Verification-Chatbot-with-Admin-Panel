@@ -92,7 +92,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
 
         <button
           onClick={() => onNavigate({ section: "customers" })}
-          className="text-left bg-white rounded-xl border border-zinc-200/80 px-5 py-4 flex items-center gap-4 hover:border-zinc-300 transition"
+          className="w-full text-left bg-white rounded-xl border border-zinc-200/80 px-5 py-4 flex items-center gap-4 hover:border-zinc-300 transition"
         >
           <span className="size-11 rounded-xl bg-[#0C2660]/[0.07] text-[#0C2660] grid place-items-center shrink-0">
             <Users size={20} />

@@ -43,10 +43,12 @@ async function click(page, label) {
 
 async function createOrder(page) {
   await click(page, "Buy a Subscription");
+  if (!(await page.isVisible("button:has-text('1 Month')"))) return false; // Store is closed for new orders.
   await click(page, "1 Month");
   await click(page, "JazzCash");
   await page.click("button:has-text('I agree, create order'), button:has-text('Create order')");
   await page.waitForSelector("button:has-text('Upload payment proof')", { timeout: 15000 });
+  return true;
 }
 
 test("the chat shows the privacy note", async () => {
@@ -55,28 +57,46 @@ test("the chat shows the privacy note", async () => {
   assert.deepEqual(errors, []);
 });
 
-test("reporting a payment problem confirms it, and a second attempt says one is already open", async () => {
+test("a payment problem shows no notice and does not block app issues", async (t) => {
   const { page, errors } = await newCustomer();
-  await createOrder(page);
+  if (!(await createOrder(page))) return t.skip("the store is not taking orders right now");
   await click(page, "Problem?");
   await page.fill("textarea", "Payment problem in the end-to-end test.");
   await click(page, "Send report");
   await wait(2500);
-  assert.ok(await page.isVisible("text=Your request is submitted"), "right after sending, the request is confirmed");
+  assert.equal(await page.locator("text=Your request is submitted").count(), 0, "no notice under the chat");
   assert.equal(await page.locator("text=You already have an open request").count(), 0);
 
   await click(page, "Main menu");
   await click(page, "Customer Support");
   await click(page, "Other issues");
+  if (await page.isVisible("text=can't take new requests")) return t.skip("the store is not taking requests right now");
+  assert.ok(await page.isVisible("textarea"), "an app issue can still be sent");
+  assert.deepEqual(errors, []);
+});
+
+test("a second app issue while one is open says one is already open", async (t) => {
+  const { page, errors } = await newCustomer();
+  await click(page, "Customer Support");
+  await click(page, "Other issues");
+  if (!(await page.isVisible("textarea"))) return t.skip("the store is not taking requests right now");
+  await page.fill("textarea", "First app issue in the end-to-end test.");
+  await (await page.$("input[type=file]")).setInputFiles({ name: "issue.png", mimeType: "image/png", buffer: tinyPng });
+  await click(page, "Send to our team");
+  await wait(2500);
+  assert.equal(await page.locator("text=You already have an open request").count(), 0, "nothing extra right after sending");
+
+  await click(page, "Main menu");
+  await click(page, "Customer Support");
+  await click(page, "Other issues");
   assert.equal(await page.locator("text=You already have an open request. You can send a new one once it is resolved.").count(), 1, "said once, under the chat");
-  assert.equal(await page.locator("text=You already have an open request").count(), 1, "nothing added to the chat");
   assert.ok(!(await page.isVisible("textarea")), "no message box while a request is open");
   assert.deepEqual(errors, []);
 });
 
-test("buying again while an order is pending shows the pending notice, not a message box", async () => {
+test("buying again while an order is pending shows the pending notice, not a message box", async (t) => {
   const { page, errors } = await newCustomer();
-  await createOrder(page);
+  if (!(await createOrder(page))) return t.skip("the store is not taking orders right now");
   await click(page, "Upload payment proof");
   await (await page.$("input[type=file]")).setInputFiles({ name: "receipt.png", mimeType: "image/png", buffer: tinyPng });
   await page.fill("input[placeholder*='Name on the account']", "Ali Raza");
@@ -91,11 +111,11 @@ test("buying again while an order is pending shows the pending notice, not a mes
   assert.deepEqual(errors, []);
 });
 
-test("a picked screenshot opens full size and closes again", async () => {
+test("a picked screenshot opens full size and closes again", async (t) => {
   const { page, errors } = await newCustomer();
   await click(page, "Customer Support");
   await click(page, "Other issues");
-  if (!(await page.isVisible("textarea"))) return; // Support is closed while the admin is away.
+  if (!(await page.isVisible("textarea"))) return t.skip("the store is not taking requests right now");
   await page.fill("textarea", "Screenshot viewer in the end-to-end test.");
   await (await page.$("input[type=file]")).setInputFiles({ name: "issue.png", mimeType: "image/png", buffer: tinyPng });
   await click(page, "Send to our team");

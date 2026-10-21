@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useIssueAutoResolve } from "@/hooks/useIssueAutoResolve";
 import { useOrderExpiry } from "@/hooks/useOrderExpiry";
 import AdminSidebar from "./layout/AdminSidebar";
 import Toasts from "./layout/Toasts";
@@ -18,7 +17,6 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   useOrderExpiry();
-  useIssueAutoResolve(true);
 
   const navigate = (next: NavTarget) => {
     setTarget(next);

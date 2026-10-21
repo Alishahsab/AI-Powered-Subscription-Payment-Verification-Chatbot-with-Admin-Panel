@@ -33,13 +33,13 @@ export default function IssueStatus({ customerId, agentReplied }: IssueStatusPro
     );
   }
 
-  // Right after sending, confirm the request; after a second attempt, say one is already open.
+  // Right after sending, the chat already confirms the request. The notice only answers a second attempt.
   const lastCustomerMessage = state.messages.filter((message) => message.customerId === customerId && message.sender === "customer").at(-1);
   const triedAgain = lastCustomerMessage?.text === OTHER_ISSUES_LABEL && lastCustomerMessage.createdAt > ticket.createdAt;
 
   return (
     <div className="max-w-[560px] mx-auto">
-      <Notice icon={<Clock size={17} />}>{triedAgain ? OPEN_REQUEST_NOTICE : support.waitingMessage}</Notice>
+      {triedAgain && <Notice icon={<Clock size={17} />}>{OPEN_REQUEST_NOTICE}</Notice>}
       <BackToMenuButton customerId={customerId} />
     </div>
   );
