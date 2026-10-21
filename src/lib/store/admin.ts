@@ -1,7 +1,7 @@
 import { createTemporaryClient, getSupabase } from "../supabase/client";
 import { sendEmailCopy } from "../supabase/email";
 import { deleteScreenshots, uploadScreenshot } from "../supabase/screenshots";
-import type { AdminStatus, AppState, Message } from "../types";
+import type { AdminStatus, AppState, Message, Ticket } from "../types";
 import { extractCode } from "../validation";
 import { ADMIN_CANCEL_REASON, addMessage, botText, extractCodes, findCustomerEmail, liftPaymentPause } from "./helpers";
 import { getState, updateState } from "./state";
@@ -272,6 +272,23 @@ function markNotificationsRead(state: AppState, customerId: string) {
   for (const notification of state.notifications) {
     if (notification.customerId === customerId) notification.read = true;
   }
+}
+
+// A payment issue ends when "Wait after a payment problem" has passed since it was sent.
+export function paymentIssueEndsAt(state: AppState, ticket: Ticket) {
+  return ticket.createdAt + state.settings.timers.retryMinutes * 60_000;
+}
+
+const hasEnded = (state: AppState, ticket: Ticket, now: number) => ticket.kind === "payment" && ticket.status === "open" && paymentIssueEndsAt(state, ticket) <= now;
+
+// Closes payment issues the moment their wait ends while the panel is open; the server does it too, every minute.
+export function closeEndedPaymentIssues() {
+  const now = Date.now();
+  const state = getState();
+  if (!state.tickets.some((ticket) => hasEnded(state, ticket, now))) return;
+  updateState((draft) => {
+    for (const ticket of draft.tickets) if (hasEnded(draft, ticket, now)) ticket.status = "resolved";
+  });
 }
 
 export function markConversationRead(customerId: string) {

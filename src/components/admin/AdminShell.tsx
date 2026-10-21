@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useOrderExpiry } from "@/hooks/useOrderExpiry";
 import AdminSidebar from "./layout/AdminSidebar";
+import PaymentIssueTimer from "./layout/PaymentIssueTimer";
 import Toasts from "./layout/Toasts";
 import TopBar from "./layout/TopBar";
 import type { NavTarget } from "./navigation";
@@ -56,6 +57,7 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
       </div>
 
       <Toasts onNavigate={navigate} />
+      <PaymentIssueTimer />
     </div>
   );
 }

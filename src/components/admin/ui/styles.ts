@@ -10,7 +10,8 @@ export const actionButton = {
   primary: `${actionBase} bg-[#0C2660] hover:bg-[#0a1f52] text-white`,
   neutral: `${actionBase} border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50`,
   approve: `${actionBase} bg-emerald-600 hover:bg-emerald-700 text-white`,
-  reject: `${actionBase} bg-red-600 hover:bg-red-700 text-white`,
+  // A muted red, as soft on the eyes as the approve green.
+  reject: `${actionBase} bg-[#b84a45] hover:bg-[#a2403b] text-white`,
   cancel: `${actionBase} border border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100`,
   softDanger: `${actionBase} border border-red-200 bg-red-50 text-red-700 hover:bg-red-100`,
   unused: `${actionBase} bg-violet-600 hover:bg-violet-700 text-white`,
