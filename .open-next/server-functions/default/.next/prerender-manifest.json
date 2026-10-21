@@ -2,12 +2,10 @@
   "version": 4,
   "routes": {
     "/": {
-      "renderingMode": "PARTIALLY_STATIC",
       "routeType": "page",
       "response": "complete",
       "compute": "static",
-      "htmlSize": 6991,
-      "experimentalPPR": true,
+      "htmlSize": 6805,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -17,17 +15,11 @@
           "type": "header",
           "key": "content-type",
           "value": "multipart/form-data;.*"
-        },
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(?:[\\w-]+-Google|Google-[\\w-]+|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight).*"
         }
       ],
       "initialRevalidateSeconds": false,
       "srcRoute": "/",
       "dataRoute": "/index.rsc",
-      "prefetchDataRoute": "/index.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -38,12 +30,10 @@
       ]
     },
     "/_global-error": {
-      "renderingMode": "PARTIALLY_STATIC",
       "routeType": "page",
       "response": "complete",
       "compute": "static",
-      "htmlSize": 9346,
-      "experimentalPPR": true,
+      "htmlSize": 8999,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -53,17 +43,11 @@
           "type": "header",
           "key": "content-type",
           "value": "multipart/form-data;.*"
-        },
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(?:[\\w-]+-Google|Google-[\\w-]+|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight).*"
         }
       ],
       "initialRevalidateSeconds": false,
       "srcRoute": "/_global-error",
       "dataRoute": "/_global-error.rsc",
-      "prefetchDataRoute": "/_global-error.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -75,12 +59,10 @@
     },
     "/_not-found": {
       "initialStatus": 404,
-      "renderingMode": "PARTIALLY_STATIC",
       "routeType": "page",
       "response": "complete",
       "compute": "static",
-      "htmlSize": 9110,
-      "experimentalPPR": true,
+      "htmlSize": 8776,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -90,17 +72,11 @@
           "type": "header",
           "key": "content-type",
           "value": "multipart/form-data;.*"
-        },
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(?:[\\w-]+-Google|Google-[\\w-]+|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight).*"
         }
       ],
       "initialRevalidateSeconds": false,
       "srcRoute": "/_not-found",
       "dataRoute": "/_not-found.rsc",
-      "prefetchDataRoute": "/_not-found.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -111,12 +87,10 @@
       ]
     },
     "/admin": {
-      "renderingMode": "PARTIALLY_STATIC",
       "routeType": "page",
       "response": "complete",
       "compute": "static",
-      "htmlSize": 7657,
-      "experimentalPPR": true,
+      "htmlSize": 7441,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -126,17 +100,11 @@
           "type": "header",
           "key": "content-type",
           "value": "multipart/form-data;.*"
-        },
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(?:[\\w-]+-Google|Google-[\\w-]+|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight).*"
         }
       ],
       "initialRevalidateSeconds": false,
       "srcRoute": "/admin",
       "dataRoute": "/admin.rsc",
-      "prefetchDataRoute": "/admin.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -152,7 +120,6 @@
         "content-type": "image/png",
         "x-next-cache-tags": "_N_T_/layout,_N_T_/apple-icon.png/layout,_N_T_/apple-icon.png/route,_N_T_/apple-icon.png"
       },
-      "renderingMode": "STATIC",
       "routeType": "route",
       "response": "complete",
       "compute": "static",
@@ -185,7 +152,6 @@
         "content-type": "image/png",
         "x-next-cache-tags": "_N_T_/layout,_N_T_/icon.png/layout,_N_T_/icon.png/route,_N_T_/icon.png"
       },
-      "renderingMode": "STATIC",
       "routeType": "route",
       "response": "complete",
       "compute": "static",
@@ -213,12 +179,10 @@
       ]
     },
     "/reset-pin": {
-      "renderingMode": "PARTIALLY_STATIC",
       "routeType": "page",
       "response": "complete",
       "compute": "static",
-      "htmlSize": 7519,
-      "experimentalPPR": true,
+      "htmlSize": 7317,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -228,17 +192,11 @@
           "type": "header",
           "key": "content-type",
           "value": "multipart/form-data;.*"
-        },
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(?:[\\w-]+-Google|Google-[\\w-]+|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight).*"
         }
       ],
       "initialRevalidateSeconds": false,
       "srcRoute": "/reset-pin",
       "dataRoute": "/reset-pin.rsc",
-      "prefetchDataRoute": "/reset-pin.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
