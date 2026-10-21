@@ -194,6 +194,7 @@ function startBuying(state: AppState, customerId: string) {
 }
 
 export function chooseMenuOption(customerId: string, option: MenuOption) {
+  if (botIsReplying(customerId)) return;
   updateState((state) => {
     addMessage(state, customerId, "customer", menuLabels[option]);
   });
@@ -209,6 +210,7 @@ export function chooseMenuOption(customerId: string, option: MenuOption) {
 }
 
 export function choosePlan(customerId: string, planId: string) {
+  if (botIsReplying(customerId)) return;
   const plan = getState().plans.find((item) => item.id === planId);
   if (!plan) return;
 
@@ -224,6 +226,7 @@ export function choosePlan(customerId: string, planId: string) {
 }
 
 export function chooseMethod(customerId: string, methodId: string) {
+  if (botIsReplying(customerId)) return;
   const method = getState().methods.find((item) => item.id === methodId);
   if (!method) return;
 
@@ -240,6 +243,7 @@ export function chooseMethod(customerId: string, methodId: string) {
 }
 
 export function showHowItWorks(customerId: string) {
+  if (botIsReplying(customerId)) return;
   updateState((state) => {
     addMessage(state, customerId, "customer", "How does it work?");
   });
@@ -250,6 +254,7 @@ export function showHowItWorks(customerId: string) {
 }
 
 export function createOrder(customerId: string) {
+  if (botIsReplying(customerId)) return;
   updateState((state) => {
     addMessage(state, customerId, "customer", "Create order");
   });
@@ -286,6 +291,7 @@ export function createOrder(customerId: string) {
 }
 
 export function cancelOrder(customerId: string) {
+  if (botIsReplying(customerId)) return;
   let cooldownStarted = false;
 
   updateState((state) => {
@@ -402,6 +408,7 @@ export async function reportPaymentIssue(customerId: string, description: string
 }
 
 export function askFaq(customerId: string, faqId: string) {
+  if (botIsReplying(customerId)) return;
   const faq = getState().faqs.find((item) => item.id === faqId);
   if (!faq) return;
 
@@ -414,9 +421,15 @@ export function askFaq(customerId: string, faqId: string) {
   });
 }
 
+// A second tap while the bot is still answering the first one is ignored (no double orders or messages).
+function botIsReplying(customerId: string) {
+  return Boolean(getState().conversations[customerId]?.typing);
+}
+
 export const OTHER_ISSUES_LABEL = "Other issues";
 
 export function chooseOtherIssue(customerId: string) {
+  if (botIsReplying(customerId)) return;
   updateState((state) => {
     addMessage(state, customerId, "customer", OTHER_ISSUES_LABEL);
   });
@@ -521,6 +534,7 @@ const previousStep: Partial<Record<Stage, { stage: Stage; prompt: string }>> = {
 };
 
 export function goBack(customerId: string) {
+  if (botIsReplying(customerId)) return;
   const conversation = getState().conversations[customerId];
   const step = conversation ? previousStep[conversation.stage] : undefined;
   if (!step) {
@@ -539,6 +553,7 @@ export function goBack(customerId: string) {
 }
 
 export function backToMenu(customerId: string) {
+  if (botIsReplying(customerId)) return;
   updateState((state) => {
     addMessage(state, customerId, "customer", "Main menu");
   });
@@ -556,10 +571,9 @@ export function repliesLeftAfterRejection(state: AppState, customerId: string) {
   const order = state.orders.filter((item) => item.customerId === customerId && item.status === "rejected").sort((a, b) => (b.reviewedAt ?? 0) - (a.reviewedAt ?? 0))[0];
   if (!order) return 0;
 
-  const messages = state.messages.filter((message) => message.customerId === customerId);
-  const lastAdminReply = messages.filter((message) => message.sender === "admin").at(-1)?.createdAt ?? 0;
-  const since = Math.max(order.reviewedAt ?? 0, lastAdminReply);
-  const sent = messages.filter((message) => message.sender === "customer" && message.kind === "text" && message.createdAt > since).length;
+  // Counted from the rejection only: a message from the admin does not open another reply.
+  const since = order.reviewedAt ?? 0;
+  const sent = state.messages.filter((message) => message.customerId === customerId && message.sender === "customer" && message.kind === "text" && message.createdAt > since).length;
   return Math.max(0, state.settings.limits.repliesAfterRejection - sent);
 }
 

@@ -111,6 +111,19 @@ test("buying again while an order is pending shows the pending notice, not a mes
   assert.deepEqual(errors, []);
 });
 
+test("tapping create order twice makes only one order", async (t) => {
+  const { page, errors } = await newCustomer();
+  await click(page, "Buy a Subscription");
+  if (!(await page.isVisible("button:has-text('1 Month')"))) return t.skip("the store is not taking orders right now");
+  await click(page, "1 Month");
+  await click(page, "JazzCash");
+  await page.dblclick("button:has-text('I agree, create order')");
+  await wait(3000);
+  assert.equal(await page.locator("text=/^Order PS-/i").count(), 1, "one payment card");
+  assert.equal(await page.locator("text=Create order").count(), 1, "one Create order message");
+  assert.deepEqual(errors, []);
+});
+
 test("a picked screenshot opens full size and closes again", async (t) => {
   const { page, errors } = await newCustomer();
   await click(page, "Customer Support");

@@ -13,7 +13,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
   const now = useNow(30_000);
 
   const activeOrders = countBotFilters(state, now).active_orders;
-  const pendingOrders = state.orders.filter((order) => order.status === "pending_review");
+  const pendingOrders = state.orders.filter((order) => order.status === "pending_review" || order.status === "rejected");
   const openIssues = state.tickets.filter((ticket) => ticket.status === "open" && ticket.kind === "support");
   const inactiveAfter = state.settings.timers.inactiveMinutes * 60_000;
   const activeChats = state.customers.filter((customer) => now - customer.lastSeenAt < inactiveAfter);

@@ -16,7 +16,7 @@ type DisappearingLogoProps = {
 export default function DisappearingLogo({ size, className = "" }: DisappearingLogoProps) {
   const [open, setOpen] = useState(false);
   const wrapper = useRef<HTMLDivElement>(null);
-  const badge = Math.round(size * 0.46);
+  const badge = Math.round(size * 0.55);
 
   useEffect(() => {
     if (!open) return;
@@ -36,10 +36,10 @@ export default function DisappearingLogo({ size, className = "" }: DisappearingL
       <button type="button" onClick={() => setOpen(!open)} className="block" aria-label="Disappearing messages" aria-expanded={open}>
         <BrandIcon size={size} className={className} />
         <span
-          className="absolute -bottom-1 -right-1 grid place-items-center rounded-full bg-[var(--surface)] text-[var(--accent)] ring-2 ring-[var(--surface)] shadow-sm"
+          className="absolute -bottom-1.5 -right-1.5 grid place-items-center rounded-full bg-[var(--accent)] text-[var(--accent-ink)] ring-2 ring-[var(--surface)] shadow-md"
           style={{ width: badge, height: badge }}
         >
-          <Timer size={Math.round(badge * 0.72)} strokeWidth={2.4} />
+          <Timer size={Math.round(badge * 0.66)} strokeWidth={2.6} />
         </span>
       </button>
       {open && (

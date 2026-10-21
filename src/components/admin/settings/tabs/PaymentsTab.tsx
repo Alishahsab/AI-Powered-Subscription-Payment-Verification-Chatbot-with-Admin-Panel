@@ -84,7 +84,7 @@ export default function PaymentsTab({ draft, updateDraft }: SettingsTabProps) {
         </div>
       </SettingsSection>
 
-      <SettingsSection title="How does it work?" description="Answer shown when a customer taps How does it work? before ordering.">
+      <SettingsSection title="How does it work?" description="Answer shown when a customer taps How does it work? before ordering. Use {timer} for the payment time, so it always matches Timers & limits.">
         <textarea rows={5} maxLength={limits.longTextMax} value={draft.settings.howItWorks} onChange={(event) => updateDraft((next) => (next.settings.howItWorks = event.target.value))} className={textareaClass} />
       </SettingsSection>
 

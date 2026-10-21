@@ -36,6 +36,19 @@ export default function ChatScreen({ customer, onSignOut }: ChatScreenProps) {
     if (document.visibilityState === "visible") markMessagesSeen(customer.id);
   }, [customer.id, messages.length]);
 
+  // Coming back to the tab or the app also counts as seeing the admin's messages.
+  useEffect(() => {
+    const markSeen = () => {
+      if (document.visibilityState === "visible") markMessagesSeen(customer.id);
+    };
+    document.addEventListener("visibilitychange", markSeen);
+    window.addEventListener("focus", markSeen);
+    return () => {
+      document.removeEventListener("visibilitychange", markSeen);
+      window.removeEventListener("focus", markSeen);
+    };
+  }, [customer.id]);
+
   if (!conversation) return null;
 
   return (
