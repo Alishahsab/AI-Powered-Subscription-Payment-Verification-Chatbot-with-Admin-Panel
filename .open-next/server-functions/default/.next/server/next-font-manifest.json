@@ -1,0 +1,19 @@
+{
+  "app": {
+    "[project]/src/app/_not-found/page": [
+      "static/media/ab57efd000576a30-s.p.3fofz6dws3mg0.woff2"
+    ],
+    "[project]/src/app/admin/page": [
+      "static/media/ab57efd000576a30-s.p.3fofz6dws3mg0.woff2"
+    ],
+    "[project]/src/app/page": [
+      "static/media/ab57efd000576a30-s.p.3fofz6dws3mg0.woff2"
+    ],
+    "[project]/src/app/reset-pin/page": [
+      "static/media/ab57efd000576a30-s.p.3fofz6dws3mg0.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pages": {},
+  "pagesUsingSizeAdjust": false
+}

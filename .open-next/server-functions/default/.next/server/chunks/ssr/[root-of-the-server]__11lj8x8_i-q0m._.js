@@ -1,0 +1,3 @@
+module.exports=[34270,(a,b,c)=>{b.exports=a.x("next/dist/server/app-render/module-loading/track-module-loading.external.js",()=>require("next/dist/server/app-render/module-loading/track-module-loading.external.js"))},33354,(a,b,c)=>{"use strict";c._=function(a){return a&&a.__esModule?a:{default:a}}},52668,a=>{"use strict";a.i(66281);var b=a.i(87924);let c=(0,a.i(19721).default)(async()=>{},{loadableGenerated:{modules:[85860]},ssr:!1,loading:()=>(0,b.jsx)("div",{className:"min-h-dvh bg-[#eceef2]"})});a.s(["default",0,function(){return(0,b.jsx)(c,{})}])}];
+
+//# sourceMappingURL=%5Broot-of-the-server%5D__11lj8x8_i-q0m._.js.map
