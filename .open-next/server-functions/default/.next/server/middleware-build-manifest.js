@@ -1,0 +1,80 @@
+globalThis.__BUILD_MANIFEST = {
+  "pages": {
+    "/_app": []
+  },
+  "devFiles": [],
+  "polyfillFiles": [
+    "static/chunks/0cz1d0mv5g_q7.js"
+  ],
+  "lowPriorityFiles": [
+    "static/l-0x--1fnx0EW0L2fS15I/_buildManifest.js",
+    "static/l-0x--1fnx0EW0L2fS15I/_ssgManifest.js",
+    "static/l-0x--1fnx0EW0L2fS15I/_clientMiddlewareManifest.js"
+  ],
+  "rootMainFiles": [
+    "static/chunks/1x6obpmlu1_c2.js",
+    "static/chunks/2n86e7h60o0qo.js",
+    "static/chunks/2khxl0v1q4i6n.js",
+    "static/chunks/2pgxx1eld5ef_.js",
+    "static/chunks/turbopack-3-ry682tkyiqk.js"
+  ],
+  "rootMainFilesTree": {},
+  "pagesChunkGroupBootstrapParams": {
+    "/page": {
+      "otherChunks": [
+        "static/chunks/1x6obpmlu1_c2.js",
+        "static/chunks/2n86e7h60o0qo.js",
+        "static/chunks/2khxl0v1q4i6n.js",
+        "static/chunks/2pgxx1eld5ef_.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/_not-found/page": {
+      "otherChunks": [
+        "static/chunks/1x6obpmlu1_c2.js",
+        "static/chunks/2n86e7h60o0qo.js",
+        "static/chunks/2khxl0v1q4i6n.js",
+        "static/chunks/2pgxx1eld5ef_.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/_global-error/page": {
+      "otherChunks": [
+        "static/chunks/1x6obpmlu1_c2.js",
+        "static/chunks/2n86e7h60o0qo.js",
+        "static/chunks/2khxl0v1q4i6n.js",
+        "static/chunks/2pgxx1eld5ef_.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/admin/page": {
+      "otherChunks": [
+        "static/chunks/1x6obpmlu1_c2.js",
+        "static/chunks/2n86e7h60o0qo.js",
+        "static/chunks/2khxl0v1q4i6n.js",
+        "static/chunks/2pgxx1eld5ef_.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/reset-pin/page": {
+      "otherChunks": [
+        "static/chunks/1x6obpmlu1_c2.js",
+        "static/chunks/2n86e7h60o0qo.js",
+        "static/chunks/2khxl0v1q4i6n.js",
+        "static/chunks/2pgxx1eld5ef_.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    }
+  },
+  "chunkLoadingGlobal": "TURBOPACK"
+};
