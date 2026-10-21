@@ -80,7 +80,7 @@ export function createDefaultConfig(): StoreConfig {
         "Please make sure you're logged in with the same Gmail in the app.",
       ],
       support: {
-        waitingMessage: "Your request is submitted. Our admin will reply here soon.",
+        waitingMessage: "You already have an open request. Please wait for our reply.",
         stillFacingLabel: "Still facing the issue",
         resolvedLabel: "Resolved",
         issueScreenshotRequired: true,

@@ -19,7 +19,7 @@ export const defaultBotMessages: BotMessages = {
   describeIssue: "Please describe your issue and attach a screenshot.",
   issueResolvedByCustomer: "Glad it's sorted. Anything else we can help with?",
   issueResolvedByAdmin: "Your request {ticket_id} has been marked as resolved. If you need anything else, choose Customer Support from the menu.",
-  openRequestExists: "You already have an open request ({ticket_id}). Please wait for our reply here before sending a new one.",
+  openRequestExists: "You already have an open request. Please wait for our reply here before sending a new one.",
   issueAutoResolved: "Your request {ticket_id} has been resolved because there was no reply for a while. If you still need help, choose Customer Support from the menu.",
 };
 
@@ -66,7 +66,7 @@ export const botMessageGroups: { title: string; tab: MessageTab; fields: Message
     fields: [
       { key: "supportIntro", label: "Customer opens Support" },
       { key: "describeIssue", label: "Customer chooses Other issues" },
-      { key: "openRequestExists", label: "Customer opens Support while a request is still open", variables: "{ticket_id}" },
+      { key: "openRequestExists", label: "Customer opens Support while a request is still open" },
       { key: "issueResolvedByCustomer", label: "Customer marks the request resolved" },
       { key: "issueResolvedByAdmin", label: "You mark the request resolved", variables: "{ticket_id}" },
       { key: "issueAutoResolved", label: "Request resolved after no reply", variables: "{ticket_id}" },

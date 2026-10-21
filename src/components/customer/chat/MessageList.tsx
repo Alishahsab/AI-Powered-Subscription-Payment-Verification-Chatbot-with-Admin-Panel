@@ -74,7 +74,7 @@ function PrivacyNote() {
   return (
     <div className="mx-auto my-4 w-fit max-w-full text-center text-[12px] leading-snug text-[var(--muted)] bg-[var(--surface)] border border-[var(--line)] rounded-2xl px-3.5 py-1.5">
       <Lock size={12} className="inline -mt-0.5 mr-1" />
-      Private chat, visible only to you and Premium Store. Messages are deleted after 15 days.
+      Private chat. Messages are deleted after 15 days.
     </div>
   );
 }

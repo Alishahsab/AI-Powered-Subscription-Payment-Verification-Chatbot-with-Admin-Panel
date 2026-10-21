@@ -6,10 +6,10 @@ import { classNames, formatDateTime } from "@/lib/format";
 import { setTicketResolved } from "@/lib/store/admin";
 import type { Ticket } from "@/lib/types";
 import ConfirmDialog from "../ui/ConfirmDialog";
+import { actionButton } from "../ui/styles";
 import ReplyDialog from "./ReplyDialog";
 
 export default function TicketCard({ ticket }: { ticket: Ticket }) {
-  const [zoomed, setZoomed] = useState(false);
   const [replying, setReplying] = useState(false);
   const [confirmingResolve, setConfirmingResolve] = useState(false);
   const isOpen = ticket.status === "open";
@@ -30,9 +30,9 @@ export default function TicketCard({ ticket }: { ticket: Ticket }) {
         <div className="flex items-start justify-between gap-3">
           <dd className="min-w-0 text-zinc-800 leading-relaxed break-words">{ticket.message}</dd>
           {ticket.screenshot && (
-            <button onClick={() => setZoomed(true)} className="shrink-0 block size-16 rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50 hover:ring-2 hover:ring-[#0C2660]/30 transition" title="Open screenshot">
-              <StoredImage path={ticket.screenshot} alt="Issue screenshot" className="size-full object-cover object-top" />
-            </button>
+            <div className="shrink-0 size-16 rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50 hover:ring-2 hover:ring-[#0C2660]/30 transition">
+              <StoredImage zoomable path={ticket.screenshot} alt="Issue screenshot" className="size-full object-cover object-top" />
+            </div>
           )}
         </div>
         {ticket.orderId && <Row label="Order" value={ticket.orderId} />}
@@ -40,11 +40,14 @@ export default function TicketCard({ ticket }: { ticket: Ticket }) {
       </dl>
 
       {isOpen && (
-        <div className="px-4 pb-4 grid grid-cols-2 gap-1.5">
-          <button onClick={() => setReplying(true)} className="h-9 rounded-xl border border-zinc-200 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center justify-center gap-1.5 transition">
-            Reply
-          </button>
-          <button onClick={() => setConfirmingResolve(true)} className="h-9 rounded-xl bg-[#0C2660] hover:bg-[#0a1f52] text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
+        // Payment problems are only closed from here; app issues can also be answered.
+        <div className={classNames("px-4 pb-4 grid gap-2", ticket.kind === "support" ? "grid-cols-2" : "grid-cols-1")}>
+          {ticket.kind === "support" && (
+            <button onClick={() => setReplying(true)} className={actionButton.neutral}>
+              Reply
+            </button>
+          )}
+          <button onClick={() => setConfirmingResolve(true)} className={actionButton.primary}>
             Resolved
           </button>
         </div>
@@ -55,11 +58,6 @@ export default function TicketCard({ ticket }: { ticket: Ticket }) {
         <ConfirmDialog description={`${ticket.id} will be closed and the customer will be told it is resolved.`} confirmLabel="Yes, resolve" onConfirm={() => setTicketResolved(ticket.id, true)} onClose={() => setConfirmingResolve(false)} />
       )}
 
-      {zoomed && ticket.screenshot && (
-        <div className="fixed inset-0 z-50 bg-black/80 grid place-items-center p-6 fade-in" onClick={() => setZoomed(false)}>
-          <StoredImage path={ticket.screenshot} alt="Issue screenshot" className="max-h-full max-w-full rounded-lg" />
-        </div>
-      )}
     </div>
   );
 }

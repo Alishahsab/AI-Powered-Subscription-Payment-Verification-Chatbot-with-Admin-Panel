@@ -8,6 +8,7 @@ import { cancelOrderAsAdmin, setCodeUnused } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import type { Order } from "@/lib/types";
 import ConfirmDialog from "../ui/ConfirmDialog";
+import { actionButton } from "../ui/styles";
 import { orderStatusBadge } from "../ui/orderStatus";
 import ApproveDialog from "./ApproveDialog";
 import RejectDialog from "./RejectDialog";
@@ -27,7 +28,6 @@ type OrderReviewProps = {
 };
 
 export default function OrderReview({ order, customerEmail }: OrderReviewProps) {
-  const [zoomed, setZoomed] = useState(false);
   const [dialog, setDialog] = useState<"approve" | "reject" | "cancel" | "unused" | null>(null);
   const badge = orderStatusBadge[order.status];
   const isPending = order.status === "pending_review" || order.status === "rejected";
@@ -52,9 +52,9 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
           <dt className="text-zinc-500 pt-1">Screenshot</dt>
           <dd>
             {order.screenshot ? (
-              <button onClick={() => setZoomed(true)} className="block size-16 rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50 hover:ring-2 hover:ring-[#0C2660]/30 transition" title="Open screenshot">
-                <StoredImage path={order.screenshot} alt="Payment screenshot" className="size-full object-cover object-top" />
-              </button>
+              <div className="size-16 rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50 hover:ring-2 hover:ring-[#0C2660]/30 transition">
+                <StoredImage zoomable path={order.screenshot} alt="Payment screenshot" className="size-full object-cover object-top" />
+              </div>
             ) : (
               <span className="font-medium text-zinc-400">None</span>
             )}
@@ -76,13 +76,13 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
 
       {isPending && (
         <div className="px-4 pb-4 grid grid-cols-3 gap-2">
-          <button onClick={() => setDialog("approve")} className="h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13.5px] font-semibold transition">
+          <button onClick={() => setDialog("approve")} className={actionButton.success}>
             Approve
           </button>
-          <button onClick={() => setDialog("reject")} className="h-10 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-[13.5px] font-semibold transition">
+          <button onClick={() => setDialog("reject")} className={actionButton.danger}>
             Reject
           </button>
-          <button onClick={() => setDialog("cancel")} className="h-10 rounded-xl border border-zinc-200 text-zinc-600 hover:bg-zinc-100 text-[13.5px] font-semibold transition">
+          <button onClick={() => setDialog("cancel")} className={actionButton.neutral}>
             Cancel
           </button>
         </div>
@@ -118,22 +118,17 @@ export default function OrderReview({ order, customerEmail }: OrderReviewProps) 
       {order.status === "completed" && order.code && (
         <div className="px-4 pb-4">
           {order.codeUnused ? (
-            <button onClick={() => setDialog("unused")} className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
+            <button onClick={() => setDialog("unused")} className={`w-full ${actionButton.success}`}>
               Mark as used
             </button>
           ) : (
-            <button onClick={() => setDialog("unused")} className="w-full h-10 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 text-[13px] font-semibold flex items-center justify-center gap-1.5 transition">
+            <button onClick={() => setDialog("unused")} className={`w-full ${actionButton.warning}`}>
               Mark as unused
             </button>
           )}
         </div>
       )}
 
-      {zoomed && order.screenshot && (
-        <div className="fixed inset-0 z-50 bg-black/80 grid place-items-center p-6 fade-in" onClick={() => setZoomed(false)}>
-          <StoredImage path={order.screenshot} alt="Payment screenshot" className="max-h-full max-w-full rounded-lg" />
-        </div>
-      )}
     </div>
   );
 }

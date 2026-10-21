@@ -94,7 +94,7 @@ function activeItems(state: AppState, now: number): InboxItem[] {
 function pendingItems(state: AppState, now: number): InboxItem[] {
   return state.orders
     .filter(isPending)
-    .sort((a, b) => (a.submittedAt ?? 0) - (b.submittedAt ?? 0))
+    .sort((a, b) => (b.submittedAt ?? b.createdAt) - (a.submittedAt ?? a.createdAt))
     .map((order) => {
       const submitted = order.submittedAt ?? order.createdAt;
       const badge: InboxItem["badge"] =

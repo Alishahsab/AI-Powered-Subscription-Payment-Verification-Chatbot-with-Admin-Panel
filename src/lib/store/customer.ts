@@ -164,8 +164,8 @@ function startBuying(state: AppState, customerId: string) {
 
   const pendingOrder = state.orders.find((order) => order.customerId === customerId && (order.status === "pending_review" || order.status === "rejected"));
   if (pendingOrder) {
-    addMessage(state, customerId, "bot", botText(state, "orderPendingReview", { order_id: pendingOrder.id }));
-    conversation.stage = "menu";
+    // Shown as a notice under the chat (like an open support request), not as a chat message.
+    conversation.stage = pendingOrder.status === "rejected" ? "rejected" : "live";
     return;
   }
 
@@ -464,13 +464,6 @@ export async function submitSupportIssue(customerId: string, description: string
   replyAsBot(customerId, (state) => {
     addMessage(state, customerId, "bot", fillPlaceholders(state.settings.supportMessages.active, state).replaceAll("{ticket_id}", ticketId));
     state.conversations[customerId].stage = "waiting_agent";
-  });
-}
-
-export function sendCustomerMessage(customerId: string, text: string) {
-  updateState((state) => {
-    addMessage(state, customerId, "customer", text);
-    state.conversations[customerId].unreadByAdmin += 1;
   });
 }
 

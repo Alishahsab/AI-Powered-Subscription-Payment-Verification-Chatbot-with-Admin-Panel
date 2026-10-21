@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ArrowLeft, Search, Users } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
-import { formatMoney, timeAgo } from "@/lib/format";
+import { timeAgo } from "@/lib/format";
 import { customerNumberLabel, findLatestCode } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { Navigate } from "../navigation";
@@ -28,7 +28,6 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
       return {
         customer,
         orderCount: completed.length,
-        spent: completed.reduce((sum, order) => sum + order.amount, 0),
         code: findLatestCode(state, customer.id),
       };
     })
@@ -66,13 +65,12 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
                     <th className="font-medium px-3 py-2.5">Email</th>
                     <th className="font-medium px-3 py-2.5">Current code</th>
                     <th className="font-medium px-3 py-2.5">Orders</th>
-                    <th className="font-medium px-3 py-2.5">Spent</th>
                     <th className="font-medium px-3 py-2.5">Last active</th>
                     <th className="px-5 py-2.5" />
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map(({ customer, orderCount, spent, code }) => (
+                  {rows.map(({ customer, orderCount, code }) => (
                     <tr key={customer.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/70">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2">
@@ -99,7 +97,6 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
                         )}
                       </td>
                       <td className="px-3 py-3 tabular-nums">{orderCount}</td>
-                      <td className="px-3 py-3 tabular-nums">{formatMoney(spent)}</td>
                       <td className="px-3 py-3 text-zinc-500 whitespace-nowrap">{timeAgo(customer.lastSeenAt, now)}</td>
                       <td className="px-5 py-3">
                         <div className="flex justify-end gap-1.5">

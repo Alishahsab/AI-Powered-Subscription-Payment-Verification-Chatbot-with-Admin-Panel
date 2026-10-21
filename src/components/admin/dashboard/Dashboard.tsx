@@ -88,6 +88,8 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
           ))}
         </div>
 
+        <CompletedOrdersChart now={now} />
+
         <button
           onClick={() => onNavigate({ section: "customers" })}
           className="text-left bg-white rounded-xl border border-zinc-200/80 px-5 py-4 flex items-center gap-4 hover:border-zinc-300 transition"
@@ -102,7 +104,6 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
           <ArrowRight size={18} className="text-zinc-400" />
         </button>
 
-        <CompletedOrdersChart now={now} />
       </div>
     </div>
   );

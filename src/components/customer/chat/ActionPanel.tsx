@@ -11,7 +11,6 @@ import IssueComposer from "./actions/IssueComposer";
 import IssueFollowUp from "./actions/IssueFollowUp";
 import IssueStatus from "./actions/IssueStatus";
 import MenuOptions from "./actions/MenuOptions";
-import MessageComposer from "./actions/MessageComposer";
 import MethodOptions from "./actions/MethodOptions";
 import PaymentActions from "./actions/PaymentActions";
 import PendingOrderNotice from "./actions/PendingOrderNotice";
@@ -69,7 +68,8 @@ function StageActions({ customerId, conversation, onOpenSheet }: ActionPanelProp
       if (findOpenTicket(state, customerId)) return <IssueFollowUp customerId={customerId} />;
       const pendingOrder = state.orders.find((order) => order.customerId === customerId && (order.status === "pending_review" || order.status === "rejected"));
       if (pendingOrder) return <PendingOrderNotice customerId={customerId} order={pendingOrder} />;
-      return <MessageComposer customerId={customerId} />;
+      // Messages the admin sends from the inbox are read-only for the customer.
+      return <BackToMenuButton customerId={customerId} />;
     }
   }
 }

@@ -31,7 +31,7 @@ export default function StoredImage({ path, alt, className = "", zoomable = fals
 
   return (
     <>
-      <button type="button" onClick={() => setZoomed(true)} className="block w-full cursor-zoom-in" aria-label={`Open ${alt}`}>
+      <button type="button" onClick={() => setZoomed(true)} className="block w-full h-full cursor-zoom-in" aria-label={`Open ${alt}`}>
         <img src={url} alt={alt} className={className} />
       </button>
       {zoomed && <ImageViewer url={url} alt={alt} onClose={() => setZoomed(false)} />}
