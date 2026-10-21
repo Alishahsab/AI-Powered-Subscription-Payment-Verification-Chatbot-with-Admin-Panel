@@ -214,10 +214,21 @@ async function catchUp() {
     await pushQueue;
     const version = localVersion;
     const client = getActiveClient();
+    // Right after a phone wakes the tab, the sign-in may not be refreshed yet. A reload without it comes back
+    // empty or half loaded, so what is on screen is kept and the next return tries again.
+    const { data: auth } = await client.auth.getSession();
+    if (!auth.session) return;
     const data = await fetchEverything(client);
-    if (!activeRole) return;
+    if (!activeRole || !looksComplete(data)) return;
     if (version === localVersion) return applyEverything(client, data);
   }
+}
+
+// Every table loaded, and the customers did not vanish (which only happens when the request was not signed in).
+function looksComplete({ results }: Awaited<ReturnType<typeof fetchEverything>>) {
+  if (results.some((result) => result.error || !result.data)) return false;
+  const customers = results[tables.findIndex((table) => table.name === "customers")]?.data ?? [];
+  return customers.length > 0 || getState().customers.length === 0;
 }
 
 function handleVisibility() {
