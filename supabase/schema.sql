@@ -825,8 +825,7 @@ end;
 $$;
 
 -- Runs every minute.
--- Payment issues close when their wait ends. App issues that waited too long close while the admin is Active:
---   No admin reply since the request was sent  -> "issueClosedNoReply"
+-- Payment issues close when their wait ends. App issues close while the admin is Active, only after an admin reply:
 --   Admin replied, customer went quiet after it -> "issueAutoResolved" (timer starts at the admin reply)
 create or replace function public.close_idle_requests()
 returns int
@@ -860,25 +859,21 @@ begin
     from public.messages
     where customer_id = request.customer_id and sender = 'admin' and created_at > request.created_at;
 
-    if admin_reply is null then
-      if now_ms - request.created_at <= idle_ms then continue; end if;
-      message_key := 'issueClosedNoReply';
-      message_text := coalesce(settings -> 'messages' ->> message_key,
-        'Our admin is not available right now, so your request {ticket_id} has been closed. You can send a new one from Customer Support.');
-    else
-      -- The customer answered after the admin (Still facing the issue, then a message): it is the admin's turn.
-      -- Tapping elsewhere in the menu does not count as an answer.
-      select max(created_at) into customer_reply
-      from public.messages
-      where customer_id = request.customer_id and sender = 'customer' and created_at > admin_reply;
-      if customer_reply is not null and exists (
-        select 1 from public.conversations where customer_id = request.customer_id and stage in ('live', 'waiting_agent')
-      ) then continue; end if;
-      if now_ms - admin_reply <= idle_ms then continue; end if;
-      message_key := 'issueAutoResolved';
-      message_text := coalesce(settings -> 'messages' ->> message_key,
-        'Your request {ticket_id} has been resolved because there was no reply for a while. If you still need help, choose Customer Support from the menu.');
-    end if;
+    -- The timer starts only when the admin replies; a request without a reply stays open for the admin.
+    if admin_reply is null then continue; end if;
+
+    -- The customer answered after the admin (Still facing the issue, then a message): it is the admin's turn.
+    -- Tapping elsewhere in the menu does not count as an answer.
+    select max(created_at) into customer_reply
+    from public.messages
+    where customer_id = request.customer_id and sender = 'customer' and created_at > admin_reply;
+    if customer_reply is not null and exists (
+      select 1 from public.conversations where customer_id = request.customer_id and stage in ('live', 'waiting_agent')
+    ) then continue; end if;
+    if now_ms - admin_reply <= idle_ms then continue; end if;
+    message_key := 'issueAutoResolved';
+    message_text := coalesce(settings -> 'messages' ->> message_key,
+      'Your request {ticket_id} has been resolved because there was no reply for a while. If you still need help, choose Customer Support from the menu.');
 
     update public.tickets set status = 'resolved' where id = request.id;
     insert into public.messages (id, customer_id, sender, kind, text, created_at)
