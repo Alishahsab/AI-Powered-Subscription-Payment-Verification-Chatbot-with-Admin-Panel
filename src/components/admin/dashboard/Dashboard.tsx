@@ -12,11 +12,12 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
   const state = useAppState();
   const now = useNow(30_000);
 
-  const activeOrders = countBotFilters(state, now).active_orders;
+  // Same counts as the Active orders and Active chats filters in Bot chat.
+  const botCounts = countBotFilters(state, now);
+  const activeOrders = botCounts.active_orders;
   const pendingOrders = state.orders.filter((order) => order.status === "pending_review" || order.status === "rejected");
   const openIssues = state.tickets.filter((ticket) => ticket.status === "open" && ticket.kind === "support");
-  const inactiveAfter = state.settings.timers.inactiveMinutes * 60_000;
-  const activeChats = state.customers.filter((customer) => now - customer.lastSeenAt < inactiveAfter);
+  const activeChats = botCounts.active_chats;
 
   const stats: { label: string; value: string; note: string; icon: React.ReactNode; highlight?: boolean; target?: NavTarget }[] = [
     {
@@ -30,7 +31,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
     { label: "App issues", value: String(openIssues.length), note: "Open support requests", icon: <LifeBuoy size={17} />, target: { section: "inbox", tab: "issues" } },
     {
       label: "Active chats",
-      value: String(activeChats.length),
+      value: String(activeChats),
       note: `Active in the last ${state.settings.timers.inactiveMinutes} min`,
       icon: <MessageCircle size={17} />,
       target: { section: "bot", botFilter: "active_chats" },
