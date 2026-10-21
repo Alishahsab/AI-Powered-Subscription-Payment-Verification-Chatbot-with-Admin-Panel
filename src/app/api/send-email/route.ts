@@ -3,10 +3,10 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
 const resendKey = process.env.RESEND_API_KEY ?? "";
-const fromAddress = process.env.EMAIL_FROM ?? "Premium Store <onboarding@resend.dev>";
+const fromAddress = process.env.EMAIL_FROM ?? "Premium Store <no-reply@premiumstore.online>";
 
-// Change CHAT_URL in Vercel when the store gets its own domain.
-const chatUrl = process.env.CHAT_URL ?? "https://premium-store-nu.vercel.app/";
+// CHAT_URL on the host can point the button somewhere else.
+const chatUrl = process.env.CHAT_URL ?? "https://premiumstore.online/";
 const storeName = "Premium Store";
 
 const subject = `You have a new message from ${storeName}`;
