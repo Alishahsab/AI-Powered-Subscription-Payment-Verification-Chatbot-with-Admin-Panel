@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test \"tests/unit/*.test.ts\"",
     "test:security": "node --test \"tests/security/*.test.mjs\"",
-    "test:e2e": "node --test --test-concurrency=1 \"tests/e2e/*.test.mjs\""
+    "test:e2e": "node --test --test-concurrency=1 \"tests/e2e/*.test.mjs\"",
+    "build:worker": "opennextjs-cloudflare build",
+    "deploy": "opennextjs-cloudflare build && wrangler deploy"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
