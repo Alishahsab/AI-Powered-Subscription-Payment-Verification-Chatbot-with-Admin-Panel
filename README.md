@@ -19,6 +19,16 @@ npm run dev
 - Customer chatbot: http://localhost:3000
 - Admin panel: http://localhost:3000/admin
 
+## Cloudflare Workers
+
+Deploy with Node.js 22 or newer:
+
+```bash
+npm run deploy
+```
+
+Cache Components and partial prefetching are disabled in `next.config.ts` for the Cloudflare Worker build. With the current Next.js/OpenNext runtime combination, their cache-signal timer cleanup can cross request contexts and leave requests hanging. Static pages remain prerendered.
+
 ## Supabase setup
 
 1. Create a Supabase project and copy the Project URL and publishable key into `.env.local`.
