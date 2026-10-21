@@ -62,7 +62,13 @@ export default function ThreadMessage({ message, showMeta }: ThreadMessageProps)
   if (message.kind === "image") {
     const fromAdmin = message.sender === "admin";
     const action = canDeleteMessage(message) && <DeleteMessageButton message={message} />;
-    return <ImageMessage image={message.image} title={fromAdmin ? "You sent an image" : "Screenshot"} detail={formatTime(message.createdAt)} alignRight={fromAdmin} action={action} />;
+    const detail = (
+      <span className="flex items-center gap-1">
+        {formatTime(message.createdAt)}
+        {fromAdmin && <MessageTicks message={message} />}
+      </span>
+    );
+    return <ImageMessage image={message.image} title={fromAdmin ? "You sent an image" : "Screenshot"} detail={detail} alignRight={fromAdmin} action={action} />;
   }
 
   const fromCustomer = message.sender === "customer";
@@ -144,7 +150,7 @@ function SystemNote({ children }: { children: React.ReactNode }) {
 type ImageMessageProps = {
   image?: string;
   title: string;
-  detail: string;
+  detail: React.ReactNode;
   alignRight?: boolean;
   action?: React.ReactNode;
 };

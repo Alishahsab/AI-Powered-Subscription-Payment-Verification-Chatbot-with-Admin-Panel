@@ -12,20 +12,23 @@ let channel: RealtimeChannel | null = null;
 let pushQueue: Promise<void> = Promise.resolve();
 
 const LOCAL_WRITE_WINDOW_MS = 5000;
-const recentLocalWrites = new Map<string, { at: number; columns: Set<string> }>();
+const recentLocalWrites = new Map<string, { at: number; values: Map<string, string> }>();
+
+const asJson = (value: unknown) => JSON.stringify(value ?? null);
 
 function rememberLocalWrite(tableName: string, row: Row, key: string) {
   const id = `${tableName}:${row[key]}`;
   const previous = recentLocalWrites.get(id);
-  const columns = previous && Date.now() - previous.at < LOCAL_WRITE_WINDOW_MS ? previous.columns : new Set<string>();
-  for (const column of Object.keys(row)) if (column !== key) columns.add(column);
-  recentLocalWrites.set(id, { at: Date.now(), columns });
+  const values = previous && Date.now() - previous.at < LOCAL_WRITE_WINDOW_MS ? previous.values : new Map<string, string>();
+  for (const [column, value] of Object.entries(row)) if (column !== key) values.set(column, asJson(value));
+  recentLocalWrites.set(id, { at: Date.now(), values });
 }
 
-// Columns this client wrote in the last few seconds. Their echoes can be older than local state, so they are ignored.
-function recentlyWrittenColumns(tableName: string, id: string) {
+// What this client wrote to a row in the last few seconds. An incoming value equal to it is our own echo
+// (and may be older than local state); a different value means someone else changed it.
+function recentlyWrittenValues(tableName: string, id: string) {
   const write = recentLocalWrites.get(`${tableName}:${id}`);
-  return write && Date.now() - write.at < LOCAL_WRITE_WINDOW_MS ? write.columns : null;
+  return write && Date.now() - write.at < LOCAL_WRITE_WINDOW_MS ? write.values : null;
 }
 
 export function getActiveClient() {
@@ -142,8 +145,8 @@ function listenForChanges(client: SupabaseClient) {
       }
 
       const row = payload.new as Row;
-      const ownColumns = recentlyWrittenColumns(table.name, String(row[table.key]));
-      if (!ownColumns) {
+      const ownValues = recentlyWrittenValues(table.name, String(row[table.key]));
+      if (!ownValues) {
         applyRemoteChange((draft) => table.apply(draft, row));
         return;
       }
@@ -153,7 +156,9 @@ function listenForChanges(client: SupabaseClient) {
         const local = table.readRows(draft).find((item) => String(item[table.key]) === String(row[table.key]));
         if (!local) return table.apply(draft, row);
         const merged: Row = { ...row };
-        for (const column of ownColumns) if (column in local) merged[column] = local[column];
+        for (const [column, written] of ownValues) {
+          if (column in local && asJson(row[column]) === written) merged[column] = local[column];
+        }
         table.apply(draft, merged);
         table.applyServerFields?.(draft, row);
       });
@@ -165,7 +170,31 @@ function listenForChanges(client: SupabaseClient) {
     applyRemoteChange((draft) => Object.assign(draft, configFromRow(payload.new as Row)));
   });
 
-  channel.subscribe();
+  let subscribedBefore = false;
+  channel.subscribe((status) => {
+    if (status !== "SUBSCRIBED") return;
+    if (subscribedBefore) void catchUp();
+    subscribedBefore = true;
+  });
+}
+
+const CATCH_UP_AFTER_HIDDEN_MS = 10_000;
+let hiddenSince = 0;
+
+// Events sent while the connection was down are not replayed, so reload everything once.
+async function catchUp() {
+  if (!activeRole) return;
+  await pushQueue;
+  if (activeRole) await loadEverything(getActiveClient());
+}
+
+function handleVisibility() {
+  if (document.visibilityState === "hidden") {
+    hiddenSince = Date.now();
+    return;
+  }
+  if (hiddenSince && Date.now() - hiddenSince > CATCH_UP_AFTER_HIDDEN_MS) void catchUp();
+  hiddenSince = 0;
 }
 
 export async function startSync(role: AppRole) {
@@ -177,9 +206,11 @@ export async function startSync(role: AppRole) {
   await loadEverything(client);
   setChangeHandler(handleLocalChange);
   listenForChanges(client);
+  document.addEventListener("visibilitychange", handleVisibility);
 }
 
 export async function stopSync() {
+  document.removeEventListener("visibilitychange", handleVisibility);
   setChangeHandler(null);
   if (channel && activeRole) await getSupabase(activeRole).removeChannel(channel);
   channel = null;

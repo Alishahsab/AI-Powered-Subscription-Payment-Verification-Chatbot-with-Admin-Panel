@@ -1,7 +1,7 @@
 import { getSupabase } from "../supabase/client";
 import { sendEmailCopy } from "../supabase/email";
 import { deleteScreenshots, uploadScreenshot } from "../supabase/screenshots";
-import type { AdminStatus, AppState, GuideStep, Message } from "../types";
+import type { AdminStatus, AppState, Message } from "../types";
 import { extractCode } from "../validation";
 import { ADMIN_CANCEL_REASON, addMessage, botText, extractCodes, findCustomerEmail, liftPaymentPause } from "./helpers";
 import { getState, updateState } from "./state";
@@ -53,12 +53,7 @@ export function sendAdminMessage(customerId: string, text: string, emailCopy: bo
     updateStageAfterReply(state, customerId, containsCode, ticketReply);
   });
 
-  if (emailCopy) sendEmailCopy(customerId, text, containsCode ? codeGuides(getState()) : "");
-}
-
-function codeGuides(state: AppState) {
-  const list = (steps: GuideStep[]) => steps.map((step, index) => `${index + 1}. ${step.text}`).join("\n");
-  return `How to use:\n${list(state.settings.usageSteps)}\n\nInstructions for next time:\n${list(state.settings.nextTimeSteps)}`;
+  if (emailCopy) sendEmailCopy(customerId);
 }
 
 // A Reply from a request card lets the customer answer (Resolved / Still facing).
@@ -159,7 +154,7 @@ export function approveOrder(orderId: string, codeMessage: string, code: string,
     markNotificationsRead(state, current.customerId);
   });
 
-  if (emailCopy) sendEmailCopy(order.customerId, codeMessage, codeGuides(getState()));
+  if (emailCopy) sendEmailCopy(order.customerId);
 }
 
 export function rejectOrder(orderId: string, reason: string) {

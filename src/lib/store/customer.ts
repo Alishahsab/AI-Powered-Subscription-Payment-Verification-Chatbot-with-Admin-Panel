@@ -265,6 +265,14 @@ export function createOrder(customerId: string) {
     const method = state.methods.find((item) => item.id === conversation.methodId);
     if (!plan || !method) return;
 
+    // The store may have closed while the customer was choosing a plan.
+    const status = getEffectiveStatus(state.settings);
+    if (status === "offline" || status === "away_closed") {
+      addMessage(state, customerId, "bot", fillPlaceholders(state.settings.statusMessages[status], state));
+      conversation.stage = "menu";
+      return;
+    }
+
     const now = Date.now();
     const orderId = createOrderNumber();
 
@@ -469,6 +477,16 @@ function issueStage(state: AppState, customerId: string): Stage {
 }
 
 export async function submitSupportIssue(customerId: string, description: string, screenshot?: string) {
+  // The store may have closed while the customer was writing the issue.
+  const status = getEffectiveStatus(getState().settings);
+  if (status === "offline" || status === "away_closed") {
+    updateState((state) => {
+      addMessage(state, customerId, "bot", fillPlaceholders(state.settings.supportClosedMessages[status], state));
+      state.conversations[customerId].stage = "support";
+    });
+    return;
+  }
+
   const screenshotPath = await uploadOptional(customerId, screenshot);
   const ticketId = createTicketNumber();
 
