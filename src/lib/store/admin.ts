@@ -37,7 +37,7 @@ export function setAdminStatus(status: AdminStatus) {
   });
 }
 
-export function sendAdminMessage(customerId: string, text: string, emailCopy: boolean) {
+export function sendAdminMessage(customerId: string, text: string, emailCopy: boolean, ticketReply = false) {
   const codes = extractCodes(text);
   const containsCode = codes.length > 0;
 
@@ -50,7 +50,7 @@ export function sendAdminMessage(customerId: string, text: string, emailCopy: bo
       addMessage(state, customerId, "admin", codes[0], { kind: "code", orderId: order?.id });
     }
 
-    updateStageAfterReply(state, customerId, containsCode);
+    updateStageAfterReply(state, customerId, containsCode, ticketReply);
   });
 
   if (emailCopy) sendEmailCopy(customerId, text, containsCode ? codeGuides(getState()) : "");
@@ -61,17 +61,29 @@ function codeGuides(state: AppState) {
   return `How to use:\n${list(state.settings.usageSteps)}\n\nInstructions for next time:\n${list(state.settings.nextTimeSteps)}`;
 }
 
-function updateStageAfterReply(state: AppState, customerId: string, containsCode: boolean) {
+// A Reply from a request card lets the customer answer (Resolved / Still facing).
+// Any other admin message is read-only: the customer keeps seeing what they are waiting for.
+function updateStageAfterReply(state: AppState, customerId: string, containsCode: boolean, ticketReply: boolean) {
   const conversation = state.conversations[customerId];
   conversation.unreadByAdmin = 0;
   const hasOpenTicket = state.tickets.some((ticket) => ticket.customerId === customerId && ticket.status === "open");
-  const keepsStage = conversation.stage === "awaiting_payment" || conversation.stage === "rejected";
-  if (containsCode) conversation.stage = "code_delivered";
-  else if (hasOpenTicket) conversation.stage = "agent_replied";
-  else if (!keepsStage) conversation.stage = "live";
+  const pendingOrder = state.orders.find((order) => order.customerId === customerId && order.status === "pending_review");
+
+  if (containsCode) {
+    conversation.stage = "code_delivered";
+  } else if (ticketReply && hasOpenTicket) {
+    conversation.stage = "agent_replied";
+  } else if (pendingOrder) {
+    conversation.activeOrderId = pendingOrder.id;
+    conversation.stage = "awaiting_payment";
+  } else if (hasOpenTicket) {
+    if (conversation.stage !== "agent_replied") conversation.stage = "waiting_agent";
+  } else if (conversation.stage !== "awaiting_payment" && conversation.stage !== "rejected") {
+    conversation.stage = "live";
+  }
 }
 
-export async function sendAdminImage(customerId: string, image: string): Promise<string | null> {
+export async function sendAdminImage(customerId: string, image: string, ticketReply = false): Promise<string | null> {
   let path: string;
   try {
     path = await uploadScreenshot(customerId, image);
@@ -81,7 +93,7 @@ export async function sendAdminImage(customerId: string, image: string): Promise
 
   updateState((state) => {
     addMessage(state, customerId, "admin", "Image", { kind: "image", image: path });
-    updateStageAfterReply(state, customerId, false);
+    updateStageAfterReply(state, customerId, false, ticketReply);
   });
   return null;
 }

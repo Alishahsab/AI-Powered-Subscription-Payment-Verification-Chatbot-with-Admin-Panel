@@ -63,12 +63,13 @@ test("reporting a payment problem confirms it, and a second attempt says one is 
   await click(page, "Send report");
   await wait(2500);
   assert.ok(await page.isVisible("text=Your request is submitted"), "right after sending, the request is confirmed");
-  assert.ok(!(await page.isVisible("text=You already have an open request. Please wait for our reply.")));
+  assert.equal(await page.locator("text=You already have an open request").count(), 0);
 
   await click(page, "Main menu");
   await click(page, "Customer Support");
   await click(page, "Other issues");
-  assert.ok(await page.isVisible("text=You already have an open request. Please wait for our reply."), "a second attempt says one is already open");
+  assert.equal(await page.locator("text=You already have an open request. You can send a new one once it is resolved.").count(), 1, "said once, under the chat");
+  assert.equal(await page.locator("text=You already have an open request").count(), 1, "nothing added to the chat");
   assert.ok(!(await page.isVisible("textarea")), "no message box while a request is open");
   assert.deepEqual(errors, []);
 });
@@ -83,7 +84,8 @@ test("buying again while an order is pending shows the pending notice, not a mes
   await wait(3000);
 
   await click(page, "Buy a Subscription");
-  assert.equal(await page.locator("text=is still waiting for approval").count(), 1, "shown once, as a notice");
+  assert.equal(await page.locator("text=Your order is still waiting for approval. You can place a new order once we approve or cancel it.").count(), 1, "shown once, as a notice");
+  assert.equal(await page.locator("text=/still waiting for approval.*PS-/").count(), 0, "no order number in the notice");
   assert.ok(!(await page.isVisible("textarea")), "no message box");
   assert.ok(await page.isVisible("button:has-text('Main menu')"));
   assert.deepEqual(errors, []);

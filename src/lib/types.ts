@@ -52,7 +52,6 @@ export type BotMessageKey =
   | "termsIntro"
   | "orderCreated"
   | "openOrderExists"
-  | "orderPendingReview"
   | "orderCancelled"
   | "orderCancelledByAdmin"
   | "ordersPausedAfterCancels"
@@ -63,8 +62,7 @@ export type BotMessageKey =
   | "describeIssue"
   | "issueResolvedByCustomer"
   | "issueResolvedByAdmin"
-  | "issueAutoResolved"
-  | "openRequestExists";
+  | "issueAutoResolved";
 
 export type BotMessages = Record<BotMessageKey, string>;
 

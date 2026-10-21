@@ -47,7 +47,7 @@ function StageActions({ customerId, conversation, onOpenSheet }: ActionPanelProp
       return <TermsActions customerId={customerId} />;
     case "awaiting_payment": {
       const order = getActiveOrder(getState(), customerId);
-      if (order?.status === "pending_review") return <PendingOrderNotice customerId={customerId} order={order} />;
+      if (order?.status === "pending_review") return <PendingOrderNotice customerId={customerId} />;
       if (!order || !canStillPay(order)) return <BackToMenuButton customerId={customerId} />;
       return <PaymentActions customerId={customerId} method={findOrderMethod(getState(), customerId)} onOpenSheet={onOpenSheet} />;
     }
@@ -68,7 +68,7 @@ function StageActions({ customerId, conversation, onOpenSheet }: ActionPanelProp
       const state = getState();
       if (findOpenTicket(state, customerId)) return <IssueFollowUp customerId={customerId} />;
       const pendingOrder = state.orders.find((order) => order.customerId === customerId && (order.status === "pending_review" || order.status === "rejected"));
-      if (pendingOrder) return <PendingOrderNotice customerId={customerId} order={pendingOrder} />;
+      if (pendingOrder) return <PendingOrderNotice customerId={customerId} />;
       // Messages the admin sends from the inbox are read-only for the customer.
       return <BackToMenuButton customerId={customerId} />;
     }

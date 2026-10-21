@@ -414,9 +414,11 @@ export function askFaq(customerId: string, faqId: string) {
   });
 }
 
+export const OTHER_ISSUES_LABEL = "Other issues";
+
 export function chooseOtherIssue(customerId: string) {
   updateState((state) => {
-    addMessage(state, customerId, "customer", "Other issues");
+    addMessage(state, customerId, "customer", OTHER_ISSUES_LABEL);
   });
 
   replyAsBot(customerId, (state) => {
@@ -439,7 +441,7 @@ function blockSupport(state: AppState, customerId: string) {
   const openTicket = findOpenTicket(state, customerId);
 
   if (openTicket) {
-    addMessage(state, customerId, "bot", botText(state, "openRequestExists", { ticket_id: openTicket.id }));
+    // The notice under the chat says a request is already open; nothing is added to the chat.
     conversation.stage = issueStage(state, customerId);
     return true;
   }

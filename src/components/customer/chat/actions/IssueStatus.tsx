@@ -1,13 +1,12 @@
 "use client";
 
 import { Clock } from "lucide-react";
-import { confirmIssueResolved, continueIssue, findOpenTicket } from "@/lib/store/customer";
-import { botText } from "@/lib/store/helpers";
+import { confirmIssueResolved, continueIssue, findOpenTicket, OTHER_ISSUES_LABEL } from "@/lib/store/customer";
 import { useAppState } from "@/lib/store/state";
 import BackToMenuButton from "./BackToMenuButton";
 import { primaryButtonClass, secondaryButtonClass } from "./buttonStyles";
 
-const OPEN_REQUEST_NOTICE = "You already have an open request. Please wait for our reply.";
+const OPEN_REQUEST_NOTICE = "You already have an open request. You can send a new one once it is resolved.";
 
 type IssueStatusProps = {
   customerId: string;
@@ -35,8 +34,8 @@ export default function IssueStatus({ customerId, agentReplied }: IssueStatusPro
   }
 
   // Right after sending, confirm the request; after a second attempt, say one is already open.
-  const lastBotMessage = state.messages.filter((message) => message.customerId === customerId && message.sender === "bot").at(-1);
-  const triedAgain = lastBotMessage?.text === botText(state, "openRequestExists", { ticket_id: ticket.id });
+  const lastCustomerMessage = state.messages.filter((message) => message.customerId === customerId && message.sender === "customer").at(-1);
+  const triedAgain = lastCustomerMessage?.text === OTHER_ISSUES_LABEL && lastCustomerMessage.createdAt > ticket.createdAt;
 
   return (
     <div className="max-w-[560px] mx-auto">
