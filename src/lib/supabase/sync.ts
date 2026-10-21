@@ -121,8 +121,21 @@ function handleLocalChange(before: AppState, after: AppState) {
   });
 }
 
+const PAGE_SIZE = 1000;
+
+// Supabase returns at most 1000 rows per request, so larger tables are read page by page.
+async function fetchAllRows(client: SupabaseClient, table: TableSync) {
+  const rows: Row[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await client.from(table.name).select("*").order(table.key).range(from, from + PAGE_SIZE - 1);
+    if (error) return { data: null, error };
+    rows.push(...(data ?? []));
+    if (!data || data.length < PAGE_SIZE) return { data: rows, error: null };
+  }
+}
+
 async function fetchEverything(client: SupabaseClient) {
-  const results = await Promise.all(tables.map((table) => client.from(table.name).select("*")));
+  const results = await Promise.all(tables.map((table) => fetchAllRows(client, table)));
   const config = await client.from("store_config").select("*").maybeSingle();
   return { results, config };
 }
@@ -133,7 +146,11 @@ async function loadEverything(client: SupabaseClient) {
 
 async function applyEverything(client: SupabaseClient, { results, config }: Awaited<ReturnType<typeof fetchEverything>>) {
   applyRemoteChange((draft) => {
-    tables.forEach((table, index) => table.replaceAll(draft, results[index].data ?? []));
+    // A table that failed to load keeps what is on screen instead of being emptied.
+    tables.forEach((table, index) => {
+      const rows = results[index].data;
+      if (rows) table.replaceAll(draft, rows);
+    });
     if (config.data) Object.assign(draft, configFromRow(config.data));
     draft.loaded = true;
   });

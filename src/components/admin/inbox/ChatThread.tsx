@@ -17,6 +17,7 @@ type ChatThreadProps = {
   customerId: string;
   onBack: () => void;
   onShowDetails: () => void;
+  ticketReply?: boolean;
 };
 
 function endsGroup(message: Message, next?: Message) {
@@ -24,7 +25,7 @@ function endsGroup(message: Message, next?: Message) {
   return next.sender !== message.sender || next.createdAt - message.createdAt > GROUP_GAP_MS;
 }
 
-export default function ChatThread({ customerId, onBack, onShowDetails }: ChatThreadProps) {
+export default function ChatThread({ customerId, onBack, onShowDetails, ticketReply }: ChatThreadProps) {
   const state = useAppState();
   const now = useNow(30_000);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -62,7 +63,7 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 lg:px-10 py-6">
         <div className="max-w-[760px] mx-auto">
-          {messages.length === 0 && <div className="text-center text-[12.5px] text-zinc-400 py-10">No messages yet. Older chats are cleared automatically.</div>}
+          {messages.length === 0 && <div className="text-center text-[12.5px] text-zinc-400 py-10">No messages yet.</div>}
           {messages.map((message, index) => {
             const last = endsGroup(message, messages[index + 1]);
             return (
@@ -75,7 +76,7 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
         </div>
       </div>
 
-      <ReplyBox customerId={customerId} customerEmail={customer.email} />
+      <ReplyBox customerId={customerId} customerEmail={customer.email} ticketReply={ticketReply} />
     </div>
   );
 }

@@ -12,9 +12,11 @@ const MAX_INPUT_HEIGHT = 200;
 type ReplyBoxProps = {
   customerId: string;
   customerEmail: string;
+  // Replying from the App issues tab answers the open request, so the customer can say Resolved or Still facing.
+  ticketReply?: boolean;
 };
 
-export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
+export default function ReplyBox({ customerId, customerEmail, ticketReply = false }: ReplyBoxProps) {
   const quickReplies = useAppState().settings.quickReplies.filter((reply) => reply.trim());
   const [text, setText] = useState("");
   const [emailCopy, setEmailCopy] = useState(false);
@@ -35,7 +37,7 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
   const sendImage = async (file?: File) => {
     if (!file || !file.type.startsWith("image/")) return;
     setUploading(true);
-    setImageError((await sendAdminImage(customerId, await compressImage(file))) ?? "");
+    setImageError((await sendAdminImage(customerId, await compressImage(file), ticketReply)) ?? "");
     setUploading(false);
     if (fileInput.current) fileInput.current.value = "";
   };
@@ -50,7 +52,7 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
       return;
     }
 
-    sendAdminMessage(customerId, content, emailCopy);
+    sendAdminMessage(customerId, content, emailCopy, ticketReply);
     setText("");
     setWarning("");
     setShowQuickReplies(false);

@@ -42,7 +42,7 @@ export const tables: TableSync[] = [
       state.customers = state.customers.filter((customer) => customer.id !== id);
     },
     replaceAll: (state, rows) => {
-      state.customers = rows.map(customerFromRow);
+      state.customers = rows.map(customerFromRow).sort((a, b) => a.createdAt - b.createdAt);
     },
     applyServerFields: (state, row) => {
       const customer = state.customers.find((item) => item.id === row.id);
@@ -105,7 +105,7 @@ export const tables: TableSync[] = [
       state.tickets = state.tickets.filter((ticket) => ticket.id !== id);
     },
     replaceAll: (state, rows) => {
-      state.tickets = rows.map(ticketFromRow);
+      state.tickets = rows.map(ticketFromRow).sort((a, b) => b.createdAt - a.createdAt);
     },
   },
   {
