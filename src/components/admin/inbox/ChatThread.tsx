@@ -17,7 +17,6 @@ type ChatThreadProps = {
   customerId: string;
   onBack: () => void;
   onShowDetails: () => void;
-  ticketReply?: boolean;
 };
 
 function endsGroup(message: Message, next?: Message) {
@@ -25,7 +24,7 @@ function endsGroup(message: Message, next?: Message) {
   return next.sender !== message.sender || next.createdAt - message.createdAt > GROUP_GAP_MS;
 }
 
-export default function ChatThread({ customerId, onBack, onShowDetails, ticketReply }: ChatThreadProps) {
+export default function ChatThread({ customerId, onBack, onShowDetails }: ChatThreadProps) {
   const state = useAppState();
   const now = useNow(30_000);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -76,7 +75,7 @@ export default function ChatThread({ customerId, onBack, onShowDetails, ticketRe
         </div>
       </div>
 
-      <ReplyBox customerId={customerId} customerEmail={customer.email} ticketReply={ticketReply} />
+      <ReplyBox customerId={customerId} customerEmail={customer.email} />
     </div>
   );
 }
