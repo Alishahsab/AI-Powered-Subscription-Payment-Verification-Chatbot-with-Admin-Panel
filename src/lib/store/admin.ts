@@ -100,11 +100,12 @@ function updateStageAfterReply(state: AppState, customerId: string, containsCode
     conversation.stage = "code_delivered";
   } else if (ticketReply && hasOpenTicket) {
     conversation.stage = "agent_replied";
+  } else if (hasOpenTicket) {
+    // A chat message is read-only: an open app issue keeps showing its status, not the pending order.
+    if (conversation.stage !== "agent_replied") conversation.stage = "waiting_agent";
   } else if (pendingOrder) {
     conversation.activeOrderId = pendingOrder.id;
     conversation.stage = "awaiting_payment";
-  } else if (hasOpenTicket) {
-    if (conversation.stage !== "agent_replied") conversation.stage = "waiting_agent";
   } else if (conversation.stage !== "awaiting_payment" && conversation.stage !== "rejected") {
     conversation.stage = "live";
   }

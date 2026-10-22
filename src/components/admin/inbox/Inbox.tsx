@@ -61,7 +61,7 @@ export default function Inbox({ view, initialTab, initialCustomerId, initialBotF
 
       {selectedCustomerId ? (
         <>
-          <ChatThread customerId={selectedCustomerId} ticketReply={list === "issues"} onBack={() => setChosenCustomerId(undefined)} onShowDetails={() => setDetailsOpen(true)} />
+          <ChatThread customerId={selectedCustomerId} onBack={() => setChosenCustomerId(undefined)} onShowDetails={() => setDetailsOpen(true)} />
 
           <div className={classNames("hidden xl:block w-[340px] shrink-0 bg-white overflow-y-auto", panelClass)}>
             <CustomerPanel customerId={selectedCustomerId} />
