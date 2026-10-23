@@ -140,3 +140,86 @@ body {
 .typing-dot:nth-child(3) {
   animation-delay: 0.3s;
 }
+
+/* Customer initials in the admin panel, a soft tint of the customer's colour. */
+.admin-avatar {
+  background: hsl(var(--avatar-hue) 60% 94%);
+  color: hsl(var(--avatar-hue) 45% 32%);
+}
+
+/* Admin panel dark mode. Set on <html> only while the admin panel is open (see useAdminTheme).
+   The grey scale is turned around, so every grey text, background and border keeps its role;
+   white surfaces, fixed light colours and the light colour tints get dark counterparts. */
+html[data-admin-theme="dark"] {
+  color-scheme: dark;
+  --color-zinc-50: #1c212b;
+  --color-zinc-100: #232935;
+  --color-zinc-200: #2f3644;
+  --color-zinc-300: #3e4656;
+  --color-zinc-400: #6c7588;
+  --color-zinc-500: #8d96a8;
+  --color-zinc-600: #a9b0be;
+  --color-zinc-700: #c4c9d4;
+  --color-zinc-800: #dadee6;
+  --color-zinc-900: #eceef3;
+  --color-zinc-950: #f5f6f9;
+
+  --color-red-50: #2c1719;
+  --color-red-100: #3a1c20;
+  --color-red-200: #57292e;
+  --color-red-300: #6f3238;
+  --color-amber-50: #2a2213;
+  --color-amber-100: #382b12;
+  --color-amber-200: #574419;
+  --color-amber-300: #7a5c1c;
+  --color-emerald-50: #11261e;
+  --color-emerald-100: #153427;
+  --color-sky-50: #10222f;
+  --admin-chart-bar: #4f74d1;
+}
+
+html[data-admin-theme="dark"] .admin-avatar {
+  background: hsl(var(--avatar-hue) 28% 22%);
+  color: hsl(var(--avatar-hue) 60% 80%);
+}
+
+html[data-admin-theme="dark"] body,
+html[data-admin-theme="dark"] .admin-app {
+  background: #0f1218;
+  color: #e6e8ee;
+}
+
+/* Surfaces */
+html[data-admin-theme="dark"] .bg-white { background-color: #161a22; }
+html[data-admin-theme="dark"] .bg-\[\#f5f6f8\],
+html[data-admin-theme="dark"] .bg-\[\#f7f8fa\] { background-color: #12161d; }
+html[data-admin-theme="dark"] .bg-\[\#e9ecf1\] { background-color: #0b0e13; }
+html[data-admin-theme="dark"] .bg-\[\#f8f9fb\] { background-color: #1b2029; }
+html[data-admin-theme="dark"] .bg-\[\#e9edf5\] { background-color: #222a39; }
+html[data-admin-theme="dark"] .border-white { border-color: #161a22; }
+html[data-admin-theme="dark"] .ring-white { --tw-ring-color: #161a22; }
+
+/* Brand navy is too dark on a dark page, so buttons and accents use a brighter blue. */
+html[data-admin-theme="dark"] .bg-\[\#0C2660\] { background-color: #2c4fa8; }
+html[data-admin-theme="dark"] .hover\:bg-\[\#0a1f52\]:hover { background-color: #345bc0; }
+html[data-admin-theme="dark"] .text-\[\#0C2660\] { color: #a8bdf5; }
+html[data-admin-theme="dark"] .chat-row-selected { background-color: rgba(120, 150, 230, 0.14); }
+html[data-admin-theme="dark"] .border-\[\#0C2660\] { border-color: #5d7fd6; }
+
+/* Tooltips keep a contrasting background. */
+html[data-admin-theme="dark"] .bg-zinc-900 { background-color: #2e3646; }
+
+/* Coloured text, lighter so it reads on dark tints */
+html[data-admin-theme="dark"] .text-red-600 { color: #f58a8a; }
+html[data-admin-theme="dark"] .text-red-700,
+html[data-admin-theme="dark"] .text-red-800,
+html[data-admin-theme="dark"] .text-red-950 { color: #fbb0b0; }
+html[data-admin-theme="dark"] .text-amber-700,
+html[data-admin-theme="dark"] .text-amber-800,
+html[data-admin-theme="dark"] .text-amber-900,
+html[data-admin-theme="dark"] .text-amber-950 { color: #f3cd7f; }
+html[data-admin-theme="dark"] .text-emerald-700,
+html[data-admin-theme="dark"] .text-emerald-800,
+html[data-admin-theme="dark"] .text-emerald-950 { color: #7fe0b8; }
+html[data-admin-theme="dark"] .text-sky-700,
+html[data-admin-theme="dark"] .text-sky-950 { color: #8fd3f7; }

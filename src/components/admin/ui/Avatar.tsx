@@ -13,8 +13,8 @@ export default function Avatar({ name, size = 34 }: { name: string; size?: numbe
 
   return (
     <div
-      className="rounded-full grid place-items-center font-semibold shrink-0"
-      style={{ width: size, height: size, fontSize: size * 0.36, background: `hsl(${hue} 60% 94%)`, color: `hsl(${hue} 45% 32%)` }}
+      className="admin-avatar rounded-full grid place-items-center font-semibold shrink-0"
+      style={{ width: size, height: size, fontSize: size * 0.36, ["--avatar-hue" as string]: hue }}
     >
       {initials}
     </div>

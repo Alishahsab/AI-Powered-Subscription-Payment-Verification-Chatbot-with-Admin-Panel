@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAdminTheme } from "@/hooks/useAdminTheme";
 import { useOrderExpiry } from "@/hooks/useOrderExpiry";
 import AdminSidebar from "./layout/AdminSidebar";
 import PaymentIssueTimer from "./layout/PaymentIssueTimer";
@@ -18,6 +19,7 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   useOrderExpiry();
+  const { theme, toggleTheme } = useAdminTheme();
 
   const navigate = (next: NavTarget) => {
     setTarget(next);
@@ -44,7 +46,7 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
       )}
 
       <div className="flex-1 min-w-0 flex flex-col">
-        <TopBar searchQuery={searchQuery} onSearch={search} onClearSearch={() => navigate({ section: "dashboard" })} onOpenMenu={() => setMenuOpen(true)} onNavigate={navigate} />
+        <TopBar searchQuery={searchQuery} onSearch={search} onClearSearch={() => navigate({ section: "dashboard" })} onOpenMenu={() => setMenuOpen(true)} onNavigate={navigate} theme={theme} onToggleTheme={toggleTheme} />
 
         <main className="flex-1 min-h-0 overflow-hidden">
           {target.section === "dashboard" && <Dashboard onNavigate={navigate} />}

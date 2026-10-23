@@ -7,7 +7,8 @@ import { Card, CardHeader } from "../ui/Card";
 
 const DAYS = 7;
 const DAY = 24 * 60 * 60 * 1000;
-const BAR_COLOR = "#0C2660";
+// Brand navy, brighter in dark mode (set in globals.css).
+const BAR_COLOR = "var(--admin-chart-bar, #0C2660)";
 
 export default function CompletedOrdersChart({ now }: { now: number }) {
   const state = useAppState();

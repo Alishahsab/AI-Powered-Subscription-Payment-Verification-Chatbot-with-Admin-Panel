@@ -121,7 +121,7 @@ export default function ChatList({ view, tab, onTabChange, botFilter, onBotFilte
               <button
                 key={item.key}
                 onClick={() => onSelect(item.customerId)}
-                className={classNames("w-full text-left px-3 py-3 rounded-xl flex gap-3 transition mb-0.5", selected ? "bg-[#0C2660]/[0.06]" : "hover:bg-zinc-50")}
+                className={classNames("w-full text-left px-3 py-3 rounded-xl flex gap-3 transition mb-0.5", selected ? "chat-row-selected bg-[#0C2660]/[0.06]" : "hover:bg-zinc-50")}
               >
                 <Avatar name={item.title} size={40} />
                 <div className="flex-1 min-w-0">

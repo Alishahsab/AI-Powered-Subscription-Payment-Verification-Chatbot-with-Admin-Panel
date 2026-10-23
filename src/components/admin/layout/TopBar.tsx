@@ -1,6 +1,7 @@
 "use client";
 
-import { Menu, Search, X } from "lucide-react";
+import { Menu, Moon, Search, Sun, X } from "lucide-react";
+import type { AdminTheme } from "@/hooks/useAdminTheme";
 import type { Navigate } from "../navigation";
 import NotificationBell from "./NotificationBell";
 import StatusSwitch from "./StatusSwitch";
@@ -11,9 +12,11 @@ type TopBarProps = {
   onClearSearch: () => void;
   onOpenMenu: () => void;
   onNavigate: Navigate;
+  theme: AdminTheme;
+  onToggleTheme: () => void;
 };
 
-export default function TopBar({ searchQuery, onSearch, onClearSearch, onOpenMenu, onNavigate }: TopBarProps) {
+export default function TopBar({ searchQuery, onSearch, onClearSearch, onOpenMenu, onNavigate, theme, onToggleTheme }: TopBarProps) {
   return (
     <>
       <header className="h-16 shrink-0 bg-white border-b border-zinc-200/80 flex items-center gap-3 px-4 lg:px-6">
@@ -40,6 +43,14 @@ export default function TopBar({ searchQuery, onSearch, onClearSearch, onOpenMen
           <div className="hidden md:block">
             <StatusSwitch />
           </div>
+          <button
+            onClick={onToggleTheme}
+            className="size-9 grid place-items-center rounded-lg text-zinc-600 hover:bg-zinc-100 transition"
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Light mode" : "Dark mode"}
+          >
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
           <NotificationBell onNavigate={onNavigate} />
           <div className="size-9 rounded-full bg-[#0C2660] text-white grid place-items-center text-[12px] font-semibold">AD</div>
         </div>
