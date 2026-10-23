@@ -133,32 +133,41 @@ function handleLocalChange(before: AppState, after: AppState) {
 const PAGE_SIZE = 1000;
 
 // Supabase returns at most 1000 rows per request, so larger tables are read page by page.
-async function fetchAllRows(client: SupabaseClient, table: TableSync) {
+async function fetchAllRows(client: SupabaseClient, table: TableSync, messagesSince?: number) {
   const rows: Row[] = [];
   for (let from = 0; ; from += PAGE_SIZE) {
-    const { data, error } = await client.from(table.name).select("*").order(table.key).range(from, from + PAGE_SIZE - 1);
+    let query = client.from(table.name).select("*");
+    if (messagesSince !== undefined && table.name === "messages") query = query.gt("created_at", messagesSince);
+    const { data, error } = await query.order(table.key).range(from, from + PAGE_SIZE - 1);
     if (error) return { data: null, error };
     rows.push(...(data ?? []));
     if (!data || data.length < PAGE_SIZE) return { data: rows, error: null };
   }
 }
 
-async function fetchEverything(client: SupabaseClient) {
-  const results = await Promise.all(tables.map((table) => fetchAllRows(client, table)));
+// With messagesSince, only newer messages are read; older ones on screen are kept as they are.
+async function fetchEverything(client: SupabaseClient, messagesSince?: number) {
+  const results = await Promise.all(tables.map((table) => fetchAllRows(client, table, messagesSince)));
   const config = await client.from("store_config").select("*").maybeSingle();
-  return { results, config };
+  return { results, config, messagesSince };
 }
 
 async function loadEverything(client: SupabaseClient) {
   await applyEverything(client, await fetchEverything(client));
 }
 
-async function applyEverything(client: SupabaseClient, { results, config }: Awaited<ReturnType<typeof fetchEverything>>) {
+async function applyEverything(client: SupabaseClient, { results, config, messagesSince }: Awaited<ReturnType<typeof fetchEverything>>) {
   applyRemoteChange((draft) => {
     // A table that failed to load keeps what is on screen instead of being emptied.
     tables.forEach((table, index) => {
       const rows = results[index].data;
-      if (rows) table.replaceAll(draft, rows);
+      if (!rows) return;
+      if (messagesSince !== undefined && table.name === "messages") {
+        const older = table.readRows(draft).filter((row) => Number(row.created_at) <= messagesSince);
+        table.replaceAll(draft, [...older, ...rows]);
+      } else {
+        table.replaceAll(draft, rows);
+      }
     });
     if (config.data) Object.assign(draft, configFromRow(config.data));
     draft.loaded = true;
@@ -215,9 +224,15 @@ function listenForChanges(client: SupabaseClient) {
 const CATCH_UP_AFTER_HIDDEN_MS = 10_000;
 let hiddenSince = 0;
 
+// A phone can lose the live connection without saying so, even with the panel on screen.
+// The admin panel therefore refreshes every minute; messages only for the last 30 minutes to keep it light.
+const ADMIN_REFRESH_MS = 60_000;
+const ADMIN_REFRESH_MESSAGES_MS = 30 * 60_000;
+let refreshTimer: ReturnType<typeof setInterval> | undefined;
+
 // Events sent while the connection was down are not replayed, so reload everything once.
 // A reload that overlapped a local change is older than the screen, so it is retried.
-async function catchUp() {
+async function catchUp(recentMessagesOnly = false) {
   for (let attempt = 0; attempt < 3; attempt++) {
     if (!activeRole) return;
     await pushQueue;
@@ -227,7 +242,7 @@ async function catchUp() {
     // empty or half loaded, so what is on screen is kept and the next return tries again.
     const { data: auth } = await client.auth.getSession();
     if (!auth.session) return;
-    const data = await fetchEverything(client);
+    const data = await fetchEverything(client, recentMessagesOnly ? Date.now() - ADMIN_REFRESH_MESSAGES_MS : undefined);
     if (!activeRole || !looksComplete(data)) return;
     if (version === localVersion) return applyEverything(client, data);
   }
@@ -259,9 +274,16 @@ export async function startSync(role: AppRole) {
   setChangeHandler(handleLocalChange);
   listenForChanges(client);
   document.addEventListener("visibilitychange", handleVisibility);
+  if (role === "admin") {
+    refreshTimer = setInterval(() => {
+      if (document.visibilityState === "visible") void catchUp(true);
+    }, ADMIN_REFRESH_MS);
+  }
 }
 
 export async function stopSync() {
+  clearInterval(refreshTimer);
+  refreshTimer = undefined;
   document.removeEventListener("visibilitychange", handleVisibility);
   setChangeHandler(null);
   if (channel && activeRole) await getSupabase(activeRole).removeChannel(channel);
