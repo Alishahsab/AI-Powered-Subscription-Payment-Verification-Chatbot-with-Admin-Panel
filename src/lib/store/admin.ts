@@ -55,7 +55,8 @@ export async function resetAdminPassword(email: string, code: string, password: 
 
   const { error: updateError } = await client.auth.updateUser({ password });
   await client.auth.signOut();
-  if (updateError) return updateError.message.includes("different") ? "Please choose a password different from the old one." : "Could not save the new password. Please try again.";
+  if (updateError?.code === "same_password") return "Your new password must be different from your current password. Please choose another one.";
+  if (updateError) return "Could not save the new password. Please try again.";
   return null;
 }
 

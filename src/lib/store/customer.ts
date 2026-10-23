@@ -50,6 +50,7 @@ export async function requestPinReset(email: string): Promise<AuthResult> {
 
 export async function updatePin(pin: string): Promise<AuthResult> {
   const { error } = await getSupabase("customer").auth.updateUser({ password: pin });
+  if (error?.code === "same_password") return { error: "Your new PIN must be different from your current PIN. Please choose another one." };
   if (error) return { error: "This reset link has expired. Please request a new one." };
   return { error: null };
 }
@@ -386,33 +387,6 @@ async function uploadOptional(customerId: string, screenshot?: string) {
   } catch {
     return undefined;
   }
-}
-
-export async function reportPaymentIssue(customerId: string, description: string, screenshot?: string) {
-  const screenshotPath = await uploadOptional(customerId, screenshot);
-  const text = description.trim();
-
-  updateState((state) => {
-    const order = getActiveOrder(state, customerId);
-    const customer = state.customers.find((item) => item.id === customerId);
-    const retryMinutes = state.settings.timers.retryMinutes;
-
-    if (order) order.status = "issue_reported";
-    if (customer) customer.paymentBlockedUntil = Date.now() + retryMinutes * MINUTE;
-
-    addMessage(state, customerId, "customer", `Payment issue: ${text}`);
-    if (screenshotPath) addMessage(state, customerId, "customer", "Screenshot", { kind: "image", image: screenshotPath });
-
-    state.tickets.unshift({ id: createTicketNumber(), customerId, kind: "payment", message: text, screenshot: screenshotPath, orderId: order?.id, status: "open", createdAt: Date.now() });
-    state.conversations[customerId].unreadByAdmin += 1;
-    notifyAdmin(state, { kind: "payment_issue", title: "Payment issue reported", body: `${findCustomerEmail(state, customerId)} · ${text.slice(0, 70)}`, customerId });
-  });
-
-  replyAsBot(customerId, (state) => {
-    addMessage(state, customerId, "bot", botText(state, "paymentIssueReceived", { time_left: formatDuration(state.settings.timers.retryMinutes) }));
-    state.conversations[customerId].stage = "waiting_agent";
-    state.conversations[customerId].activeOrderId = undefined;
-  });
 }
 
 export function askFaq(customerId: string, faqId: string) {

@@ -178,7 +178,6 @@ export type InboxList = InboxTab | "bot";
 export function buildInboxItems(state: AppState, list: InboxList, botFilter: BotFilter, now: number) {
   if (list === "pending") return pendingItems(state, now);
   if (list === "issues") return issueItems(state, "support");
-  if (list === "payment_issues") return issueItems(state, "payment");
   if (list === "completed") return completedItems(state, false);
   if (list === "unused") return completedItems(state, true);
   if (list === "blocked") return blockedItems(state);
@@ -189,7 +188,6 @@ export function countInboxTabs(state: AppState): Record<InboxTab, number> {
   return {
     pending: state.orders.filter(isPending).length,
     issues: state.tickets.filter(isOpenTicket("support")).length,
-    payment_issues: state.tickets.filter(isOpenTicket("payment")).length,
     completed: 0,
     unused: state.orders.filter((order) => order.status === "completed" && order.codeUnused).length,
     blocked: state.customers.filter((customer) => customer.blocked).length,

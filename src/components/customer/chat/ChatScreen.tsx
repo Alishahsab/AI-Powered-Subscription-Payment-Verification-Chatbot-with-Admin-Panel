@@ -11,7 +11,7 @@ import BlockedNotice from "./BlockedNotice";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import PaymentStepsSheet from "./sheets/PaymentStepsSheet";
-import ReportIssueSheet from "./sheets/ReportIssueSheet";
+import PaymentProblemSheet from "./sheets/PaymentProblemSheet";
 import UploadProofSheet from "./sheets/UploadProofSheet";
 
 export type OpenSheet = "proof" | "issue" | "steps" | null;
@@ -63,7 +63,7 @@ export default function ChatScreen({ customer, onSignOut }: ChatScreenProps) {
       )}
 
       {sheet === "proof" && <UploadProofSheet customerId={customer.id} onClose={() => setSheet(null)} />}
-      {sheet === "issue" && <ReportIssueSheet customerId={customer.id} onClose={() => setSheet(null)} />}
+      {sheet === "issue" && <PaymentProblemSheet onClose={() => setSheet(null)} />}
       {sheet === "steps" && orderMethod && <PaymentStepsSheet customerId={customer.id} method={orderMethod} onClose={() => setSheet(null)} />}
     </section>
   );

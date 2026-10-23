@@ -95,7 +95,6 @@ export function createDefaultConfig(): StoreConfig {
       inboxTabs: [
         { key: "pending", label: "Pending" },
         { key: "issues", label: "App issues" },
-        { key: "payment_issues", label: "Payment issues" },
         { key: "completed", label: "Completed" },
         { key: "unused", label: "Unused codes" },
         { key: "blocked", label: "Blocked" },

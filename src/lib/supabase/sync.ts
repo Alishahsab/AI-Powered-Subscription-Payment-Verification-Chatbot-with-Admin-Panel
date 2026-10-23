@@ -11,7 +11,9 @@ let activeRole: AppRole | null = null;
 let channel: RealtimeChannel | null = null;
 let pushQueue: Promise<void> = Promise.resolve();
 
-const LOCAL_WRITE_WINDOW_MS = 5000;
+// Our own changes are protected from older echoes for this long after the server confirmed them,
+// so a slow mobile connection cannot bring back an earlier chat step.
+const LOCAL_WRITE_WINDOW_MS = 10_000;
 const recentLocalWrites = new Map<string, { at: number; columns: Set<string> }>();
 
 // Empty columns of a new row are not ours to keep: the other side fills them in (delivered and seen ticks).
@@ -23,6 +25,12 @@ function rememberLocalWrite(tableName: string, row: Row, key: string, inserted: 
     if (column !== key && !(inserted && value == null)) columns.add(column);
   }
   recentLocalWrites.set(id, { at: Date.now(), columns });
+}
+
+// The window starts again once the server has the change, however long the request took.
+function refreshLocalWrite(tableName: string, id: string) {
+  const write = recentLocalWrites.get(`${tableName}:${id}`);
+  if (write) write.at = Date.now();
 }
 
 // Columns this client wrote in the last few seconds. Their echoes can be older than local state, so they are ignored.
@@ -90,6 +98,7 @@ async function writeTableChanges(client: SupabaseClient, changes: TableChanges) 
   for (const row of updated) {
     const { error } = await client.from(table.name).update(row).eq(table.key, row[table.key]);
     if (error) console.error(`Update of ${table.name} failed`, error.message);
+    refreshLocalWrite(table.name, String(row[table.key]));
   }
 
   if (deletedIds.length > 0 && activeRole === "admin") {

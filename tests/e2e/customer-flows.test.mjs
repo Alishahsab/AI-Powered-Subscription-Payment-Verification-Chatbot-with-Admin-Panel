@@ -57,17 +57,15 @@ test("the chat shows the privacy note", async () => {
   assert.deepEqual(errors, []);
 });
 
-test("a payment problem shows no notice and does not block app issues", async (t) => {
+test("a payment problem shows the steps and app issues stay open", async (t) => {
   const { page, errors } = await newCustomer();
   if (!(await createOrder(page))) return t.skip("the store is not taking orders right now");
   await click(page, "Problem?");
-  await page.fill("textarea", "Payment problem in the end-to-end test.");
-  await click(page, "Send report");
-  await wait(2500);
-  assert.equal(await page.locator("text=Your request is submitted").count(), 0, "no notice under the chat");
-  assert.equal(await page.locator("text=You already have an open request").count(), 0);
-
-  await click(page, "Main menu");
+  assert.ok(await page.isVisible("text=Go to Customer Support and select Other issues."), "the steps are shown");
+  assert.equal(await page.locator("textarea").count(), 0, "no report form");
+  await click(page, "Got it");
+  await click(page, "Cancel");
+  if (await page.isVisible("button:has-text('Main menu')")) await click(page, "Main menu");
   await click(page, "Customer Support");
   await click(page, "Other issues");
   if (await page.isVisible("text=can't take new requests")) return t.skip("the store is not taking requests right now");

@@ -9,6 +9,16 @@ import { tabForNotification } from "./NotificationBell";
 
 const TOAST_DURATION = 6000;
 
+// Android Chrome does not allow `new Notification()` and throws, which used to crash the panel in the background.
+// There the notification goes through the service worker if one is running, and is skipped otherwise.
+function showSystemNotification({ title, body }: AdminNotification) {
+  try {
+    new Notification(title, { body });
+  } catch {
+    navigator.serviceWorker?.getRegistration().then((registration) => registration?.showNotification(title, { body })).catch(() => {});
+  }
+}
+
 export default function Toasts({ onNavigate }: { onNavigate: Navigate }) {
   const state = useAppState();
   const [toasts, setToasts] = useState<AdminNotification[]>([]);
@@ -24,9 +34,7 @@ export default function Toasts({ onNavigate }: { onNavigate: Navigate }) {
 
     for (const notification of fresh) {
       setTimeout(() => setToasts((current) => current.filter((toast) => toast.id !== notification.id)), TOAST_DURATION);
-      if (typeof Notification !== "undefined" && Notification.permission === "granted" && document.hidden) {
-        new Notification(notification.title, { body: notification.body });
-      }
+      if (typeof Notification !== "undefined" && Notification.permission === "granted" && document.hidden) showSystemNotification(notification);
     }
   }, [state.notifications]);
 
