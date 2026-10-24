@@ -40,8 +40,9 @@ export default function AdminApp() {
   }, [user]);
 
   useEffect(() => {
-    if (allowed) startSync("admin");
-  }, [allowed]);
+    if (allowed) void startSync("admin");
+    else if (!checking && !user) void stopSync();
+  }, [allowed, checking, user]);
 
   const signOut = async () => {
     await adminSignOut();

@@ -317,10 +317,22 @@ function loadCache() {
   }
 }
 
+const LOAD_RETRY_MS = 5000;
+let loadRetryTimer: ReturnType<typeof setTimeout> | undefined;
+
+// The first load must be complete before anything shows; half a load would look like the data was gone.
+// Until it succeeds the app keeps its loading screen (or the customer's copy on the device) and tries again.
 async function loadEverything(client: SupabaseClient) {
   const data = await fetchEverything(client);
-  if (!looksComplete(data) && activeRole === "customer" && loadCache()) return;
-  await applyEverything(client, data);
+  if (looksComplete(data)) {
+    await applyEverything(client, data);
+    return;
+  }
+  if (activeRole === "customer" && !getState().loaded) loadCache();
+  clearTimeout(loadRetryTimer);
+  loadRetryTimer = setTimeout(() => {
+    if (activeRole) void loadEverything(client);
+  }, LOAD_RETRY_MS);
 }
 
 async function applyEverything(client: SupabaseClient, { results, config, messagesSince }: Awaited<ReturnType<typeof fetchEverything>>) {
@@ -405,7 +417,7 @@ async function catchUp(recentMessagesOnly = false) {
   for (let attempt = 0; attempt < 3; attempt++) {
     if (!activeRole) return;
     // Changes still waiting to be sent are newer than the server; reload once they are through.
-    if (outbox.length) {
+    if (outbox.length && outbox[0].tries < 3) {
       refreshWanted = true;
       void flushOutbox();
       return;
@@ -478,6 +490,7 @@ export async function stopSync() {
   clearInterval(refreshTimer);
   refreshTimer = undefined;
   clearTimeout(retryTimer);
+  clearTimeout(loadRetryTimer);
   // Unsent changes stay saved on the device for this account and go out at the next sign-in.
   outbox = [];
   // Signing out removes the copy of the chat kept on the device.

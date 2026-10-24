@@ -30,6 +30,11 @@ export default function CustomerApp() {
     startSync("customer").then(() => ensureCustomerProfile(user));
   }, [user]);
 
+  // The session ended: the next sign-in starts a fresh load.
+  useEffect(() => {
+    if (!user && !checking) void stopSync();
+  }, [user, checking]);
+
   useEffect(() => {
     if (customer) {
       hadProfile.current = true;
