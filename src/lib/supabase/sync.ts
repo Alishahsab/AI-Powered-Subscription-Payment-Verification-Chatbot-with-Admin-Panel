@@ -1,4 +1,5 @@
 import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
+import { serverNow, syncClock } from "../clock";
 import { setOnline, setSlow } from "../store/connection";
 import { applyRemoteChange, clearState, getState, setChangeHandler } from "../store/state";
 import type { AppState, StoreConfig } from "../types";
@@ -422,6 +423,7 @@ let refreshTimer: ReturnType<typeof setInterval> | undefined;
 // Events sent while the connection was down are not replayed, so reload everything once.
 // A reload that overlapped a local change is older than the screen, so it is retried.
 async function catchUp(recentMessagesOnly = false) {
+  void syncClock();
   for (let attempt = 0; attempt < 3; attempt++) {
     if (!activeRole) return;
     // Changes still waiting to be sent are newer than the server; reload once they are through.
@@ -437,7 +439,7 @@ async function catchUp(recentMessagesOnly = false) {
     const { data: auth } = await client.auth.getSession();
     if (!auth.session) return;
     const started = Date.now();
-    const data = await fetchEverything(client, recentMessagesOnly ? Date.now() - ADMIN_REFRESH_MESSAGES_MS : undefined);
+    const data = await fetchEverything(client, recentMessagesOnly ? serverNow() - ADMIN_REFRESH_MESSAGES_MS : undefined);
     setSlow(Date.now() - started > SLOW_CONNECTION_MS);
     if (!activeRole) return;
     if (!looksComplete(data)) {
@@ -477,6 +479,7 @@ export async function startSync(role: AppRole) {
   await stopSync();
 
   activeRole = role;
+  void syncClock();
   const client = getSupabase(role);
   // Changes left from an earlier visit (connection lost or app closed) are sent before loading.
   const { data: auth } = await client.auth.getSession();

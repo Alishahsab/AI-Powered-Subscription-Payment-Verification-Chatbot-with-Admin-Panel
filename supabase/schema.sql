@@ -918,7 +918,10 @@ declare
   latest bigint;
 begin
   if tg_table_name = 'messages' then
-    select max(created_at) into latest from public.messages where customer_id = new.customer_id;
+    -- Messages saved in the same moment keep their order. Only the last few seconds count, so an
+    -- old message saved with a phone clock set ahead cannot push new messages into the future.
+    select max(created_at) into latest from public.messages
+    where customer_id = new.customer_id and created_at between now_ms - 5000 and now_ms + 5000;
     new.created_at := greatest(now_ms, coalesce(latest, 0) + 1);
   else
     new.created_at := now_ms;

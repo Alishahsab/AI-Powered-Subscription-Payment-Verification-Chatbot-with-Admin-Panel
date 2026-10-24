@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { serverNow } from "@/lib/clock";
 
 export function useNow(intervalMs = 1000) {
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(() => serverNow());
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), intervalMs);
+    const timer = setInterval(() => setNow(serverNow()), intervalMs);
     return () => clearInterval(timer);
   }, [intervalMs]);
 

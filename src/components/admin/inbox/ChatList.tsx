@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle, Ban, CheckCircle2, Hourglass, Inbox as InboxIcon, PackageX } from "lucide-react";
-import { classNames, timeAgo } from "@/lib/format";
+import { chatListTime, classNames } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import type { InboxTab } from "@/lib/types";
 import Avatar from "../ui/Avatar";
@@ -130,7 +130,7 @@ export default function ChatList({ view, tab, onTabChange, botFilter, onBotFilte
                       <span className="text-[11px] font-bold text-[#0C2660] bg-[#0C2660]/[0.07] rounded px-1.5 py-0.5 shrink-0">{item.tag}</span>
                       <span className={classNames("text-[13.5px] truncate", item.unread ? "font-bold text-zinc-900" : "font-semibold text-zinc-800")}>{item.title}</span>
                     </span>
-                    <span className={classNames("text-[11.5px] shrink-0", item.unread ? "text-[#0C2660] font-semibold" : "text-zinc-400")}>{timeAgo(item.time, now)}</span>
+                    <span className={classNames("text-[11.5px] shrink-0", item.unread ? "text-[#0C2660] font-semibold" : "text-zinc-400")}>{chatListTime(item.time, now)}</span>
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className={classNames("flex-1 text-[12.5px] truncate", item.unread ? "text-zinc-700" : "text-zinc-500")}>{item.subtitle}</span>

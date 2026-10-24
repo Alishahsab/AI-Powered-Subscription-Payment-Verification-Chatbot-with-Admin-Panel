@@ -1,4 +1,5 @@
 import { isAuthApiError } from "@supabase/supabase-js";
+import { serverNow } from "../clock";
 import { createTemporaryClient, getSupabase } from "../supabase/client";
 import { sendEmailCopy } from "../supabase/email";
 import { deleteScreenshots, uploadScreenshot } from "../supabase/screenshots";
@@ -215,7 +216,7 @@ export function approveOrder(orderId: string, codeMessage: string, code: string,
     if (!current) return;
 
     current.status = "completed";
-    current.reviewedAt = Date.now();
+    current.reviewedAt = serverNow();
     current.code = code;
     current.codeUnused = false;
 
@@ -239,7 +240,7 @@ export function rejectOrder(orderId: string, reason: string) {
 
     order.status = "rejected";
     order.rejectReason = reason;
-    order.reviewedAt = Date.now();
+    order.reviewedAt = serverNow();
 
     const message = state.settings.rejectionMessage.replaceAll("{order_id}", order.id).replaceAll("{reason}", reason);
     addMessage(state, order.customerId, "bot", message);
@@ -278,7 +279,7 @@ export function cancelOrderAsAdmin(orderId: string) {
 
     order.status = "cancelled";
     order.rejectReason = ADMIN_CANCEL_REASON;
-    order.reviewedAt = Date.now();
+    order.reviewedAt = serverNow();
 
     addMessage(state, order.customerId, "bot", botText(state, "orderCancelledByAdmin", { order_id: order.id }));
 
@@ -326,7 +327,7 @@ const hasEnded = (state: AppState, ticket: Ticket, now: number) => ticket.kind =
 
 // Closes payment issues the moment their wait ends while the panel is open; the server does it too, every minute.
 export function closeEndedPaymentIssues() {
-  const now = Date.now();
+  const now = serverNow();
   const state = getState();
   if (!state.tickets.some((ticket) => hasEnded(state, ticket, now))) return;
   updateState((draft) => {

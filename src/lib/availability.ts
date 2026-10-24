@@ -1,3 +1,5 @@
+import { serverNow } from "./clock.ts";
+import { pakistanMinutesIntoDay } from "./format.ts";
 import type { AdminStatus, Settings } from "./types";
 
 function toMinutes(time: string) {
@@ -5,9 +7,9 @@ function toMinutes(time: string) {
   return hours * 60 + (minutes || 0);
 }
 
-export function isWithinWorkingHours(settings: Settings, now = Date.now()) {
-  const date = new Date(now);
-  const current = date.getHours() * 60 + date.getMinutes();
+// Working hours are Pakistan hours, also for a customer whose phone is set to another time zone.
+export function isWithinWorkingHours(settings: Settings, now = serverNow()) {
+  const current = pakistanMinutesIntoDay(now);
   const start = toMinutes(settings.hours.start);
   const end = toMinutes(settings.hours.end);
 
@@ -15,15 +17,14 @@ export function isWithinWorkingHours(settings: Settings, now = Date.now()) {
   return current >= start || current < end;
 }
 
-export function getEffectiveStatus(settings: Settings, now = Date.now()): AdminStatus {
+export function getEffectiveStatus(settings: Settings, now = serverNow()): AdminStatus {
   if (settings.status === "offline") return "offline";
   if (settings.hours.enforce && !isWithinWorkingHours(settings, now)) return "offline";
   return settings.status;
 }
 
-export function minutesUntilOpen(settings: Settings, now = Date.now()) {
-  const date = new Date(now);
-  const current = date.getHours() * 60 + date.getMinutes();
+export function minutesUntilOpen(settings: Settings, now = serverNow()) {
+  const current = pakistanMinutesIntoDay(now);
   const start = toMinutes(settings.hours.start);
   return (start - current + 24 * 60) % (24 * 60);
 }
@@ -37,9 +38,9 @@ export function formatDuration(totalMinutes: number) {
 
 function formatHour(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours, minutes || 0);
-  return date.toLocaleTimeString("en-US", { hour: "numeric", minute: minutes ? "2-digit" : undefined });
+  const hour = hours % 12 || 12;
+  const suffix = hours < 12 ? "AM" : "PM";
+  return minutes ? `${hour}:${String(minutes).padStart(2, "0")} ${suffix}` : `${hour} ${suffix}`;
 }
 
 export function workingHoursLabel(settings: Settings) {

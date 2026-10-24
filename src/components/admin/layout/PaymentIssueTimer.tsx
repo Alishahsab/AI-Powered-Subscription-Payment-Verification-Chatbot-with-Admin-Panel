@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { serverNow } from "@/lib/clock";
 import { closeEndedPaymentIssues, paymentIssueEndsAt } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 
@@ -11,7 +12,7 @@ export default function PaymentIssueTimer() {
 
   useEffect(() => {
     if (!Number.isFinite(nextEnd)) return;
-    const timer = setTimeout(closeEndedPaymentIssues, Math.max(0, nextEnd - Date.now()));
+    const timer = setTimeout(closeEndedPaymentIssues, Math.max(0, nextEnd - serverNow()));
     return () => clearTimeout(timer);
   }, [nextEnd]);
 

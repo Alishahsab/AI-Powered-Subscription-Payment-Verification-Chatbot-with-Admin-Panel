@@ -3,7 +3,8 @@ import { test } from "node:test";
 import { formatDuration, getEffectiveStatus, isWithinWorkingHours } from "../../src/lib/availability.ts";
 import type { Settings } from "../../src/lib/types.ts";
 
-const at = (hours: number, minutes = 0) => new Date(2026, 9, 20, hours, minutes).getTime();
+// Working hours are Pakistan hours (UTC+5), whatever the time zone of the computer running the test.
+const at = (hours: number, minutes = 0) => Date.UTC(2026, 9, 20, hours - 5, minutes);
 const settings = (status: Settings["status"], start: string, end: string, enforce: boolean) => ({ status, hours: { start, end, enforce } }) as Settings;
 
 test("working hours on the same day", () => {

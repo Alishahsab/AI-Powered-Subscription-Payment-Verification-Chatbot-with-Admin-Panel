@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
+import { chatDayLabel, pakistanDay } from "@/lib/format";
 import { customerNumberLabel } from "@/lib/store/helpers";
 import { customerMessages } from "@/lib/store/messageIndex";
 import { useAppState } from "@/lib/store/state";
@@ -22,7 +23,7 @@ type ChatThreadProps = {
 
 function endsGroup(message: Message, next?: Message) {
   if (!next) return true;
-  return next.sender !== message.sender || next.createdAt - message.createdAt > GROUP_GAP_MS;
+  return next.sender !== message.sender || next.createdAt - message.createdAt > GROUP_GAP_MS || pakistanDay(next.createdAt) !== pakistanDay(message.createdAt);
 }
 
 export default function ChatThread({ customerId, onBack, onShowDetails }: ChatThreadProps) {
@@ -66,8 +67,11 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
           {messages.length === 0 && <div className="text-center text-[12.5px] text-zinc-400 py-10">No messages yet.</div>}
           {messages.map((message, index) => {
             const last = endsGroup(message, messages[index + 1]);
+            const previous = messages[index - 1];
+            const newDay = !previous || pakistanDay(previous.createdAt) !== pakistanDay(message.createdAt);
             return (
               <div key={message.id} className={last ? "mb-4" : "mb-1"}>
+                {newDay && <DayDivider label={chatDayLabel(message.createdAt, now)} />}
                 <ThreadMessage message={message} showMeta={last} />
               </div>
             );
@@ -77,6 +81,14 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
       </div>
 
       <ReplyBox customerId={customerId} customerEmail={customer.email} />
+    </div>
+  );
+}
+
+function DayDivider({ label }: { label: string }) {
+  return (
+    <div className="flex justify-center my-4">
+      <span className="text-[11.5px] font-semibold text-zinc-500 bg-white border border-zinc-200/80 rounded-full px-3 py-1 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">{label}</span>
     </div>
   );
 }

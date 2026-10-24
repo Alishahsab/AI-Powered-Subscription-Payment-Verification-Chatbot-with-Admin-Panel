@@ -1,5 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 import { formatDuration, getEffectiveStatus } from "../availability";
+import { serverNow } from "../clock";
 import { getSupabase } from "../supabase/client";
 import { uploadScreenshot } from "../supabase/screenshots";
 import type { AppState, Customer, Stage, TicketKind } from "../types";
@@ -67,7 +68,7 @@ export function ensureCustomerProfile(user: User) {
   if (hasProfile && hasConversation) return;
 
   updateState((draft) => {
-    const now = Date.now();
+    const now = serverNow();
     if (!hasProfile) {
       draft.customers.push({ id: user.id, email: user.email ?? "", createdAt: now, lastSeenAt: now, blocked: false, cancelCount: 0 });
     }
@@ -89,7 +90,7 @@ export function openChat(customerId: string) {
       return;
     }
 
-    const wasAway = Date.now() - customer.lastSeenAt > state.settings.timers.inactiveMinutes * MINUTE;
+    const wasAway = serverNow() - customer.lastSeenAt > state.settings.timers.inactiveMinutes * MINUTE;
     if (wasAway && conversation.stage !== "awaiting_payment") {
       conversation.stage = "menu";
       addMessage(state, customerId, "bot", botText(state, "welcomeBack"));
@@ -101,7 +102,7 @@ export function openChat(customerId: string) {
 export function recordActivity(customerId: string) {
   updateState((state) => {
     const customer = state.customers.find((item) => item.id === customerId);
-    if (customer) customer.lastSeenAt = Date.now();
+    if (customer) customer.lastSeenAt = serverNow();
   });
   markMessagesDelivered(customerId);
 }
@@ -111,7 +112,7 @@ export function markMessagesDelivered(customerId: string) {
   if (!hasUndelivered) return;
 
   updateState((state) => {
-    const now = Date.now();
+    const now = serverNow();
     for (const message of state.messages) {
       if (message.customerId === customerId && message.sender !== "customer" && !message.deliveredAt) {
         message.deliveredAt = now;
@@ -125,7 +126,7 @@ export function markMessagesSeen(customerId: string) {
   if (!hasUnseen) return;
 
   updateState((state) => {
-    const now = Date.now();
+    const now = serverNow();
     for (const message of state.messages) {
       if (message.customerId === customerId && message.sender === "admin" && !message.seenAt) {
         message.deliveredAt = message.deliveredAt ?? now;
@@ -144,7 +145,7 @@ export const menuLabels: Record<MenuOption, string> = {
 
 export type OrderPause = { until: number; reason: "cancels" | "payment_issue" };
 
-export function findOrderPause(customer: Customer | undefined, now = Date.now()): OrderPause | null {
+export function findOrderPause(customer: Customer | undefined, now = serverNow()): OrderPause | null {
   if (!customer) return null;
   const pauses: OrderPause[] = [];
   if (customer.cancelCooldownUntil && customer.cancelCooldownUntil > now) pauses.push({ until: customer.cancelCooldownUntil, reason: "cancels" });
@@ -155,7 +156,7 @@ export function findOrderPause(customer: Customer | undefined, now = Date.now())
 function startBuying(state: AppState, customerId: string) {
   const conversation = state.conversations[customerId];
   const customer = state.customers.find((item) => item.id === customerId);
-  const now = Date.now();
+  const now = serverNow();
 
   const openOrder = getActiveOrder(state, customerId);
   if (openOrder && canStillPay(openOrder)) {
@@ -281,7 +282,7 @@ export function createOrder(customerId: string) {
       return;
     }
 
-    const now = Date.now();
+    const now = serverNow();
     const orderId = createOrderNumber();
 
     state.orders.unshift({
@@ -312,7 +313,7 @@ export function cancelOrder(customerId: string) {
 
   updateState((state) => {
     addMessage(state, customerId, "customer", "I don't want to continue this order");
-    const now = Date.now();
+    const now = serverNow();
     const order = getActiveOrder(state, customerId);
     if (!order || !canStillPay(order)) return;
     order.status = "cancelled";
@@ -361,7 +362,7 @@ export async function submitPaymentProof(customerId: string, screenshot: string,
     current.status = "pending_review";
     current.screenshot = screenshotPath;
     current.senderName = name;
-    current.submittedAt = Date.now();
+    current.submittedAt = serverNow();
     current.rejectReason = undefined;
 
     const customer = state.customers.find((item) => item.id === customerId);
@@ -456,7 +457,7 @@ export async function submitSupportIssue(customerId: string, description: string
     addMessage(state, customerId, "customer", description);
     if (screenshotPath) addMessage(state, customerId, "customer", "Screenshot", { kind: "image", image: screenshotPath });
 
-    state.tickets.unshift({ id: ticketId, customerId, kind: "support", message: description, screenshot: screenshotPath, status: "open", createdAt: Date.now() });
+    state.tickets.unshift({ id: ticketId, customerId, kind: "support", message: description, screenshot: screenshotPath, status: "open", createdAt: serverNow() });
     state.conversations[customerId].unreadByAdmin += 1;
     notifyAdmin(state, { kind: "support", title: "New support issue", body: `${findCustomerEmail(state, customerId)} · ${description.slice(0, 70)}`, customerId });
   });
@@ -569,7 +570,7 @@ export async function sendRejectionReply(customerId: string, text: string, scree
 }
 
 export function expireUnpaidOrders() {
-  const now = Date.now();
+  const now = serverNow();
   const hasExpired = getState().orders.some((order) => order.status === "awaiting_payment" && order.expiresAt <= now);
   if (!hasExpired) return;
 

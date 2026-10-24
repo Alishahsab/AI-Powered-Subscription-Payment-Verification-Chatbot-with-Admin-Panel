@@ -51,9 +51,10 @@ async function createOrder(page) {
   return true;
 }
 
-test("the chat shows the privacy note", async () => {
+test("the chat shows the privacy note and the day", async () => {
   const { page, errors } = await newCustomer();
   assert.ok(await page.isVisible("text=Private chat. Messages are deleted after 15 days."));
+  assert.ok(await page.isVisible("text=Today"), "the day divider is shown");
   assert.deepEqual(errors, []);
 });
 

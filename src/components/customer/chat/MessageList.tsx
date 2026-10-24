@@ -3,6 +3,8 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { Lock } from "lucide-react";
 import BrandIcon from "@/components/BrandIcon";
+import { useNow } from "@/hooks/useNow";
+import { chatDayLabel, pakistanDay } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import type { Message, Stage } from "@/lib/types";
 import MessageItem from "./MessageItem";
@@ -17,6 +19,7 @@ const MINUTE = 60_000;
 
 export default function MessageList({ messages, typing, stage }: MessageListProps) {
   const inactiveAfter = useAppState().settings.timers.inactiveMinutes * MINUTE;
+  const now = useNow(60_000);
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -56,16 +59,27 @@ export default function MessageList({ messages, typing, stage }: MessageListProp
           const previous = messages[index - 1];
           // A new visit (after the customer was away) shows the privacy note again.
           const newVisit = previous && message.createdAt - previous.createdAt > inactiveAfter;
+          // Like WhatsApp, each day starts with Today, Yesterday or its date.
+          const newDay = !previous || pakistanDay(previous.createdAt) !== pakistanDay(message.createdAt);
           return (
             <div key={message.id}>
+              {newDay && <DayDivider label={chatDayLabel(message.createdAt, now)} />}
               {newVisit && <PrivacyNote />}
-              <MessageItem message={message} startsGroup={newVisit || previous?.sender !== message.sender} />
+              <MessageItem message={message} startsGroup={newDay || newVisit || previous?.sender !== message.sender} />
             </div>
           );
         })}
 
         {typing && <TypingIndicator />}
       </div>
+    </div>
+  );
+}
+
+function DayDivider({ label }: { label: string }) {
+  return (
+    <div className="flex justify-center pt-3 pb-1">
+      <span className="text-[12px] font-semibold text-[var(--muted)] bg-[var(--surface)] border border-[var(--line)] rounded-full px-3 py-1">{label}</span>
     </div>
   );
 }

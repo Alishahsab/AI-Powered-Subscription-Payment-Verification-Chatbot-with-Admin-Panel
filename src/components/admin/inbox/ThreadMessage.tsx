@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Ban, Bot, ImageIcon, Mail, Trash2 } from "lucide-react";
 import StoredImage from "@/components/StoredImage";
-import { classNames, formatMoney, formatTime } from "@/lib/format";
+import { classNames, formatMoney } from "@/lib/format";
 import { canDeleteMessage, deleteAdminMessage } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import type { Message } from "@/lib/types";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import MessageTicks from "./MessageTicks";
+import MessageTime from "./MessageTime";
 
 type ThreadMessageProps = {
   message: Message;
@@ -36,7 +37,7 @@ export default function ThreadMessage({ message, showMeta }: ThreadMessageProps)
             <div className="text-[14px] leading-relaxed whitespace-pre-wrap break-words">{message.text}</div>
           </div>
           <div className="text-[11px] text-zinc-400 mt-1 px-1 flex items-center gap-1">
-            {formatTime(message.createdAt)}
+            <MessageTime time={message.createdAt} />
             <MessageTicks message={message} />
           </div>
         </div>
@@ -46,14 +47,14 @@ export default function ThreadMessage({ message, showMeta }: ThreadMessageProps)
   if (message.kind === "instructions") return <SystemNote>Code activation instructions sent</SystemNote>;
 
   if (message.kind === "proof") {
-    return <ImageMessage image={order?.screenshot} title="Payment proof" detail={`From ${order?.senderName ?? "N/A"} · ${formatTime(message.createdAt)}`} />;
+    return <ImageMessage image={order?.screenshot} title="Payment proof" detail={<>From {order?.senderName ?? "N/A"} · <MessageTime time={message.createdAt} /></>} />;
   }
 
   if (message.kind === "deleted") {
     return (
       <div className="flex justify-end">
         <div className="rounded-2xl rounded-br-md border border-dashed border-zinc-300 px-4 py-2 text-[13px] italic text-zinc-400 flex items-center gap-1.5">
-          <Ban size={13} /> You deleted this message · <span className="not-italic">{formatTime(message.createdAt)}</span>
+          <Ban size={13} /> You deleted this message · <span className="not-italic"><MessageTime time={message.createdAt} /></span>
         </div>
       </div>
     );
@@ -64,7 +65,7 @@ export default function ThreadMessage({ message, showMeta }: ThreadMessageProps)
     const action = canDeleteMessage(message) && <DeleteMessageButton message={message} />;
     const detail = (
       <span className="flex items-center gap-1">
-        {formatTime(message.createdAt)}
+        <MessageTime time={message.createdAt} />
         {fromAdmin && <MessageTicks message={message} />}
       </span>
     );
@@ -97,7 +98,7 @@ export default function ThreadMessage({ message, showMeta }: ThreadMessageProps)
                 <Bot size={12} /> Auto-reply ·
               </span>
             )}
-            {formatTime(message.createdAt)}
+            <MessageTime time={message.createdAt} />
             {message.emailedTo && (
               <span className="flex items-center gap-0.5" title={`Emailed to ${message.emailedTo}`}>
                 · <Mail size={11} /> emailed

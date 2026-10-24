@@ -1,4 +1,5 @@
 import { formatDuration, minutesUntilOpen, workingHoursLabel } from "../availability";
+import { serverNow } from "../clock";
 import { createId } from "../format";
 import type { AdminNotification, AppState, BankAccount, BotMessageKey, Customer, Message, Order } from "../types";
 import { whenOnline } from "./connection";
@@ -48,7 +49,7 @@ export function addMessage(state: AppState, customerId: string, sender: Message[
     sender,
     kind: "text",
     text,
-    createdAt: Date.now(),
+    createdAt: serverNow(),
     ...extra,
   };
 
@@ -61,7 +62,7 @@ export function addMessage(state: AppState, customerId: string, sender: Message[
 }
 
 export function notifyAdmin(state: AppState, notification: Omit<AdminNotification, "id" | "read" | "createdAt">) {
-  state.notifications.unshift({ ...notification, id: createId(), read: false, createdAt: Date.now() });
+  state.notifications.unshift({ ...notification, id: createId(), read: false, createdAt: serverNow() });
   state.notifications = state.notifications.slice(0, 60);
 }
 
@@ -82,7 +83,7 @@ export function replyAsBot(customerId: string, reply: (state: AppState) => void)
 }
 
 function shortCode() {
-  const time = Date.now().toString(36).slice(-5);
+  const time = serverNow().toString(36).slice(-5);
   const random = Math.floor(Math.random() * 36).toString(36);
   return (time + random).toUpperCase();
 }
@@ -128,6 +129,6 @@ export function findOrderMethod(state: AppState, customerId: string) {
   return state.methods.find((method) => method.id === methodId) ?? state.methods.find((method) => method.name === order?.methodName);
 }
 
-export function canStillPay(order: Order, now = Date.now()) {
+export function canStillPay(order: Order, now = serverNow()) {
   return order.status === "awaiting_payment" && order.expiresAt > now;
 }
