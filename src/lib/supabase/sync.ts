@@ -9,7 +9,6 @@ type Row = Record<string, unknown>;
 
 let activeRole: AppRole | null = null;
 let channel: RealtimeChannel | null = null;
-let pushQueue: Promise<void> = Promise.resolve();
 
 // Our own changes are protected from older echoes for this long after the server confirmed them,
 // so a slow mobile connection cannot bring back an earlier chat step.
@@ -87,24 +86,139 @@ function findTableChanges(table: TableSync, before: AppState, after: AppState): 
   return { table, inserted, updated, deletedIds };
 }
 
-async function writeTableChanges(client: SupabaseClient, changes: TableChanges) {
-  const { table, inserted, updated, deletedIds } = changes;
+// ---------- Outbox ----------
+// Every change is kept on the device until the server has it. Changes are sent one by one, in order.
+// If the connection drops or the app closes, they are sent again when it comes back, so nothing is lost.
+// If the server refuses a change (for example the store has just closed), the screen reloads from the server
+// so it always matches what is really saved.
 
-  if (inserted.length > 0) {
-    const { error } = await client.from(table.name).insert(inserted);
-    if (error) console.error(`Insert into ${table.name} failed`, error.message);
+type Op =
+  | { kind: "insert"; table: string; key: string; rows: Row[]; tries: number }
+  | { kind: "update"; table: string; key: string; row: Row; tries: number }
+  | { kind: "delete"; table: string; key: string; ids: string[]; tries: number }
+  | { kind: "config"; row: Row; tries: number };
+
+let outbox: Op[] = [];
+let outboxKey = "";
+let flushing: Promise<void> | null = null;
+let retryTimer: ReturnType<typeof setTimeout> | undefined;
+let refreshWanted = false;
+const problemListeners = new Set<(message: string) => void>();
+
+// Lets the apps tell the person when the server refused something they did.
+export function onSyncProblem(listener: (message: string) => void) {
+  problemListeners.add(listener);
+  return () => {
+    problemListeners.delete(listener);
+  };
+}
+
+function saveOutbox() {
+  try {
+    if (outbox.length) localStorage.setItem(outboxKey, JSON.stringify(outbox));
+    else localStorage.removeItem(outboxKey);
+  } catch {
+    // Without storage the outbox still works while the app is open.
+  }
+}
+
+function loadOutbox(key: string) {
+  outboxKey = key;
+  try {
+    outbox = JSON.parse(localStorage.getItem(key) ?? "[]") as Op[];
+  } catch {
+    outbox = [];
+  }
+}
+
+type WriteResult = { error: { message: string; code?: string } | null; status: number };
+
+// No answer, a server hiccup or an expired sign-in can pass; a refusal by the database rules cannot.
+function canRetry({ error, status }: WriteResult) {
+  if (!error) return false;
+  if (!error.code || status === 0 || status === 401 || status === 408 || status === 429 || status >= 500) return true;
+  return error.code === "PGRST301" || error.code === "PGRST303";
+}
+
+async function runOp(client: SupabaseClient, op: Op): Promise<WriteResult> {
+  if (op.kind === "insert") {
+    let rows = op.rows;
+    // After a failed attempt the rows may have arrived anyway, so only the missing ones are sent again.
+    if (op.tries > 0) {
+      const ids = rows.map((row) => row[op.key]);
+      const { data, error, status } = await client.from(op.table).select(op.key).in(op.key, ids);
+      if (error) return { error, status };
+      const saved = new Set((data ?? []).map((row) => String((row as unknown as Row)[op.key])));
+      rows = rows.filter((row) => !saved.has(String(row[op.key])));
+      if (rows.length === 0) return { error: null, status: 200 };
+    }
+    return await client.from(op.table).insert(rows);
+  }
+  if (op.kind === "update") return await client.from(op.table).update(op.row).eq(op.key, op.row[op.key]);
+  if (op.kind === "delete") return await client.from(op.table).delete().in(op.key, op.ids);
+  return await client.from("store_config").upsert(op.row);
+}
+
+function forgetLocalWrites(op: Op) {
+  if (op.kind === "insert") op.rows.forEach((row) => recentLocalWrites.delete(`${op.table}:${row[op.key]}`));
+  if (op.kind === "update") recentLocalWrites.delete(`${op.table}:${op.row[op.key]}`);
+}
+
+function scheduleRetry(tries: number) {
+  clearTimeout(retryTimer);
+  retryTimer = setTimeout(() => void flushOutbox(), Math.min(30_000, 1000 * 2 ** Math.min(tries, 5)));
+}
+
+function flushOutbox(): Promise<void> {
+  if (!flushing) {
+    flushing = sendOutbox().finally(() => {
+      flushing = null;
+    });
+  }
+  return flushing;
+}
+
+async function sendOutbox() {
+  let refused = false;
+  while (activeRole && outbox.length) {
+    const op = outbox[0];
+    const result: WriteResult = await runOp(getActiveClient(), op).catch((error: unknown) => ({ error: { message: String(error) }, status: 0 }));
+
+    if (result.error && canRetry(result)) {
+      op.tries += 1;
+      saveOutbox();
+      scheduleRetry(op.tries);
+      return;
+    }
+
+    outbox.shift();
+    saveOutbox();
+    if (result.error) {
+      const message = result.error.message;
+      console.warn(`The server refused a change to ${op.kind === "config" ? "settings" : op.table}`, message);
+      forgetLocalWrites(op);
+      refused = true;
+      problemListeners.forEach((listener) => listener(message));
+    } else if (op.kind === "update") {
+      refreshLocalWrite(op.table, String(op.row[op.key]));
+    }
   }
 
-  for (const row of updated) {
-    const { error } = await client.from(table.name).update(row).eq(table.key, row[table.key]);
-    if (error) console.error(`Update of ${table.name} failed`, error.message);
-    refreshLocalWrite(table.name, String(row[table.key]));
+  if (activeRole && (refused || refreshWanted)) {
+    refreshWanted = false;
+    void catchUp();
   }
+}
 
-  if (deletedIds.length > 0 && activeRole === "admin") {
-    const { error } = await client.from(table.name).delete().in(table.key, deletedIds);
-    if (error) console.error(`Delete from ${table.name} failed`, error.message);
+function queueChanges(changes: TableChanges[], config: StoreConfig | null) {
+  for (const { table, inserted, updated, deletedIds } of changes) {
+    if (inserted.length) outbox.push({ kind: "insert", table: table.name, key: table.key, rows: inserted, tries: 0 });
+    for (const row of updated) outbox.push({ kind: "update", table: table.name, key: table.key, row, tries: 0 });
+    if (deletedIds.length && activeRole === "admin") outbox.push({ kind: "delete", table: table.name, key: table.key, ids: deletedIds, tries: 0 });
   }
+  if (config) outbox.push({ kind: "config", row: configToRow(config), tries: 0 });
+  saveOutbox();
+  void flushOutbox();
 }
 
 function handleLocalChange(before: AppState, after: AppState) {
@@ -116,18 +230,13 @@ function handleLocalChange(before: AppState, after: AppState) {
     for (const row of change.updated) rememberLocalWrite(change.table.name, row, change.table.key, false);
   }
 
-  const configChanged = JSON.stringify(pickConfig(before)) !== JSON.stringify(pickConfig(after));
-  const config = pickConfig(after);
+  const configChanged = activeRole === "admin" && JSON.stringify(pickConfig(before)) !== JSON.stringify(pickConfig(after));
+  queueChanges(changes, configChanged ? pickConfig(after) : null);
+}
 
-  pushQueue = pushQueue.then(async () => {
-    const client = getActiveClient();
-    for (const change of changes) await writeTableChanges(client, change);
-
-    if (configChanged && activeRole === "admin") {
-      const { error } = await client.from("store_config").upsert(configToRow(config));
-      if (error) console.error("Saving settings failed", error.message);
-    }
-  });
+function handleOnline() {
+  void flushOutbox();
+  void catchUp();
 }
 
 const PAGE_SIZE = 1000;
@@ -225,8 +334,8 @@ const CATCH_UP_AFTER_HIDDEN_MS = 10_000;
 let hiddenSince = 0;
 
 // A phone can lose the live connection without saying so, even with the panel on screen.
-// The admin panel therefore refreshes every minute; messages only for the last 30 minutes to keep it light.
-const ADMIN_REFRESH_MS = 60_000;
+// The admin panel therefore refreshes every 20 seconds; messages only for the last 30 minutes to keep it light.
+const ADMIN_REFRESH_MS = 20_000;
 const ADMIN_REFRESH_MESSAGES_MS = 30 * 60_000;
 let refreshTimer: ReturnType<typeof setInterval> | undefined;
 
@@ -235,7 +344,12 @@ let refreshTimer: ReturnType<typeof setInterval> | undefined;
 async function catchUp(recentMessagesOnly = false) {
   for (let attempt = 0; attempt < 3; attempt++) {
     if (!activeRole) return;
-    await pushQueue;
+    // Changes still waiting to be sent are newer than the server; reload once they are through.
+    if (outbox.length) {
+      refreshWanted = true;
+      void flushOutbox();
+      return;
+    }
     const version = localVersion;
     const client = getActiveClient();
     // Right after a phone wakes the tab, the sign-in may not be refreshed yet. A reload without it comes back
@@ -270,10 +384,15 @@ export async function startSync(role: AppRole) {
 
   activeRole = role;
   const client = getSupabase(role);
+  // Changes left from an earlier visit (connection lost or app closed) are sent before loading.
+  const { data: auth } = await client.auth.getSession();
+  loadOutbox(`premium-store-outbox:${role}:${auth.session?.user.id ?? "guest"}`);
+  if (outbox.length) await flushOutbox();
   await loadEverything(client);
   setChangeHandler(handleLocalChange);
   listenForChanges(client);
   document.addEventListener("visibilitychange", handleVisibility);
+  window.addEventListener("online", handleOnline);
   if (role === "admin") {
     refreshTimer = setInterval(() => {
       if (document.visibilityState === "visible") void catchUp(true);
@@ -284,6 +403,10 @@ export async function startSync(role: AppRole) {
 export async function stopSync() {
   clearInterval(refreshTimer);
   refreshTimer = undefined;
+  clearTimeout(retryTimer);
+  // Unsent changes stay saved on the device for this account and go out at the next sign-in.
+  outbox = [];
+  window.removeEventListener("online", handleOnline);
   document.removeEventListener("visibilitychange", handleVisibility);
   setChangeHandler(null);
   if (channel && activeRole) await getSupabase(activeRole).removeChannel(channel);

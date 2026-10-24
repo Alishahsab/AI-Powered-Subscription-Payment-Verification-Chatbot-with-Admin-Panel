@@ -13,7 +13,6 @@ export default function TimersTab({ draft, updateDraft }: SettingsTabProps) {
           <DurationField label="Chat becomes inactive after" minutes={timers.inactiveMinutes} onChange={(value) => updateDraft((next) => (next.settings.timers.inactiveMinutes = value))} />
           <DurationField label="Count cancellations made within" minutes={timers.cancelWindowMinutes} onChange={(value) => updateDraft((next) => (next.settings.timers.cancelWindowMinutes = value))} />
           <DurationField label="Pause new orders after cancellations for" minutes={timers.cancelCooldownMinutes} onChange={(value) => updateDraft((next) => (next.settings.timers.cancelCooldownMinutes = value))} />
-          <DurationField label="Wait after a payment problem" minutes={timers.retryMinutes} onChange={(value) => updateDraft((next) => (next.settings.timers.retryMinutes = value))} />
           <DurationField label="Close a support request after no reply for" minutes={timers.issueInactiveMinutes} onChange={(value) => updateDraft((next) => (next.settings.timers.issueInactiveMinutes = value))} />
         </div>
       </SettingsSection>

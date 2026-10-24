@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAdminTheme } from "@/hooks/useAdminTheme";
 import { useOrderExpiry } from "@/hooks/useOrderExpiry";
+import SyncNotice from "../SyncNotice";
 import AdminSidebar from "./layout/AdminSidebar";
 import PaymentIssueTimer from "./layout/PaymentIssueTimer";
 import Toasts from "./layout/Toasts";
@@ -59,6 +60,7 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
       </div>
 
       <Toasts onNavigate={navigate} />
+      <SyncNotice />
       <PaymentIssueTimer />
     </div>
   );

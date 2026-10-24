@@ -168,14 +168,15 @@ html[data-admin-theme="dark"] {
   --color-red-100: #3a1c20;
   --color-red-200: #57292e;
   --color-red-300: #6f3238;
-  --color-amber-50: #2a2213;
-  --color-amber-100: #382b12;
-  --color-amber-200: #574419;
-  --color-amber-300: #7a5c1c;
+  --color-amber-50: #1d1912;
+  --color-amber-100: #272116;
+  --color-amber-200: #3a3120;
+  --color-amber-300: #5e4a22;
+  --color-orange-400: #7a4f22;
   --color-emerald-50: #11261e;
   --color-emerald-100: #153427;
   --color-sky-50: #10222f;
-  --admin-chart-bar: #4f74d1;
+  --admin-chart-bar: #5b74b3;
 }
 
 html[data-admin-theme="dark"] .admin-avatar {
@@ -199,9 +200,18 @@ html[data-admin-theme="dark"] .bg-\[\#e9edf5\] { background-color: #222a39; }
 html[data-admin-theme="dark"] .border-white { border-color: #161a22; }
 html[data-admin-theme="dark"] .ring-white { --tw-ring-color: #161a22; }
 
-/* Brand navy is too dark on a dark page, so buttons and accents use a brighter blue. */
-html[data-admin-theme="dark"] .bg-\[\#0C2660\] { background-color: #2c4fa8; }
-html[data-admin-theme="dark"] .hover\:bg-\[\#0a1f52\]:hover { background-color: #345bc0; }
+/* Brand navy is too dark on a dark page; buttons and accents use a muted slate blue that sits calmly on it. */
+html[data-admin-theme="dark"] .bg-\[\#0C2660\] { background-color: #2a3a63; }
+html[data-admin-theme="dark"] .hover\:bg-\[\#0a1f52\]:hover { background-color: #33467a; }
+
+/* Action buttons: the same meaning as in light mode, in deeper tones. */
+html[data-admin-theme="dark"] .bg-emerald-600 { background-color: #1f6b4c; }
+html[data-admin-theme="dark"] .hover\:bg-emerald-700:hover { background-color: #257a57; }
+html[data-admin-theme="dark"] .bg-\[\#b84a45\] { background-color: #8c3b37; }
+html[data-admin-theme="dark"] .hover\:bg-\[\#a2403b\]:hover { background-color: #9c4440; }
+html[data-admin-theme="dark"] .bg-violet-600 { background-color: #4f3f8f; }
+html[data-admin-theme="dark"] .hover\:bg-violet-700:hover { background-color: #5a49a1; }
+html[data-admin-theme="dark"] .text-orange-950 { color: #ffe0bd; }
 html[data-admin-theme="dark"] .text-\[\#0C2660\] { color: #a8bdf5; }
 html[data-admin-theme="dark"] .chat-row-selected { background-color: rgba(120, 150, 230, 0.14); }
 html[data-admin-theme="dark"] .border-\[\#0C2660\] { border-color: #5d7fd6; }
@@ -217,7 +227,8 @@ html[data-admin-theme="dark"] .text-red-950 { color: #fbb0b0; }
 html[data-admin-theme="dark"] .text-amber-700,
 html[data-admin-theme="dark"] .text-amber-800,
 html[data-admin-theme="dark"] .text-amber-900,
-html[data-admin-theme="dark"] .text-amber-950 { color: #f3cd7f; }
+html[data-admin-theme="dark"] .text-amber-950 { color: #dcbb79; }
+html[data-admin-theme="dark"] .text-amber-600 { color: #c9a45c; }
 html[data-admin-theme="dark"] .text-emerald-700,
 html[data-admin-theme="dark"] .text-emerald-800,
 html[data-admin-theme="dark"] .text-emerald-950 { color: #7fe0b8; }

@@ -10,6 +10,7 @@ import { ensureCustomerProfile, signOut } from "@/lib/store/customer";
 import { useAppState } from "@/lib/store/state";
 import { startSync, stopSync } from "@/lib/supabase/sync";
 import ConfirmDialog from "../ConfirmDialog";
+import SyncNotice from "../SyncNotice";
 import AuthScreen from "./AuthScreen";
 import Sidebar from "./Sidebar";
 import ChatScreen from "./chat/ChatScreen";
@@ -67,6 +68,7 @@ export default function CustomerApp() {
       ) : (
         <AuthScreen />
       )}
+      <SyncNotice />
       {confirmingSignOut && (
         <ConfirmDialog
           title="Sign out?"
