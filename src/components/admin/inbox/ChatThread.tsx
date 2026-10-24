@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
 import { customerNumberLabel } from "@/lib/store/helpers";
+import { customerMessages } from "@/lib/store/messageIndex";
 import { useAppState } from "@/lib/store/state";
 import type { Message } from "@/lib/types";
 import Avatar from "../ui/Avatar";
@@ -30,7 +31,7 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
   const scrollRef = useRef<HTMLDivElement>(null);
   const customer = state.customers.find((item) => item.id === customerId);
   const conversation = state.conversations[customerId];
-  const messages = state.messages.filter((message) => message.customerId === customerId);
+  const messages = customerMessages(state, customerId);
 
   useLayoutEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });

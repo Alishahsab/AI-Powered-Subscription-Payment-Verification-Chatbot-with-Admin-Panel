@@ -52,10 +52,6 @@ function pickConfig(state: AppState): StoreConfig {
   return { settings: state.settings, plans: state.plans, methods: state.methods, faqs: state.faqs };
 }
 
-function rowsById(rows: Row[], key: string) {
-  return new Map(rows.map((row) => [String(row[key]), JSON.stringify(row)]));
-}
-
 type TableChanges = {
   table: TableSync;
   inserted: Row[];
@@ -63,29 +59,40 @@ type TableChanges = {
   deletedIds: string[];
 };
 
+// Items that were not touched are the same objects in both states, so only new objects are compared.
 function findTableChanges(table: TableSync, before: AppState, after: AppState): TableChanges {
-  const oldRows = rowsById(table.readRows(before), table.key);
-  const newRows = table.readRows(after);
+  const oldItems = table.items(before);
+  const newItems = table.items(after);
+  const changes: TableChanges = { table, inserted: [], updated: [], deletedIds: [] };
+  if (oldItems.length === newItems.length && oldItems.every((item, index) => item === newItems[index])) return changes;
 
-  const inserted = newRows.filter((row) => !oldRows.has(String(row[table.key])));
-
-  // Send only the columns that changed, so a write never overwrites what someone else changed in another column.
-  const updated: Row[] = [];
-  for (const row of newRows) {
-    const previous = oldRows.get(String(row[table.key]));
-    if (previous === undefined || previous === JSON.stringify(row)) continue;
-    const before = JSON.parse(previous) as Row;
-    const changed: Row = { [table.key]: row[table.key] };
-    for (const [column, value] of Object.entries(row)) {
-      if (JSON.stringify(value) !== JSON.stringify(before[column])) changed[column] = value;
+  const oldById = new Map(oldItems.map((item) => [table.idOf(item), item]));
+  const newIds = new Set<string>();
+  for (const item of newItems) {
+    const id = table.idOf(item);
+    newIds.add(id);
+    const previous = oldById.get(id);
+    if (previous === undefined) {
+      changes.inserted.push(table.toRow(item));
+      continue;
     }
-    updated.push(changed);
+    if (previous === item) continue;
+
+    // Send only the columns that changed, so a write never overwrites what someone else changed in another column.
+    const row = table.toRow(item);
+    const oldRow = table.toRow(previous);
+    const changed: Row = { [table.key]: row[table.key] };
+    let anyColumn = false;
+    for (const [column, value] of Object.entries(row)) {
+      if (JSON.stringify(value) !== JSON.stringify(oldRow[column])) {
+        changed[column] = value;
+        anyColumn = true;
+      }
+    }
+    if (anyColumn) changes.updated.push(changed);
   }
-
-  const newIds = new Set(newRows.map((row) => String(row[table.key])));
-  const deletedIds = [...oldRows.keys()].filter((id) => !newIds.has(id));
-
-  return { table, inserted, updated, deletedIds };
+  changes.deletedIds = [...oldById.keys()].filter((id) => !newIds.has(id));
+  return changes;
 }
 
 // ---------- Outbox ----------
@@ -256,7 +263,8 @@ function handleLocalChange(before: AppState, after: AppState) {
     for (const row of change.updated) rememberLocalWrite(change.table.name, row, change.table.key, false);
   }
 
-  const configChanged = activeRole === "admin" && JSON.stringify(pickConfig(before)) !== JSON.stringify(pickConfig(after));
+  const configTouched = before.settings !== after.settings || before.plans !== after.plans || before.methods !== after.methods || before.faqs !== after.faqs;
+  const configChanged = activeRole === "admin" && configTouched && JSON.stringify(pickConfig(before)) !== JSON.stringify(pickConfig(after));
   queueChanges(changes, configChanged ? pickConfig(after) : null);
   saveCache();
 }
@@ -341,9 +349,8 @@ async function applyEverything(client: SupabaseClient, { results, config, messag
     tables.forEach((table, index) => {
       const rows = results[index].data;
       if (!rows) return;
-      if (messagesSince !== undefined && table.name === "messages") {
-        const older = table.readRows(draft).filter((row) => Number(row.created_at) <= messagesSince);
-        table.replaceAll(draft, [...older, ...rows]);
+      if (messagesSince !== undefined && table.replaceRecent) {
+        table.replaceRecent(draft, rows, messagesSince);
       } else {
         table.replaceAll(draft, rows);
       }
@@ -379,7 +386,8 @@ function listenForChanges(client: SupabaseClient) {
 
       // Keep our own recent values, but take every column someone else changed.
       applyRemoteChange((draft) => {
-        const local = table.readRows(draft).find((item) => String(item[table.key]) === String(row[table.key]));
+        const localItem = table.items(draft).find((item) => table.idOf(item) === String(row[table.key]));
+        const local = localItem === undefined ? undefined : table.toRow(localItem);
         if (!local) return table.apply(draft, row);
         const merged: Row = { ...row };
         for (const column of ownColumns) if (column in local) merged[column] = local[column];

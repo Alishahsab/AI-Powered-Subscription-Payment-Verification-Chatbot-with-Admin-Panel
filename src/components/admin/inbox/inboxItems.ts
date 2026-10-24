@@ -1,5 +1,6 @@
 import { formatMoney, timeAgo } from "@/lib/format";
 import { canStillPay, customerNumberLabel, findCustomerEmail } from "@/lib/store/helpers";
+import { customerMessages, lastCustomerMessageAt } from "@/lib/store/messageIndex";
 import type { AppState, InboxTab, Message, Order, OrderStatus, Ticket } from "@/lib/types";
 
 export type BotFilter = "active_orders" | "cancelled" | "active_chats" | "inactive_chats";
@@ -40,8 +41,7 @@ function customerTag(state: AppState, customerId: string) {
 // A customer who just sent a message counts, even if their last-seen update has not arrived yet.
 function lastActivityAt(state: AppState, customerId: string) {
   const customer = state.customers.find((item) => item.id === customerId);
-  const lastSent = state.messages.reduce((latest, message) => (message.customerId === customerId && message.sender === "customer" ? Math.max(latest, message.createdAt) : latest), 0);
-  return Math.max(customer?.lastSeenAt ?? 0, lastSent);
+  return Math.max(customer?.lastSeenAt ?? 0, lastCustomerMessageAt(state, customerId));
 }
 
 export function isCustomerActive(state: AppState, customerId: string, now: number) {
@@ -67,12 +67,12 @@ function orderItem(state: AppState, order: Order, time: number, subtitle: string
 
 function chatItems(state: AppState, active: boolean, now: number): InboxItem[] {
   return Object.values(state.conversations)
-    .filter((conversation) => state.messages.some((message) => message.customerId === conversation.customerId))
+    .filter((conversation) => customerMessages(state, conversation.customerId).length > 0)
     .filter((conversation) => isCustomerActive(state, conversation.customerId, now) === active)
     .map((conversation) => ({ conversation, activeAt: lastActivityAt(state, conversation.customerId) }))
     .sort((a, b) => b.activeAt - a.activeAt)
     .map(({ conversation, activeAt }) => {
-      const lastMessage = state.messages.filter((message) => message.customerId === conversation.customerId).at(-1);
+      const lastMessage = customerMessages(state, conversation.customerId).at(-1);
       const prefix = lastMessage && lastMessage.sender !== "customer" ? "You: " : "";
       return {
         key: conversation.customerId,

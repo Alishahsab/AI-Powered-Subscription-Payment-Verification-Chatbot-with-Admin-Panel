@@ -1,10 +1,16 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { produce, setAutoFreeze } from "immer";
 import { createEmptyState } from "../defaults";
 import type { AppState } from "../types";
 
 type ChangeHandler = (before: AppState, after: AppState) => void;
+
+// Changes copy only what they touch; everything else keeps its identity. Copying the whole state
+// (thousands of messages) on every tap made the app stutter, and identity lets the sync and the
+// screens skip everything that did not change.
+setAutoFreeze(false);
 
 const listeners = new Set<() => void>();
 let state: AppState = createEmptyState();
@@ -33,17 +39,17 @@ export function setChangeHandler(handler: ChangeHandler | null) {
 
 export function updateState(change: (draft: AppState) => void) {
   const before = state;
-  const draft = structuredClone(state);
-  change(draft);
-  state = draft;
+  const after = produce(state, change);
+  if (after === before) return;
+  state = after;
   notifyListeners();
-  changeHandler?.(before, draft);
+  changeHandler?.(before, after);
 }
 
 export function applyRemoteChange(change: (draft: AppState) => void) {
-  const draft = structuredClone(state);
-  change(draft);
-  state = draft;
+  const after = produce(state, change);
+  if (after === state) return;
+  state = after;
   notifyListeners();
 }
 
