@@ -1,6 +1,7 @@
 import { formatDuration, minutesUntilOpen, workingHoursLabel } from "../availability";
 import { createId } from "../format";
 import type { AdminNotification, AppState, BankAccount, BotMessageKey, Customer, Message, Order } from "../types";
+import { whenOnline } from "./connection";
 import { updateState } from "./state";
 
 const BOT_TYPING_DELAY = 650;
@@ -64,17 +65,20 @@ export function notifyAdmin(state: AppState, notification: Omit<AdminNotificatio
   state.notifications = state.notifications.slice(0, 60);
 }
 
+// The bot answers only with a connection; offline, the answer waits and comes when it is back.
 export function replyAsBot(customerId: string, reply: (state: AppState) => void) {
-  updateState((state) => {
-    state.conversations[customerId].typing = true;
-  });
-
-  setTimeout(() => {
+  whenOnline(() => {
     updateState((state) => {
-      state.conversations[customerId].typing = false;
-      reply(state);
+      state.conversations[customerId].typing = true;
     });
-  }, BOT_TYPING_DELAY);
+
+    setTimeout(() => {
+      updateState((state) => {
+        state.conversations[customerId].typing = false;
+        reply(state);
+      });
+    }, BOT_TYPING_DELAY);
+  });
 }
 
 function shortCode() {

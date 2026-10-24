@@ -1,6 +1,7 @@
-import { Ban } from "lucide-react";
+import { Ban, Check, Clock3 } from "lucide-react";
 import BrandIcon from "@/components/BrandIcon";
 import StoredImage from "@/components/StoredImage";
+import { usePendingMessages } from "@/hooks/usePendingMessages";
 import { formatTime } from "@/lib/format";
 import type { Message } from "@/lib/types";
 import CodeCard from "./cards/CodeCard";
@@ -60,9 +61,18 @@ function TextBubble({ message }: { message: Message }) {
   return (
     <div className={`px-3.5 pt-2 pb-1.5 rounded-2xl text-[15.5px] md:text-[16px] leading-[1.55] whitespace-pre-line ${styles[message.sender]}`}>
       {message.text}
-      <span className={`ml-2 inline-block translate-y-0.5 text-[10.5px] ${timeColor}`}>{formatTime(message.createdAt)}</span>
+      <span className={`ml-2 inline-flex items-center gap-0.5 translate-y-0.5 text-[10.5px] ${timeColor}`}>
+        {formatTime(message.createdAt)}
+        {message.sender === "customer" && <SendState id={message.id} />}
+      </span>
     </div>
   );
+}
+
+// Like a chat app: a clock while the message waits for the connection, a tick once the server has it.
+function SendState({ id }: { id: string }) {
+  const pending = usePendingMessages().has(id);
+  return pending ? <Clock3 size={11} aria-label="Waiting to send" /> : <Check size={12} aria-label="Sent" />;
 }
 
 function DeletedBubble({ message }: { message: Message }) {

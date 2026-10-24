@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Lock, ShieldCheck, Timer, Zap } from "lucide-react";
 import { classNames } from "@/lib/format";
 import SecretInput from "@/components/SecretInput";
+import { NO_INTERNET_MESSAGE, isOnline } from "@/lib/store/connection";
 import { checkEmailStatus, requestPinReset, signIn, signUp } from "@/lib/store/customer";
 import { cleanDigits, cleanEmail, limits, validateEmail, validatePin } from "@/lib/validation";
 
@@ -58,6 +59,11 @@ export default function AuthScreen() {
     const problem = validate();
     if (problem) {
       setError(problem);
+      return;
+    }
+    // Signing in, creating an account and resetting the PIN need the server.
+    if (!isOnline()) {
+      setError(NO_INTERNET_MESSAGE);
       return;
     }
 

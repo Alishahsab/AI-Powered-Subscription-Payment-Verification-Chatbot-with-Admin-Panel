@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import SecretInput from "@/components/SecretInput";
 import { useAuthUser } from "@/hooks/useAuthUser";
+import { NO_INTERNET_MESSAGE, isOnline } from "@/lib/store/connection";
 import { signOut, updatePin } from "@/lib/store/customer";
 import { cleanDigits, limits, validatePin } from "@/lib/validation";
 
@@ -24,6 +25,10 @@ export default function ResetPinScreen() {
     const problem = validatePin(pin);
     if (problem) {
       setError(problem);
+      return;
+    }
+    if (!isOnline()) {
+      setError(NO_INTERNET_MESSAGE);
       return;
     }
     if (pin !== confirmPin) {

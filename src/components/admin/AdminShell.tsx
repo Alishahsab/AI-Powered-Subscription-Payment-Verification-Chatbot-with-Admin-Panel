@@ -7,6 +7,7 @@ import SyncNotice from "../SyncNotice";
 import AdminSidebar from "./layout/AdminSidebar";
 import PaymentIssueTimer from "./layout/PaymentIssueTimer";
 import Toasts from "./layout/Toasts";
+import ConnectionBar from "./layout/ConnectionBar";
 import TopBar from "./layout/TopBar";
 import type { NavTarget } from "./navigation";
 import Customers from "./customers/Customers";
@@ -48,6 +49,7 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
 
       <div className="flex-1 min-w-0 flex flex-col">
         <TopBar searchQuery={searchQuery} onSearch={search} onClearSearch={() => navigate({ section: "dashboard" })} onOpenMenu={() => setMenuOpen(true)} onNavigate={navigate} theme={theme} onToggleTheme={toggleTheme} />
+        <ConnectionBar />
 
         <main className="flex-1 min-h-0 overflow-hidden">
           {target.section === "dashboard" && <Dashboard onNavigate={navigate} />}

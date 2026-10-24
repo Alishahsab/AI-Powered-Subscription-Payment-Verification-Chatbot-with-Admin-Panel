@@ -6,13 +6,39 @@ import { extractCode } from "../validation";
 import { ADMIN_CANCEL_REASON, addMessage, botText, extractCodes, findCustomerEmail, liftPaymentPause } from "./helpers";
 import { getState, updateState } from "./state";
 
-export async function isSignedInAdmin() {
-  const client = getSupabase("admin");
-  const { data } = await client.auth.getUser();
-  if (!data.user) return false;
+export type AdminCheck = "admin" | "not_admin" | "unknown";
 
-  const { data: adminRow } = await client.from("admins").select("user_id").eq("user_id", data.user.id).maybeSingle();
-  return Boolean(adminRow);
+const ADMIN_REMEMBERED_KEY = "premium-store-admin";
+
+function rememberAdmin(userId: string, isAdmin: boolean) {
+  try {
+    if (isAdmin) localStorage.setItem(ADMIN_REMEMBERED_KEY, userId);
+    else localStorage.removeItem(ADMIN_REMEMBERED_KEY);
+  } catch {
+    // Not remembered; the check simply runs again.
+  }
+}
+
+function rememberedAdmin(userId: string) {
+  try {
+    return localStorage.getItem(ADMIN_REMEMBERED_KEY) === userId;
+  } catch {
+    return false;
+  }
+}
+
+// Whether the signed-in account is an admin. A slow or missing connection gives "unknown", never "not_admin",
+// so the panel does not sign the admin out; an admin confirmed earlier on this device stays in.
+export async function checkAdminAccess(): Promise<AdminCheck> {
+  const client = getSupabase("admin");
+  const { data: session } = await client.auth.getSession();
+  const userId = session.session?.user.id;
+  if (!userId) return "not_admin";
+
+  const { data: adminRow, error } = await client.from("admins").select("user_id").eq("user_id", userId).maybeSingle();
+  if (error) return rememberedAdmin(userId) ? "admin" : "unknown";
+  rememberAdmin(userId, Boolean(adminRow));
+  return adminRow ? "admin" : "not_admin";
 }
 
 export async function adminSignIn(email: string, password: string): Promise<string | null> {
@@ -20,7 +46,8 @@ export async function adminSignIn(email: string, password: string): Promise<stri
   const { error } = await client.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
   if (error) return "Incorrect email or password.";
 
-  if (!(await isSignedInAdmin())) {
+  // "unknown" keeps the sign-in; the panel checks again once the connection allows.
+  if ((await checkAdminAccess()) === "not_admin") {
     await client.auth.signOut();
     return "This account does not have admin access.";
   }

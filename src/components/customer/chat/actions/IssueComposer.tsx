@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { NO_INTERNET_MESSAGE, isOnline } from "@/lib/store/connection";
 import { submitSupportIssue } from "@/lib/store/customer";
 import { useAppState } from "@/lib/store/state";
 import { limits, validateMessage } from "@/lib/validation";
@@ -24,6 +25,11 @@ export default function IssueComposer({ customerId }: { customerId: string }) {
     }
     if (screenshotRequired && !screenshot) {
       setError("Please attach a screenshot so our team can see the problem.");
+      return;
+    }
+    // The screenshot has to be uploaded, so a request can only be sent online.
+    if (!isOnline()) {
+      setError(NO_INTERNET_MESSAGE);
       return;
     }
     setBusy(true);

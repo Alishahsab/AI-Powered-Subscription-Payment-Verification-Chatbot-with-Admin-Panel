@@ -1,4 +1,5 @@
 import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
+import { setOnline, setSlow } from "../store/connection";
 import { applyRemoteChange, clearState, getState, setChangeHandler } from "../store/state";
 import type { AppState, StoreConfig } from "../types";
 import { getSupabase, type AppRole } from "./client";
@@ -21,7 +22,8 @@ function rememberLocalWrite(tableName: string, row: Row, key: string, inserted: 
   const previous = recentLocalWrites.get(id);
   const columns = previous && Date.now() - previous.at < LOCAL_WRITE_WINDOW_MS ? previous.columns : new Set<string>();
   for (const [column, value] of Object.entries(row)) {
-    if (column !== key && !(inserted && value == null)) columns.add(column);
+    // created_at is set by the server, so its value always wins.
+    if (column !== key && column !== "created_at" && !(inserted && value == null)) columns.add(column);
   }
   recentLocalWrites.set(id, { at: Date.now(), columns });
 }
@@ -104,6 +106,26 @@ let flushing: Promise<void> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
 let refreshWanted = false;
 const problemListeners = new Set<(message: string) => void>();
+const pendingListeners = new Set<() => void>();
+let pendingVersion = 0;
+
+// Messages written on this device that the server does not have yet (shown with a clock).
+export function pendingMessageIds() {
+  const ids = new Set<string>();
+  for (const op of outbox) if (op.kind === "insert" && op.table === "messages") op.rows.forEach((row) => ids.add(String(row.id)));
+  return ids;
+}
+
+export function subscribePending(listener: () => void) {
+  pendingListeners.add(listener);
+  return () => {
+    pendingListeners.delete(listener);
+  };
+}
+
+export function pendingSnapshot() {
+  return pendingVersion;
+}
 
 // Lets the apps tell the person when the server refused something they did.
 export function onSyncProblem(listener: (message: string) => void) {
@@ -114,6 +136,8 @@ export function onSyncProblem(listener: (message: string) => void) {
 }
 
 function saveOutbox() {
+  pendingVersion += 1;
+  pendingListeners.forEach((listener) => listener());
   try {
     if (outbox.length) localStorage.setItem(outboxKey, JSON.stringify(outbox));
     else localStorage.removeItem(outboxKey);
@@ -185,12 +209,14 @@ async function sendOutbox() {
     const result: WriteResult = await runOp(getActiveClient(), op).catch((error: unknown) => ({ error: { message: String(error) }, status: 0 }));
 
     if (result.error && canRetry(result)) {
+      if (result.status === 0) setOnline(false);
       op.tries += 1;
       saveOutbox();
       scheduleRetry(op.tries);
       return;
     }
 
+    setOnline(true);
     outbox.shift();
     saveOutbox();
     if (result.error) {
@@ -232,6 +258,7 @@ function handleLocalChange(before: AppState, after: AppState) {
 
   const configChanged = activeRole === "admin" && JSON.stringify(pickConfig(before)) !== JSON.stringify(pickConfig(after));
   queueChanges(changes, configChanged ? pickConfig(after) : null);
+  saveCache();
 }
 
 function handleOnline() {
@@ -261,8 +288,39 @@ async function fetchEverything(client: SupabaseClient, messagesSince?: number) {
   return { results, config, messagesSince };
 }
 
+// The customer's own data is kept on the device, so a signed-in customer can open the chat without a connection.
+let cacheKey = "";
+
+function saveCache() {
+  if (activeRole !== "customer" || !cacheKey) return;
+  try {
+    const state = getState();
+    const snapshot = { tables: Object.fromEntries(tables.map((table) => [table.name, table.readRows(state)])), config: configToRow(pickConfig(state)) };
+    localStorage.setItem(cacheKey, JSON.stringify(snapshot));
+  } catch {
+    // Without storage the app simply needs a connection to open.
+  }
+}
+
+function loadCache() {
+  try {
+    const snapshot = JSON.parse(localStorage.getItem(cacheKey) ?? "null") as { tables: Record<string, Row[]>; config: Row } | null;
+    if (!snapshot) return false;
+    applyRemoteChange((draft) => {
+      tables.forEach((table) => table.replaceAll(draft, snapshot.tables[table.name] ?? []));
+      Object.assign(draft, configFromRow(snapshot.config));
+      draft.loaded = true;
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function loadEverything(client: SupabaseClient) {
-  await applyEverything(client, await fetchEverything(client));
+  const data = await fetchEverything(client);
+  if (!looksComplete(data) && activeRole === "customer" && loadCache()) return;
+  await applyEverything(client, data);
 }
 
 async function applyEverything(client: SupabaseClient, { results, config, messagesSince }: Awaited<ReturnType<typeof fetchEverything>>) {
@@ -281,6 +339,7 @@ async function applyEverything(client: SupabaseClient, { results, config, messag
     if (config.data) Object.assign(draft, configFromRow(config.data));
     draft.loaded = true;
   });
+  saveCache();
 
   if (!config.data && activeRole === "admin") {
     await client.from("store_config").insert(configToRow(pickConfig(getState())));
@@ -288,7 +347,8 @@ async function applyEverything(client: SupabaseClient, { results, config, messag
 }
 
 function listenForChanges(client: SupabaseClient) {
-  channel = client.channel("premium-store-data");
+  // A fresh name each time, so a channel that is still closing (for example after going offline) is never reused.
+  channel = client.channel(`premium-store-data-${Math.random().toString(36).slice(2)}`);
 
   for (const table of tables) {
     channel.on("postgres_changes", { event: "*", schema: "public", table: table.name }, (payload) => {
@@ -333,8 +393,8 @@ function listenForChanges(client: SupabaseClient) {
 const CATCH_UP_AFTER_HIDDEN_MS = 10_000;
 let hiddenSince = 0;
 
-// A phone can lose the live connection without saying so, even with the panel on screen.
-// The admin panel therefore refreshes every 20 seconds; messages only for the last 30 minutes to keep it light.
+// A phone can lose the live connection without saying so, even with the app on screen.
+// Both apps therefore refresh every 20 seconds; messages only for the last 30 minutes to keep it light.
 const ADMIN_REFRESH_MS = 20_000;
 const ADMIN_REFRESH_MESSAGES_MS = 30 * 60_000;
 let refreshTimer: ReturnType<typeof setInterval> | undefined;
@@ -356,10 +416,24 @@ async function catchUp(recentMessagesOnly = false) {
     // empty or half loaded, so what is on screen is kept and the next return tries again.
     const { data: auth } = await client.auth.getSession();
     if (!auth.session) return;
+    const started = Date.now();
     const data = await fetchEverything(client, recentMessagesOnly ? Date.now() - ADMIN_REFRESH_MESSAGES_MS : undefined);
-    if (!activeRole || !looksComplete(data)) return;
+    setSlow(Date.now() - started > SLOW_CONNECTION_MS);
+    if (!activeRole) return;
+    if (!looksComplete(data)) {
+      if (lostConnection(data)) setOnline(false);
+      return;
+    }
+    setOnline(true);
     if (version === localVersion) return applyEverything(client, data);
   }
+}
+
+const SLOW_CONNECTION_MS = 6000;
+
+// Errors without a database code mean the request never got an answer.
+function lostConnection({ results, config }: Awaited<ReturnType<typeof fetchEverything>>) {
+  return [...results.map((result) => result.error), config.error].some((error) => error && !error.code);
 }
 
 // Every table loaded, and the customers did not vanish (which only happens when the request was not signed in).
@@ -386,18 +460,18 @@ export async function startSync(role: AppRole) {
   const client = getSupabase(role);
   // Changes left from an earlier visit (connection lost or app closed) are sent before loading.
   const { data: auth } = await client.auth.getSession();
-  loadOutbox(`premium-store-outbox:${role}:${auth.session?.user.id ?? "guest"}`);
+  const userId = auth.session?.user.id ?? "guest";
+  loadOutbox(`premium-store-outbox:${role}:${userId}`);
+  cacheKey = role === "customer" ? `premium-store-cache:${userId}` : "";
   if (outbox.length) await flushOutbox();
   await loadEverything(client);
   setChangeHandler(handleLocalChange);
   listenForChanges(client);
   document.addEventListener("visibilitychange", handleVisibility);
   window.addEventListener("online", handleOnline);
-  if (role === "admin") {
-    refreshTimer = setInterval(() => {
-      if (document.visibilityState === "visible") void catchUp(true);
-    }, ADMIN_REFRESH_MS);
-  }
+  refreshTimer = setInterval(() => {
+    if (document.visibilityState === "visible") void catchUp(true);
+  }, ADMIN_REFRESH_MS);
 }
 
 export async function stopSync() {
@@ -406,6 +480,13 @@ export async function stopSync() {
   clearTimeout(retryTimer);
   // Unsent changes stay saved on the device for this account and go out at the next sign-in.
   outbox = [];
+  // Signing out removes the copy of the chat kept on the device.
+  try {
+    if (cacheKey) localStorage.removeItem(cacheKey);
+  } catch {
+    // Nothing was stored.
+  }
+  cacheKey = "";
   window.removeEventListener("online", handleOnline);
   document.removeEventListener("visibilitychange", handleVisibility);
   setChangeHandler(null);

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import dynamic from "next/dynamic";
 
 const CustomerApp = dynamic(() => import("@/components/customer/CustomerApp"), {
@@ -8,5 +9,10 @@ const CustomerApp = dynamic(() => import("@/components/customer/CustomerApp"), {
 });
 
 export default function CustomerEntry() {
+  // Lets a signed-in customer open the chat without internet (see public/sw.js).
+  useEffect(() => {
+    navigator.serviceWorker?.register("/sw.js").catch(() => {});
+  }, []);
+
   return <CustomerApp />;
 }

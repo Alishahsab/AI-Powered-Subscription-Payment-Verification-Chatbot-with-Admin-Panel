@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { WifiOff } from "lucide-react";
+import { useConnection } from "@/hooks/useConnection";
 import { markMessagesSeen, openChat } from "@/lib/store/customer";
 import { findOrderMethod } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
@@ -27,6 +29,7 @@ export default function ChatScreen({ customer, onSignOut }: ChatScreenProps) {
   const conversation = state.conversations[customer.id];
   const messages = state.messages.filter((message) => message.customerId === customer.id);
   const orderMethod = findOrderMethod(state, customer.id);
+  const { online, waiting } = useConnection();
 
   useEffect(() => {
     openChat(customer.id);
@@ -54,10 +57,18 @@ export default function ChatScreen({ customer, onSignOut }: ChatScreenProps) {
   return (
     <section id={CHAT_ROOT_ID} className="relative flex-1 min-w-0 flex flex-col">
       <ChatHeader typing={conversation.typing} onSignOut={onSignOut} />
+      {!online && (
+        <div role="status" className="shrink-0 flex items-center justify-center gap-2 px-4 py-2 text-[13px] bg-amber-50 text-amber-900 border-b border-amber-200">
+          <WifiOff size={14} className="shrink-0" />
+          No internet. Your messages will be sent when you are back online.
+        </div>
+      )}
       <MessageList messages={messages} typing={conversation.typing} stage={conversation.stage} />
 
       {customer.blocked ? (
         <BlockedNotice customer={customer} />
+      ) : waiting ? (
+        <div className="shrink-0 px-4 py-4 text-center text-[13.5px] text-[var(--muted)] border-t border-[var(--line)]">Waiting for the internet to continue…</div>
       ) : (
         !conversation.typing && <ActionPanel customerId={customer.id} conversation={conversation} onOpenSheet={setSheet} />
       )}

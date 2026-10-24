@@ -4,6 +4,7 @@ import { getSupabase } from "../supabase/client";
 import { uploadScreenshot } from "../supabase/screenshots";
 import type { AppState, Customer, Stage, TicketKind } from "../types";
 import { validateName } from "../validation";
+import { hasWaitingReplies } from "./connection";
 import { ADMIN_CANCEL_REASON, addMessage, botText, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
 import { getState, updateState } from "./state";
 
@@ -192,6 +193,12 @@ function startBuying(state: AppState, customerId: string) {
 
   addMessage(state, customerId, "bot", botText(state, "choosePlan"));
   conversation.stage = "choose_plan";
+}
+
+// A second tap while the bot is still answering the first one is ignored (no double orders or messages),
+// also while that answer is waiting for the connection.
+function botIsReplying(customerId: string) {
+  return Boolean(getState().conversations[customerId]?.typing) || hasWaitingReplies();
 }
 
 export function chooseMenuOption(customerId: string, option: MenuOption) {
@@ -387,25 +394,6 @@ async function uploadOptional(customerId: string, screenshot?: string) {
   } catch {
     return undefined;
   }
-}
-
-export function askFaq(customerId: string, faqId: string) {
-  if (botIsReplying(customerId)) return;
-  const faq = getState().faqs.find((item) => item.id === faqId);
-  if (!faq) return;
-
-  updateState((state) => {
-    addMessage(state, customerId, "customer", faq.question);
-  });
-
-  replyAsBot(customerId, (state) => {
-    addMessage(state, customerId, "bot", faq.answer);
-  });
-}
-
-// A second tap while the bot is still answering the first one is ignored (no double orders or messages).
-function botIsReplying(customerId: string) {
-  return Boolean(getState().conversations[customerId]?.typing);
 }
 
 export const OTHER_ISSUES_LABEL = "Other issues";
