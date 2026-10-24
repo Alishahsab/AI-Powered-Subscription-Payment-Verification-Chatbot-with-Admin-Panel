@@ -39,23 +39,43 @@ export default function AdminApp() {
     };
   }, [user]);
 
+  const waitingForAccess = Boolean(user && access?.userId !== user.id);
+
+  // The sync runs only while the panel is open; whenever the sign-in screen shows it stops,
+  // so the next sign-in always loads everything fresh.
   useEffect(() => {
     if (allowed) void startSync("admin");
-    else if (!checking && !user) void stopSync();
-  }, [allowed, checking, user]);
+    else if (!checking && !waitingForAccess) void stopSync();
+  }, [allowed, checking, waitingForAccess]);
+
+  // If the data has not come after a while, offer a way out instead of a screen that never changes.
+  const [slowLoad, setSlowLoad] = useState(false);
+  const loading = allowed && !state.loaded;
+  useEffect(() => {
+    if (!loading) return;
+    const timer = setTimeout(() => setSlowLoad(true), 10_000);
+    return () => {
+      clearTimeout(timer);
+      setSlowLoad(false);
+    };
+  }, [loading]);
 
   const signOut = async () => {
     await adminSignOut();
     await stopSync();
   };
 
-  const waitingForAccess = user && access?.userId !== user.id;
-  if (checking || waitingForAccess || (allowed && !state.loaded)) {
+  if (checking || waitingForAccess || loading) {
     return (
       <div className="admin-app min-h-dvh grid place-items-center text-center px-6 text-[14px] text-zinc-500">
         <div>
           Loading admin panel…
-          {waitingForAccess && <div className="mt-1 text-[12.5px] text-zinc-400">If this takes long, please check your internet connection.</div>}
+          {(waitingForAccess || slowLoad) && <div className="mt-1 text-[12.5px] text-zinc-400">If this takes long, please check your internet connection.</div>}
+          {slowLoad && (
+            <button onClick={signOut} className="mt-4 h-10 px-5 rounded-xl bg-[#0C2660] text-white text-[13.5px] font-semibold">
+              Sign in again
+            </button>
+          )}
         </div>
       </div>
     );

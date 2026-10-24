@@ -1,3 +1,4 @@
+import { isAuthApiError } from "@supabase/supabase-js";
 import { createTemporaryClient, getSupabase } from "../supabase/client";
 import { sendEmailCopy } from "../supabase/email";
 import { deleteScreenshots, uploadScreenshot } from "../supabase/screenshots";
@@ -8,7 +9,9 @@ import { getState, updateState } from "./state";
 
 export type AdminCheck = "admin" | "not_admin" | "unknown";
 
-const ADMIN_REMEMBERED_KEY = "premium-store-admin";
+// Must not be "premium-store-admin": that key holds the admin's sign-in (see getSupabase), and writing to it
+// replaced the session, so every data request went out signed out and came back empty.
+const ADMIN_REMEMBERED_KEY = "premium-store-admin-confirmed";
 
 function rememberAdmin(userId: string, isAdmin: boolean) {
   try {
@@ -34,6 +37,17 @@ export async function checkAdminAccess(): Promise<AdminCheck> {
   const { data: session } = await client.auth.getSession();
   const userId = session.session?.user.id;
   if (!userId) return "not_admin";
+
+  // The server confirms the sign-in is still valid. An expired or revoked sign-in goes back to the sign-in
+  // screen (with it no data would load); only a missing answer counts as a connection problem.
+  const { error: userError } = await client.auth.getUser();
+  if (userError) {
+    if (isAuthApiError(userError) && userError.status >= 400 && userError.status < 500) {
+      await client.auth.signOut({ scope: "local" });
+      return "not_admin";
+    }
+    return rememberedAdmin(userId) ? "admin" : "unknown";
+  }
 
   const { data: adminRow, error } = await client.from("admins").select("user_id").eq("user_id", userId).maybeSingle();
   if (error) return rememberedAdmin(userId) ? "admin" : "unknown";
