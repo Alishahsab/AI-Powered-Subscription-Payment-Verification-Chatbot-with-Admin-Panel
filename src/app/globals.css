@@ -164,9 +164,9 @@ html[data-admin-theme="dark"] {
   --color-zinc-900: #eceef3;
   --color-zinc-950: #f5f6f9;
 
-  --color-red-50: #2c1719;
-  --color-red-100: #3a1c20;
-  --color-red-200: #57292e;
+  --color-red-50: #361b1e;
+  --color-red-100: #432226;
+  --color-red-200: #683238;
   --color-red-300: #6f3238;
   --color-amber-50: #1d1912;
   --color-amber-100: #272116;
@@ -205,10 +205,12 @@ html[data-admin-theme="dark"] .bg-\[\#0C2660\] { background-color: #2a3a63; }
 html[data-admin-theme="dark"] .hover\:bg-\[\#0a1f52\]:hover { background-color: #33467a; }
 
 /* Action buttons: the same meaning as in light mode, in deeper tones. */
-html[data-admin-theme="dark"] .bg-emerald-600 { background-color: #1f6b4c; }
-html[data-admin-theme="dark"] .hover\:bg-emerald-700:hover { background-color: #257a57; }
-html[data-admin-theme="dark"] .bg-\[\#b84a45\] { background-color: #8c3b37; }
-html[data-admin-theme="dark"] .hover\:bg-\[\#a2403b\]:hover { background-color: #9c4440; }
+html[data-admin-theme="dark"] .bg-emerald-600 { background-color: #2b8a62; }
+html[data-admin-theme="dark"] .hover\:bg-emerald-700:hover { background-color: #33996e; }
+html[data-admin-theme="dark"] .bg-\[\#b84a45\] { background-color: #ab4a43; }
+html[data-admin-theme="dark"] .hover\:bg-\[\#a2403b\]:hover { background-color: #b9564e; }
+html[data-admin-theme="dark"] .action-cancel { background-color: #2e2719; border-color: #5c4b28; }
+html[data-admin-theme="dark"] .action-cancel:hover { background-color: #372e1d; }
 html[data-admin-theme="dark"] .bg-violet-600 { background-color: #4f3f8f; }
 html[data-admin-theme="dark"] .hover\:bg-violet-700:hover { background-color: #5a49a1; }
 html[data-admin-theme="dark"] .text-orange-950 { color: #ffe0bd; }

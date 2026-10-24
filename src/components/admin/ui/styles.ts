@@ -12,7 +12,7 @@ export const actionButton = {
   approve: `${actionBase} bg-emerald-600 hover:bg-emerald-700 text-white`,
   // A muted red, as soft on the eyes as the approve green.
   reject: `${actionBase} bg-[#b84a45] hover:bg-[#a2403b] text-white`,
-  cancel: `${actionBase} border border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100`,
+  cancel: `${actionBase} action-cancel border border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100`,
   softDanger: `${actionBase} border border-red-200 bg-red-50 text-red-700 hover:bg-red-100`,
   unused: `${actionBase} bg-violet-600 hover:bg-violet-700 text-white`,
 };
