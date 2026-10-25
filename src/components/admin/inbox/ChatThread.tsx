@@ -2,8 +2,9 @@
 
 import { useLayoutEffect, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
+import { useFloatingDay } from "@/hooks/useFloatingDay";
 import { useNow } from "@/hooks/useNow";
-import { chatDayLabel, pakistanDay } from "@/lib/format";
+import { chatDayLabel, classNames, pakistanDay } from "@/lib/format";
 import { customerNumberLabel } from "@/lib/store/helpers";
 import { customerMessages } from "@/lib/store/messageIndex";
 import { useAppState } from "@/lib/store/state";
@@ -30,6 +31,7 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
   const state = useAppState();
   const now = useNow(30_000);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const floatingDay = useFloatingDay();
   const customer = state.customers.find((item) => item.id === customerId);
   const conversation = state.conversations[customerId];
   const messages = customerMessages(state, customerId);
@@ -62,7 +64,12 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
         </button>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 lg:px-10 py-6">
+      <div ref={scrollRef} onScroll={floatingDay.onScroll} className="flex-1 overflow-y-auto px-4 lg:px-10 py-6">
+        <div className="sticky top-0 z-10 h-0 flex justify-center pointer-events-none">
+          <span className={classNames("-mt-3 transition-opacity duration-300", floatingDay.visible ? "opacity-100" : "opacity-0")}>
+            <DayLabel label={floatingDay.label} />
+          </span>
+        </div>
         <div className="max-w-[760px] mx-auto">
           {messages.length === 0 && <div className="text-center text-[12.5px] text-zinc-400 py-10">No messages yet.</div>}
           {messages.map((message, index) => {
@@ -87,8 +94,12 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
 
 function DayDivider({ label }: { label: string }) {
   return (
-    <div className="flex justify-center my-4">
-      <span className="text-[11.5px] font-semibold text-zinc-500 bg-white border border-zinc-200/80 rounded-full px-3 py-1 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">{label}</span>
+    <div data-day={label} className="flex justify-center my-4">
+      <DayLabel label={label} />
     </div>
   );
+}
+
+function DayLabel({ label }: { label: string }) {
+  return <span className="block text-[11.5px] font-semibold text-zinc-500 bg-white border border-zinc-200/80 rounded-full px-3 py-1 shadow-[0_1px_2px_rgba(16,24,40,0.06)]">{label}</span>;
 }

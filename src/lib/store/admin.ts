@@ -23,7 +23,7 @@ function rememberAdmin(userId: string, isAdmin: boolean) {
   }
 }
 
-function rememberedAdmin(userId: string) {
+export function rememberedAdmin(userId: string) {
   try {
     return localStorage.getItem(ADMIN_REMEMBERED_KEY) === userId;
   } catch {
@@ -41,7 +41,11 @@ export async function checkAdminAccess(): Promise<AdminCheck> {
 
   // The server confirms the sign-in is still valid. An expired or revoked sign-in goes back to the sign-in
   // screen (with it no data would load); only a missing answer counts as a connection problem.
-  const { error: userError } = await client.auth.getUser();
+  // Both questions go out together, so the panel waits for one round trip instead of two.
+  const [{ error: userError }, { data: adminRow, error }] = await Promise.all([
+    client.auth.getUser(),
+    client.from("admins").select("user_id").eq("user_id", userId).maybeSingle(),
+  ]);
   if (userError) {
     if (isAuthApiError(userError) && userError.status >= 400 && userError.status < 500) {
       await client.auth.signOut({ scope: "local" });
@@ -50,7 +54,6 @@ export async function checkAdminAccess(): Promise<AdminCheck> {
     return rememberedAdmin(userId) ? "admin" : "unknown";
   }
 
-  const { data: adminRow, error } = await client.from("admins").select("user_id").eq("user_id", userId).maybeSingle();
   if (error) return rememberedAdmin(userId) ? "admin" : "unknown";
   rememberAdmin(userId, Boolean(adminRow));
   return adminRow ? "admin" : "not_admin";

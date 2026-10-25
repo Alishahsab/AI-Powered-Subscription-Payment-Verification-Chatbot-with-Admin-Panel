@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { Lock } from "lucide-react";
 import BrandIcon from "@/components/BrandIcon";
+import { useFloatingDay } from "@/hooks/useFloatingDay";
 import { useNow } from "@/hooks/useNow";
 import { chatDayLabel, pakistanDay } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
@@ -22,6 +23,7 @@ export default function MessageList({ messages, typing, stage }: MessageListProp
   const now = useNow(60_000);
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const floatingDay = useFloatingDay();
 
   useLayoutEffect(() => {
     const element = scrollRef.current;
@@ -51,7 +53,12 @@ export default function MessageList({ messages, typing, stage }: MessageListProp
   }, []);
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto">
+    <div ref={scrollRef} onScroll={floatingDay.onScroll} className="flex-1 overflow-y-auto">
+      <div className="sticky top-0 z-10 h-0 flex justify-center pointer-events-none">
+        <span className={`mt-2 transition-opacity duration-300 ${floatingDay.visible ? "opacity-100" : "opacity-0"}`}>
+          <DayLabel label={floatingDay.label} />
+        </span>
+      </div>
       <div ref={contentRef} className="max-w-[860px] mx-auto px-4 md:px-8 py-5 md:py-7 space-y-1.5">
         <PrivacyNote />
 
@@ -78,10 +85,14 @@ export default function MessageList({ messages, typing, stage }: MessageListProp
 
 function DayDivider({ label }: { label: string }) {
   return (
-    <div className="flex justify-center pt-3 pb-1">
-      <span className="text-[12px] font-semibold text-[var(--muted)] bg-[var(--surface)] border border-[var(--line)] rounded-full px-3 py-1">{label}</span>
+    <div data-day={label} className="flex justify-center pt-3 pb-1">
+      <DayLabel label={label} />
     </div>
   );
+}
+
+function DayLabel({ label }: { label: string }) {
+  return <span className="block text-[12px] font-semibold text-[var(--muted)] bg-[var(--surface)] border border-[var(--line)] rounded-full px-3 py-1 shadow-sm">{label}</span>;
 }
 
 function PrivacyNote() {

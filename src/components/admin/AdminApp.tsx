@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuthUser } from "@/hooks/useAuthUser";
-import { adminSignOut, checkAdminAccess } from "@/lib/store/admin";
+import { adminSignOut, checkAdminAccess, rememberedAdmin } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import { startSync, stopSync } from "@/lib/supabase/sync";
 import ConfirmDialog from "../ConfirmDialog";
@@ -16,7 +16,10 @@ export default function AdminApp() {
   const { user, checking } = useAuthUser("admin");
   const [access, setAccess] = useState<AccessCheck | null>(null);
   const [confirmingSignOut, setConfirmingSignOut] = useState(false);
-  const allowed = Boolean(user && access?.userId === user.id && access.allowed);
+  // An admin confirmed before on this device opens the panel at once; the check still runs and can sign them out.
+  const remembered = Boolean(user && rememberedAdmin(user.id));
+  const checked = Boolean(user && access?.userId === user.id);
+  const allowed = Boolean(user && (checked ? access?.allowed : remembered));
 
   // Without an answer (slow or no internet) the check is tried again, and an admin who was already in stays in.
   useEffect(() => {
@@ -39,7 +42,7 @@ export default function AdminApp() {
     };
   }, [user]);
 
-  const waitingForAccess = Boolean(user && access?.userId !== user.id);
+  const waitingForAccess = Boolean(user && !checked && !remembered);
 
   // The sync runs only while the panel is open; whenever the sign-in screen shows it stops,
   // so the next sign-in always loads everything fresh.

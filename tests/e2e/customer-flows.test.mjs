@@ -41,6 +41,12 @@ async function click(page, label) {
   await wait(1200);
 }
 
+// Closed menu buttons still answer a tap with a pop-up, so they are tapped even though they look disabled.
+async function tapClosed(page, label) {
+  await page.click(`button:has-text('${label}') >> nth=-1`, { force: true });
+  await wait(800);
+}
+
 async function createOrder(page) {
   await click(page, "Buy a Subscription");
   if (!(await page.isVisible("button:has-text('1 Month')"))) return false; // Store is closed for new orders.
@@ -74,26 +80,33 @@ test("a payment problem shows the steps and app issues stay open", async (t) => 
   assert.deepEqual(errors, []);
 });
 
-test("a second app issue while one is open says one is already open", async (t) => {
+test("while an app issue is open both menu buttons are closed and explain why", async (t) => {
   const { page, errors } = await newCustomer();
   await click(page, "Customer Support");
+  if (await page.isVisible("text=Admin not available")) return t.skip("the store is closed right now");
   await click(page, "Other issues");
   if (!(await page.isVisible("textarea"))) return t.skip("the store is not taking requests right now");
   await page.fill("textarea", "First app issue in the end-to-end test.");
   await (await page.$("input[type=file]")).setInputFiles({ name: "issue.png", mimeType: "image/png", buffer: tinyPng });
   await click(page, "Send to our team");
   await wait(2500);
-  assert.equal(await page.locator("text=You already have an open request").count(), 0, "nothing extra right after sending");
 
   await click(page, "Main menu");
-  await click(page, "Customer Support");
-  await click(page, "Other issues");
-  assert.equal(await page.locator("text=You already have an open request. You can send a new one once it is resolved.").count(), 1, "said once, under the chat");
+  assert.ok(await page.isVisible("text=Your request is with our team. The menu opens again once it is resolved."), "the menu says why it is closed");
+  await tapClosed(page, "Customer Support");
+  assert.ok(await page.isVisible("text=Request open"), "a tap explains in a pop-up");
+  assert.equal(await page.locator("text=How can we help?").count(), 1, "support did not open again");
+  await click(page, "Got it");
+  await tapClosed(page, "Buy a Subscription");
+  assert.ok(await page.isVisible("text=Request open"), "buying is closed too");
+  await click(page, "Got it");
+  await click(page, "Go to my request");
+  assert.ok(!(await page.isVisible("text=Your request is with our team")), "back at the request");
   assert.ok(!(await page.isVisible("textarea")), "no message box while a request is open");
   assert.deepEqual(errors, []);
 });
 
-test("buying again while an order is pending shows the pending notice, not a message box", async (t) => {
+test("after a payment proof both menu buttons are closed until the admin decides", async (t) => {
   const { page, errors } = await newCustomer();
   if (!(await createOrder(page))) return t.skip("the store is not taking orders right now");
   await click(page, "Upload payment proof");
@@ -102,11 +115,14 @@ test("buying again while an order is pending shows the pending notice, not a mes
   await click(page, "Submit for verification");
   await wait(3000);
 
-  await click(page, "Buy a Subscription");
-  assert.equal(await page.locator("text=Your order is still waiting for approval. You can place a new order once we approve or cancel it.").count(), 1, "shown once, as a notice");
-  assert.equal(await page.locator("text=/still waiting for approval.*PS-/").count(), 0, "no order number in the notice");
+  assert.ok(await page.isVisible("text=Your payment is being verified. The menu opens again once we approve it."), "the menu says why it is closed");
+  await tapClosed(page, "Buy a Subscription");
+  assert.ok(await page.isVisible("text=Payment being verified"), "a tap explains in a pop-up");
+  await click(page, "Got it");
+  await tapClosed(page, "Customer Support");
+  assert.ok(await page.isVisible("text=Payment being verified"), "support is closed too");
+  assert.equal(await page.locator("text=How can we help?").count(), 0, "support did not open");
   assert.ok(!(await page.isVisible("textarea")), "no message box");
-  assert.ok(await page.isVisible("button:has-text('Main menu')"));
   assert.deepEqual(errors, []);
 });
 
@@ -126,6 +142,7 @@ test("tapping create order twice makes only one order", async (t) => {
 test("a picked screenshot opens full size and closes again", async (t) => {
   const { page, errors } = await newCustomer();
   await click(page, "Customer Support");
+  if (await page.isVisible("text=Admin not available")) return t.skip("the store is closed right now");
   await click(page, "Other issues");
   if (!(await page.isVisible("textarea"))) return t.skip("the store is not taking requests right now");
   await page.fill("textarea", "Screenshot viewer in the end-to-end test.");

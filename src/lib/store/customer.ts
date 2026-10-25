@@ -153,6 +153,39 @@ export function findOrderPause(customer: Customer | undefined, now = serverNow()
   return pauses.sort((a, b) => b.until - a.until)[0] ?? null;
 }
 
+export type MenuLock = { reason: "pending" | "rejected" | "issue" | "closed"; title: string; message: string };
+
+// Both menu buttons stay closed while the admin still has to act on this customer's payment or request,
+// and while the store is closed. FAQs are inside Customer Support, so they close as well.
+export function findMenuLock(state: AppState, customerId: string, now = serverNow()): MenuLock | null {
+  const order = state.orders.find((item) => item.customerId === customerId && (item.status === "pending_review" || item.status === "rejected"));
+  if (order?.status === "pending_review") {
+    return { reason: "pending", title: "Payment being verified", message: "Your payment is being verified. The menu opens again once we approve it." };
+  }
+  if (order?.status === "rejected") {
+    return { reason: "rejected", title: "Payment not approved", message: "Your payment was not approved. Please reply to our team about it. The menu opens again once it is sorted out." };
+  }
+  if (findOpenTicket(state, customerId)) {
+    return { reason: "issue", title: "Request open", message: "Your request is with our team. The menu opens again once it is resolved." };
+  }
+  const status = getEffectiveStatus(state.settings, now);
+  if (status === "offline" || status === "away_closed") {
+    return { reason: "closed", title: "Admin not available", message: fillPlaceholders(state.settings.statusMessages[status], state) };
+  }
+  return null;
+}
+
+// Back from the menu to the payment reply or the open request, without adding anything to the chat.
+export function returnToLockedTask(customerId: string) {
+  updateState((state) => {
+    const lock = findMenuLock(state, customerId);
+    const conversation = state.conversations[customerId];
+    if (!lock || !conversation) return;
+    if (lock.reason === "rejected") conversation.stage = "rejected";
+    if (lock.reason === "issue") conversation.stage = issueStage(state, customerId);
+  });
+}
+
 function startBuying(state: AppState, customerId: string) {
   const conversation = state.conversations[customerId];
   const customer = state.customers.find((item) => item.id === customerId);
@@ -203,7 +236,7 @@ function botIsReplying(customerId: string) {
 }
 
 export function chooseMenuOption(customerId: string, option: MenuOption) {
-  if (botIsReplying(customerId)) return;
+  if (botIsReplying(customerId) || findMenuLock(getState(), customerId)) return;
   updateState((state) => {
     addMessage(state, customerId, "customer", menuLabels[option]);
   });

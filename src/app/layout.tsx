@@ -7,6 +7,9 @@ const fallbackFont = Inter_Tight({ variable: "--font-heading", subsets: ["latin"
 export const metadata: Metadata = {
   title: "Premium Store",
   description: "Buy your premium subscription and get support in one private chat.",
+  // The site stays out of web search. Search engines must still be allowed to crawl it (no robots.txt block),
+  // or they never see this and keep pages that were listed before.
+  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
 };
 
 export const viewport: Viewport = {

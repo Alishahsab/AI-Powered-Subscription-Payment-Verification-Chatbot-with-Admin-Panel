@@ -18,14 +18,15 @@ export function useAuthUser(role: AppRole) {
         return;
       }
 
+      // The saved sign-in opens the app right away; the server check runs alongside, and an expired
+      // or revoked sign-in still goes back to the sign-in screen.
+      setUser(data.session.user);
+      setChecking(false);
       const { error } = await auth.getUser();
       if (error && isAuthApiError(error) && error.status >= 400 && error.status < 500) {
         await auth.signOut({ scope: "local" });
         setUser(null);
-      } else {
-        setUser(data.session.user);
       }
-      setChecking(false);
     };
 
     restoreSession();

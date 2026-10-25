@@ -277,31 +277,69 @@ function handleOnline() {
 
 const PAGE_SIZE = 1000;
 
-// Supabase returns at most 1000 rows per request, so larger tables are read page by page.
+// Supabase returns at most 1000 rows per request, so larger tables are read page by page. The first page
+// also gives the row count, and the remaining pages are then read all at once instead of one after another.
 async function fetchAllRows(client: SupabaseClient, table: TableSync, messagesSince?: number) {
-  const rows: Row[] = [];
-  for (let from = 0; ; from += PAGE_SIZE) {
-    let query = client.from(table.name).select("*");
+  const page = (from: number, withCount = false) => {
+    let query = client.from(table.name).select("*", withCount ? { count: "exact" } : undefined);
     if (messagesSince !== undefined && table.name === "messages") query = query.gt("created_at", messagesSince);
-    const { data, error } = await query.order(table.key).range(from, from + PAGE_SIZE - 1);
-    if (error) return { data: null, error };
-    rows.push(...(data ?? []));
-    if (!data || data.length < PAGE_SIZE) return { data: rows, error: null };
+    return query.order(table.key).range(from, from + PAGE_SIZE - 1);
+  };
+  const first = await page(0, true);
+  if (first.error) return { data: null, error: first.error };
+  const rows: Row[] = [...(first.data ?? [])];
+  if (rows.length < PAGE_SIZE) return { data: rows, error: null };
+
+  const total = first.count ?? 0;
+  const starts: number[] = [];
+  for (let from = PAGE_SIZE; from < total; from += PAGE_SIZE) starts.push(from);
+  const pages = await Promise.all(starts.map((from) => page(from)));
+  for (const next of pages) {
+    if (next.error) return { data: null, error: next.error };
+    rows.push(...(next.data ?? []));
   }
+  // Rows added while reading (or a missing count) are picked up page by page as before.
+  for (let from = PAGE_SIZE + starts.length * PAGE_SIZE; rows.length === from; from += PAGE_SIZE) {
+    const next = await page(from);
+    if (next.error) return { data: null, error: next.error };
+    rows.push(...(next.data ?? []));
+  }
+  // A row saved while the pages were read can shift into two pages; it is kept once.
+  const unique = new Map(rows.map((row) => [row[table.key], row]));
+  return { data: unique.size === rows.length ? rows : [...unique.values()], error: null };
 }
 
 // With messagesSince, only newer messages are read; older ones on screen are kept as they are.
 async function fetchEverything(client: SupabaseClient, messagesSince?: number) {
-  const results = await Promise.all(tables.map((table) => fetchAllRows(client, table, messagesSince)));
-  const config = await client.from("store_config").select("*").maybeSingle();
+  const [results, config] = await Promise.all([
+    Promise.all(tables.map((table) => fetchAllRows(client, table, messagesSince))),
+    client.from("store_config").select("*").maybeSingle(),
+  ]);
   return { results, config, messagesSince };
 }
 
-// The customer's own data is kept on the device, so a signed-in customer can open the chat without a connection.
+// The data is kept on the device: a signed-in customer can open the chat without a connection, and the
+// admin panel opens at once with what it showed last time while the fresh data loads.
 let cacheKey = "";
+let cacheTimer: ReturnType<typeof setTimeout> | undefined;
+const CACHE_DELAY_MS = 1500;
 
+// Writing the copy takes a moment with thousands of messages, so it happens once things go quiet, not on every tap.
 function saveCache() {
-  if (activeRole !== "customer" || !cacheKey) return;
+  if (!cacheKey) return;
+  clearTimeout(cacheTimer);
+  cacheTimer = setTimeout(writeCache, CACHE_DELAY_MS);
+}
+
+// Leaving the page (or the phone hiding it) writes a waiting copy straight away.
+function flushCache() {
+  if (cacheTimer) writeCache();
+}
+
+function writeCache() {
+  clearTimeout(cacheTimer);
+  cacheTimer = undefined;
+  if (!cacheKey) return;
   try {
     const state = getState();
     const snapshot = { tables: Object.fromEntries(tables.map((table) => [table.name, table.readRows(state)])), config: configToRow(pickConfig(state)) };
@@ -332,10 +370,16 @@ let loadRetryTimer: ReturnType<typeof setTimeout> | undefined;
 // The first load must be complete before anything shows; half a load would look like the data was gone.
 // Until it succeeds the app keeps its loading screen (or the customer's copy on the device) and tries again.
 async function loadEverything(client: SupabaseClient) {
-  const data = await fetchEverything(client);
-  if (looksComplete(data)) {
-    await applyEverything(client, data);
-    return;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const version = localVersion;
+    const data = await fetchEverything(client);
+    if (!activeRole) return;
+    if (!looksComplete(data)) break;
+    // A change made on the device's copy while loading is newer than this load, so it loads again.
+    if (version === localVersion || attempt === 2) {
+      await applyEverything(client, data);
+      return;
+    }
   }
   if (activeRole === "customer" && !getState().loaded) loadCache();
   clearTimeout(loadRetryTimer);
@@ -468,6 +512,7 @@ function looksComplete({ results }: Awaited<ReturnType<typeof fetchEverything>>)
 function handleVisibility() {
   if (document.visibilityState === "hidden") {
     hiddenSince = Date.now();
+    flushCache();
     return;
   }
   if (hiddenSince && Date.now() - hiddenSince > CATCH_UP_AFTER_HIDDEN_MS) void catchUp();
@@ -485,13 +530,16 @@ export async function startSync(role: AppRole) {
   const { data: auth } = await client.auth.getSession();
   const userId = auth.session?.user.id ?? "guest";
   loadOutbox(`premium-store-outbox:${role}:${userId}`);
-  cacheKey = role === "customer" ? `premium-store-cache:${userId}` : "";
+  cacheKey = role === "customer" ? `premium-store-cache:${userId}` : `premium-store-cache:admin:${userId}`;
+  // The admin panel shows its copy from last time right away; changes made on it are sent as usual.
+  if (role === "admin" && loadCache()) setChangeHandler(handleLocalChange);
   if (outbox.length) await flushOutbox();
   await loadEverything(client);
   setChangeHandler(handleLocalChange);
   listenForChanges(client);
   document.addEventListener("visibilitychange", handleVisibility);
   window.addEventListener("online", handleOnline);
+  window.addEventListener("pagehide", flushCache);
   refreshTimer = setInterval(() => {
     if (document.visibilityState === "visible") void catchUp(true);
   }, ADMIN_REFRESH_MS);
@@ -505,6 +553,8 @@ export async function stopSync() {
   // Unsent changes stay saved on the device for this account and go out at the next sign-in.
   outbox = [];
   // Signing out removes the copy of the chat kept on the device.
+  clearTimeout(cacheTimer);
+  cacheTimer = undefined;
   try {
     if (cacheKey) localStorage.removeItem(cacheKey);
   } catch {
@@ -512,6 +562,7 @@ export async function stopSync() {
   }
   cacheKey = "";
   window.removeEventListener("online", handleOnline);
+  window.removeEventListener("pagehide", flushCache);
   document.removeEventListener("visibilitychange", handleVisibility);
   setChangeHandler(null);
   if (channel && activeRole) await getSupabase(activeRole).removeChannel(channel);

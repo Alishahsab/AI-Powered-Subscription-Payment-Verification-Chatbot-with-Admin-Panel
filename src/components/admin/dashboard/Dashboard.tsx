@@ -59,13 +59,13 @@ export default function Dashboard({ onNavigate }: { onNavigate: Navigate }) {
         {pendingOrders.length > 0 && (
           <button
             onClick={() => onNavigate({ section: "inbox", tab: "pending" })}
-            className="w-full text-left rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 flex items-center gap-3 hover:bg-amber-100/70 transition"
+            className="pending-banner w-full text-left rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 flex items-center gap-3 hover:bg-amber-100/70 transition"
           >
-            <AlertTriangle size={18} className="text-amber-600" />
-            <span className="text-[13.5px] text-amber-900 flex-1">
+            <AlertTriangle size={18} className="pending-banner-accent text-amber-600" />
+            <span className="pending-banner-text text-[13.5px] text-amber-900 flex-1">
               <b>{pendingOrders.length} payment{pendingOrders.length > 1 ? "s" : ""}</b> waiting for verification
             </span>
-            <span className="text-[13px] font-medium text-amber-800 flex items-center gap-1">
+            <span className="pending-banner-accent text-[13px] font-medium text-amber-800 flex items-center gap-1">
               Review <ArrowRight size={14} />
             </span>
           </button>

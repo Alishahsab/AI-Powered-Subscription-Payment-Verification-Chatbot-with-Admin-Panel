@@ -1,6 +1,6 @@
 "use client";
 
-import { findOpenTicket } from "@/lib/store/customer";
+import { findMenuLock, findOpenTicket } from "@/lib/store/customer";
 import { canStillPay, findOrderMethod, getActiveOrder } from "@/lib/store/helpers";
 import { getState } from "@/lib/store/state";
 import type { Conversation } from "@/lib/types";
@@ -35,7 +35,11 @@ export default function ActionPanel({ customerId, conversation, onOpenSheet }: A
   );
 }
 
+// Steps that start from the menu close with it (store closed, or a payment or request waiting for the admin).
+const MENU_STEPS = ["support", "choose_plan", "choose_method", "terms"];
+
 function StageActions({ customerId, conversation, onOpenSheet }: ActionPanelProps) {
+  if (MENU_STEPS.includes(conversation.stage) && findMenuLock(getState(), customerId)) return <MenuOptions customerId={customerId} />;
   switch (conversation.stage) {
     case "menu":
       return <MenuOptions customerId={customerId} />;

@@ -38,7 +38,7 @@ export function createDefaultConfig(): StoreConfig {
         active: "Thank you. Your payment is being verified. Your code will arrive right here in a few minutes.",
         away: "Thank you, your payment is recorded. Our admin is away right now, so your payment will be checked and your code sent here as soon as they are back.",
         away_closed: "Our admin is away right now and isn't taking new orders. Please try again later.",
-        offline: "We are offline right now. Back in {back_in}. Subscriptions are available daily between {hours}. Customer Support remains open 24/7.",
+        offline: "We are offline right now. Back in {back_in}. We are open daily between {hours}.",
       },
       supportClosedMessages: {
         away: "Our admin is away right now and can't take new requests. Please try again after some time.",
