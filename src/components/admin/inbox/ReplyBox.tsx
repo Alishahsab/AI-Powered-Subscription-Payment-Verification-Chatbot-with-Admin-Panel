@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { ImagePlus, MessageSquareText } from "lucide-react";
-import { compressImage } from "@/lib/browser";
+import { isImageFile, prepareImage } from "@/lib/browser";
 import { classNames, formatDateTime } from "@/lib/format";
 import { findCodeAlreadySent, sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
@@ -33,9 +33,13 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
   }, [text]);
 
   const sendImage = async (file?: File) => {
-    if (!file || !file.type.startsWith("image/")) return;
+    if (!file || !isImageFile(file)) return;
     setUploading(true);
-    setImageError((await sendAdminImage(customerId, await compressImage(file))) ?? "");
+    try {
+      setImageError((await sendAdminImage(customerId, await prepareImage(file))) ?? "");
+    } catch (problem) {
+      setImageError(problem instanceof Error ? problem.message : "This picture couldn't be opened.");
+    }
     setUploading(false);
     if (fileInput.current) fileInput.current.value = "";
   };

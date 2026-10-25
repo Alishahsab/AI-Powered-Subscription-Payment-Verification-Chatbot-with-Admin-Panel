@@ -154,3 +154,25 @@ test("a picked screenshot opens full size and closes again", async (t) => {
   assert.ok(!(await page.isVisible("[role=dialog][aria-label='Attached screenshot']")));
   assert.deepEqual(errors, []);
 });
+
+test("a picture an old browser cannot shrink is still sent, and an unreadable one explains why", async (t) => {
+  const { page, errors } = await newCustomer();
+  await click(page, "Customer Support");
+  if (await page.isVisible("text=Admin not available")) return t.skip("the store is closed right now");
+  await click(page, "Other issues");
+  if (!(await page.isVisible("textarea"))) return t.skip("the store is not taking requests right now");
+
+  await page.evaluate(() => {
+    // Like an old browser that cannot draw the picture on a canvas.
+    HTMLCanvasElement.prototype.toDataURL = () => "data:,";
+  });
+  await (await page.$("input[type=file]")).setInputFiles({ name: "receipt.png", mimeType: "image/png", buffer: tinyPng });
+  await page.waitForSelector("img[alt='Selected screenshot']", { timeout: 5000 });
+  assert.ok((await page.getAttribute("img[alt='Selected screenshot']", "src")).startsWith("data:image/png"), "the original PNG is used");
+
+  await page.click("text=Remove screenshot");
+  await (await page.$("input[type=file]")).setInputFiles({ name: "photo.heic", mimeType: "", buffer: Buffer.from("not really a picture") });
+  await page.waitForSelector("text=This picture couldn't be opened.", { timeout: 5000 });
+  assert.ok(!(await page.isVisible("img[alt='Selected screenshot']")));
+  assert.deepEqual(errors, []);
+});

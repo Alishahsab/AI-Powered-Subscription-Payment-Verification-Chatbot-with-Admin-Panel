@@ -1,4 +1,20 @@
-export async function compressImage(file: File, maxSize = 1000, quality = 0.72) {
+// Only for browsers that cannot make the picture smaller: the original is sent, up to 1 MB.
+const MAX_ORIGINAL_BYTES = 1024 * 1024;
+const SENDABLE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const TYPES_BY_EXTENSION: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", heif: "image/heif" };
+
+// Some phones and gallery apps leave the type empty, so the file name is used instead.
+function imageTypeOf(file: File) {
+  if (file.type) return file.type;
+  return TYPES_BY_EXTENSION[file.name.split(".").pop()?.toLowerCase() ?? ""] ?? "";
+}
+
+export function isImageFile(file: File) {
+  const type = imageTypeOf(file);
+  return type ? type.startsWith("image/") : true;
+}
+
+async function compressImage(file: File, maxSize: number, quality: number) {
   const url = URL.createObjectURL(file);
 
   try {
@@ -8,16 +24,49 @@ export async function compressImage(file: File, maxSize = 1000, quality = 0.72) 
       element.onerror = reject;
       element.src = url;
     });
+    if (!image.width || !image.height) throw new Error("Empty image");
 
     const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(image.width * scale);
     canvas.height = Math.round(image.height * scale);
-    canvas.getContext("2d")?.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("No canvas");
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-    return canvas.toDataURL("image/jpeg", quality);
+    const dataUrl = canvas.toDataURL("image/jpeg", quality);
+    // A browser that cannot draw the picture returns an empty image ("data:,").
+    if (!dataUrl.startsWith("data:image/") || dataUrl.length < 200) throw new Error("Empty image");
+    return dataUrl;
   } finally {
     URL.revokeObjectURL(url);
+  }
+}
+
+function readAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+// Makes a picked picture ready to upload. It is made smaller first; older browsers that cannot open
+// the picture send the original PNG or JPG instead. Throws a message the customer can act on.
+export async function prepareImage(file: File, maxSize = 1000, quality = 0.72) {
+  if (file.size === 0) throw new Error("This picture is not on your phone yet. Open it in your gallery first, then choose it again.");
+
+  try {
+    return await compressImage(file, maxSize, quality);
+  } catch {
+    const type = imageTypeOf(file);
+    if (!SENDABLE_TYPES.includes(type)) throw new Error("This picture couldn't be opened. Please choose a PNG or JPG screenshot, or update your browser.");
+    if (file.size > MAX_ORIGINAL_BYTES) throw new Error("This picture is too large. Please choose a screenshot under 1 MB, or update your browser.");
+    const dataUrl = await readAsDataUrl(file).catch(() => {
+      throw new Error("This picture couldn't be opened. Please choose it again.");
+    });
+    return dataUrl.replace(/^data:[^;,]*/, `data:${type}`);
   }
 }
 

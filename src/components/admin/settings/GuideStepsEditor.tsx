@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { GripVertical, ImagePlus, Trash2, X } from "lucide-react";
-import { compressImage } from "@/lib/browser";
+import { isImageFile, prepareImage } from "@/lib/browser";
 import { classNames, createId } from "@/lib/format";
 import { uploadGuideImage } from "@/lib/supabase/guides";
 import type { GuideStep } from "@/lib/types";
@@ -79,11 +79,11 @@ function AttachButton({ onUploaded }: { onUploaded: (image: string) => void }) {
   const [failed, setFailed] = useState(false);
 
   const upload = async (file?: File) => {
-    if (!file || !file.type.startsWith("image/")) return;
+    if (!file || !isImageFile(file)) return;
     setUploading(true);
     setFailed(false);
     try {
-      onUploaded(await uploadGuideImage(await compressImage(file)));
+      onUploaded(await uploadGuideImage(await prepareImage(file)));
     } catch {
       setFailed(true);
     }

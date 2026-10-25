@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
-import { compressImage } from "@/lib/browser";
+import { isImageFile, prepareImage } from "@/lib/browser";
 import { sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
 import { limits } from "@/lib/validation";
 import Modal from "../ui/Modal";
@@ -23,10 +23,14 @@ export default function ReplyDialog({ customerId, onClose }: ReplyDialogProps) {
   const fileInput = useRef<HTMLInputElement>(null);
 
   const addImage = async (file?: File) => {
-    if (!file || !file.type.startsWith("image/")) return;
-    const image = await compressImage(file);
-    setImages((current) => [...current, image].slice(0, MAX_ATTACHMENTS));
     if (fileInput.current) fileInput.current.value = "";
+    if (!file || !isImageFile(file)) return;
+    try {
+      const image = await prepareImage(file);
+      setImages((current) => [...current, image].slice(0, MAX_ATTACHMENTS));
+    } catch (problem) {
+      setError(problem instanceof Error ? problem.message : "This picture couldn't be opened.");
+    }
   };
 
   const send = async () => {
