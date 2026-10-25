@@ -125,7 +125,6 @@ export function sendAdminMessage(customerId: string, text: string, emailCopy: bo
     if (containsCode) {
       const order = findOrderAwaitingCode(state, customerId);
       if (order) order.code = codes[0];
-      addMessage(state, customerId, "admin", codes[0], { kind: "code", orderId: order?.id });
     }
 
     updateStageAfterReply(state, customerId, containsCode, ticketReply);
