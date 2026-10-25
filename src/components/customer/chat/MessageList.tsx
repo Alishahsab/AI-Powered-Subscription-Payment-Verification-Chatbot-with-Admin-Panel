@@ -14,11 +14,12 @@ type MessageListProps = {
   messages: Message[];
   typing: boolean;
   stage: Stage;
+  keepsChat: boolean;
 };
 
 const MINUTE = 60_000;
 
-export default function MessageList({ messages, typing, stage }: MessageListProps) {
+export default function MessageList({ messages, typing, stage, keepsChat }: MessageListProps) {
   const inactiveAfter = useAppState().settings.timers.inactiveMinutes * MINUTE;
   const now = useNow(60_000);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -60,7 +61,7 @@ export default function MessageList({ messages, typing, stage }: MessageListProp
         </span>
       </div>
       <div ref={contentRef} className="max-w-[860px] mx-auto px-4 md:px-8 py-5 md:py-7 space-y-1.5">
-        <PrivacyNote />
+        {!keepsChat && <PrivacyNote />}
 
         {messages.map((message, index) => {
           const previous = messages[index - 1];
@@ -71,7 +72,7 @@ export default function MessageList({ messages, typing, stage }: MessageListProp
           return (
             <div key={message.id}>
               {newDay && <DayDivider label={chatDayLabel(message.createdAt, now)} />}
-              {newVisit && <PrivacyNote />}
+              {newVisit && !keepsChat && <PrivacyNote />}
               <MessageItem message={message} startsGroup={newDay || newVisit || previous?.sender !== message.sender} />
             </div>
           );

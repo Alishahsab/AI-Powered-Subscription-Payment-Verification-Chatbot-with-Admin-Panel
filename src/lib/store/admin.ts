@@ -192,18 +192,20 @@ function codesIn(text: string) {
   return [...new Set([extractCode(cleaned), ...extractCodes(cleaned)].filter((code) => code.length === 6).map((code) => code.toLowerCase()))];
 }
 
-export function findCodeAlreadySent(text: string) {
+// With sameCustomerId, codes already sent to that customer can be sent to them again (for example when the
+// customer says it did not arrive); only a code that went to someone else is refused.
+export function findCodeAlreadySent(text: string, sameCustomerId?: string) {
   const state = getState();
   const codes = codesIn(text);
   if (codes.length === 0) return null;
 
-  const earlierOrder = state.orders.find((order) => order.code && codes.includes(order.code.toLowerCase()));
+  const earlierOrder = state.orders.find((order) => order.customerId !== sameCustomerId && order.code && codes.includes(order.code.toLowerCase()));
   if (earlierOrder) {
     return { code: earlierOrder.code ?? "", customerEmail: findCustomerEmail(state, earlierOrder.customerId), sentAt: earlierOrder.reviewedAt ?? earlierOrder.createdAt };
   }
 
   for (const message of state.messages) {
-    if (message.sender !== "admin" || message.kind === "deleted") continue;
+    if (message.sender !== "admin" || message.kind === "deleted" || message.customerId === sameCustomerId) continue;
     const repeated = codesIn(message.text).find((code) => codes.includes(code));
     if (repeated) return { code: repeated.toUpperCase(), customerEmail: findCustomerEmail(state, message.customerId), sentAt: message.createdAt };
   }

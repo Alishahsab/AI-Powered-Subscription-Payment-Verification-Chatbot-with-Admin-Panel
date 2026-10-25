@@ -109,6 +109,11 @@ export function liftPaymentPause(state: AppState, customerId: string) {
   if (customer) customer.paymentBlockedUntil = undefined;
 }
 
+// A customer with a code marked as unused keeps the whole chat; it is not cleared after 15 days.
+export function keepsChat(state: AppState, customerId: string) {
+  return state.orders.some((order) => order.customerId === customerId && order.codeUnused);
+}
+
 export function findLatestCode(state: AppState, customerId: string) {
   return state.orders.filter((order) => order.customerId === customerId && order.code).sort((a, b) => (b.reviewedAt ?? 0) - (a.reviewedAt ?? 0))[0];
 }

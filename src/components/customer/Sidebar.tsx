@@ -4,7 +4,7 @@ import { Clock, Mail, ShieldCheck } from "lucide-react";
 import { useNow } from "@/hooks/useNow";
 import { getEffectiveStatus, statusDetails, workingHoursLabel } from "@/lib/availability";
 import { formatDate } from "@/lib/format";
-import { customerNumberLabel, findLatestCode } from "@/lib/store/helpers";
+import { customerNumberLabel, findLatestCode, keepsChat } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { Customer } from "@/lib/types";
 import DisappearingLogo from "./DisappearingLogo";
@@ -29,7 +29,7 @@ export default function Sidebar({ customer, onSignOut }: SidebarProps) {
   return (
     <aside className="w-[320px] lg:w-[350px] shrink-0 border-r border-[var(--line)] bg-[var(--surface)] flex flex-col">
       <div className="px-6 pt-6 pb-5 border-b border-[var(--line)] flex items-center gap-3">
-        <DisappearingLogo size={44} className="rounded-[11px]" />
+        <DisappearingLogo size={44} className="rounded-[11px]" keepsChat={keepsChat(state, customer.id)} />
         <div className="min-w-0">
           <div className="font-[family-name:var(--font-display)] font-bold text-[18px] leading-tight truncate">{state.settings.storeName}</div>
           <div className="flex items-center gap-1.5 text-[13px] text-[var(--muted)] mt-0.5">

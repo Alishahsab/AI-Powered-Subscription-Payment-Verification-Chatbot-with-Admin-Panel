@@ -9,11 +9,12 @@ const NOTE = "Private chat. Messages are deleted after 15 days.";
 type DisappearingLogoProps = {
   size: number;
   className?: string;
+  keepsChat?: boolean;
 };
 
 // The store logo with a small timer badge, like disappearing messages in chat apps.
 // Tapping it explains that the chat is cleared after 15 days.
-export default function DisappearingLogo({ size, className = "" }: DisappearingLogoProps) {
+export default function DisappearingLogo({ size, className = "", keepsChat = false }: DisappearingLogoProps) {
   const [open, setOpen] = useState(false);
   const wrapper = useRef<HTMLDivElement>(null);
   const badge = Math.round(size * 0.55);
@@ -30,6 +31,8 @@ export default function DisappearingLogo({ size, className = "" }: DisappearingL
       window.removeEventListener("keydown", close);
     };
   }, [open]);
+
+  if (keepsChat) return <BrandIcon size={size} className={className} />;
 
   return (
     <div ref={wrapper} className="relative shrink-0" style={{ width: size, height: size }}>

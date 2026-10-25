@@ -48,7 +48,7 @@ export default function ReplyBox({ customerId, customerEmail }: ReplyBoxProps) {
     const content = message.trim();
     if (!content) return;
 
-    const duplicate = findCodeAlreadySent(content);
+    const duplicate = findCodeAlreadySent(content, customerId);
     if (duplicate) {
       setWarning(`Code ${duplicate.code} was already sent to ${duplicate.customerEmail} on ${formatDateTime(duplicate.sentAt)}. A code can only be sent once.`);
       return;

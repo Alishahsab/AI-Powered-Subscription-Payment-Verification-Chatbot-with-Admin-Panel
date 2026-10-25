@@ -8,10 +8,11 @@ import DisappearingLogo from "../DisappearingLogo";
 
 type ChatHeaderProps = {
   typing: boolean;
+  keepsChat: boolean;
   onSignOut?: () => void;
 };
 
-export default function ChatHeader({ typing, onSignOut }: ChatHeaderProps) {
+export default function ChatHeader({ typing, keepsChat, onSignOut }: ChatHeaderProps) {
   const state = useAppState();
   const now = useNow(60_000);
   const effectiveStatus = getEffectiveStatus(state.settings, now);
@@ -20,7 +21,7 @@ export default function ChatHeader({ typing, onSignOut }: ChatHeaderProps) {
 
   return (
     <header className="flex items-center gap-3 h-16 md:h-[72px] px-4 md:px-6 border-b border-[var(--line)] bg-[var(--surface)]">
-      <DisappearingLogo size={40} className="rounded-[10px]" />
+      <DisappearingLogo size={40} className="rounded-[10px]" keepsChat={keepsChat} />
       <div className="flex-1 min-w-0">
         <div className="font-[family-name:var(--font-display)] font-bold text-[17px] md:text-[18px] leading-tight">{state.settings.storeName}</div>
         <div className="flex items-center gap-1.5 text-[12.5px] md:text-[13px] text-[var(--muted)]">
