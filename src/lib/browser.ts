@@ -53,12 +53,13 @@ function readAsDataUrl(file: File) {
 }
 
 // Makes a picked picture ready to upload. It is made smaller first; older browsers that cannot open
-// the picture send the original PNG or JPG instead. Throws a message the customer can act on.
-export async function prepareImage(file: File, maxSize = 1000, quality = 0.72) {
+// the picture send the original PNG or JPG instead (`original` is then true). Throws a message the
+// customer can act on.
+export async function prepareImageWithStatus(file: File, maxSize = 1000, quality = 0.72) {
   if (file.size === 0) throw new Error("This picture is not on your phone yet. Open it in your gallery first, then choose it again.");
 
   try {
-    return await compressImage(file, maxSize, quality);
+    return { image: await compressImage(file, maxSize, quality), original: false };
   } catch {
     const type = imageTypeOf(file);
     if (!SENDABLE_TYPES.includes(type)) throw new Error("This picture couldn't be opened. Please choose a PNG or JPG screenshot, or update your browser.");
@@ -66,8 +67,12 @@ export async function prepareImage(file: File, maxSize = 1000, quality = 0.72) {
     const dataUrl = await readAsDataUrl(file).catch(() => {
       throw new Error("This picture couldn't be opened. Please choose it again.");
     });
-    return dataUrl.replace(/^data:[^;,]*/, `data:${type}`);
+    return { image: dataUrl.replace(/^data:[^;,]*/, `data:${type}`), original: true };
   }
+}
+
+export async function prepareImage(file: File, maxSize?: number, quality?: number) {
+  return (await prepareImageWithStatus(file, maxSize, quality)).image;
 }
 
 export async function copyToClipboard(text: string) {

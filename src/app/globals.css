@@ -208,15 +208,15 @@ html[data-admin-theme="dark"] .bg-\[\#0C2660\] { background-color: #2a3a63; }
 html[data-admin-theme="dark"] .hover\:bg-\[\#0a1f52\]:hover,
 html[data-admin-theme="dark"] .hover\:bg-\[\#0C2660\]:hover { background-color: #33467a; }
 
-/* Action buttons: the same meaning as in light mode, in clear solid colours with white text. */
-html[data-admin-theme="dark"] .bg-emerald-600 { background-color: #16a34a; color: #fff; }
-html[data-admin-theme="dark"] .hover\:bg-emerald-700:hover { background-color: #15803d; }
-html[data-admin-theme="dark"] .bg-\[\#b84a45\] { background-color: #dc2626; color: #fff; }
-html[data-admin-theme="dark"] .hover\:bg-\[\#a2403b\]:hover { background-color: #b91c1c; }
-html[data-admin-theme="dark"] button.action-cancel { background-color: #d97706; border-color: #d97706; color: #fff; }
-html[data-admin-theme="dark"] button.action-cancel:hover { background-color: #b45309; }
-html[data-admin-theme="dark"] button.action-block { background-color: rgba(220, 38, 38, 0.14); border-color: #dc2626; color: #fca5a5; }
-html[data-admin-theme="dark"] button.action-block:hover { background-color: rgba(220, 38, 38, 0.24); }
+/* Action buttons: deep solid colours with light text, as chosen by the client. */
+html[data-admin-theme="dark"] .bg-emerald-600 { background-color: #0f5132; color: #e5e7eb; }
+html[data-admin-theme="dark"] .hover\:bg-emerald-700:hover { background-color: #146140; }
+html[data-admin-theme="dark"] .bg-\[\#b84a45\] { background-color: #7f1d1d; color: #e5e7eb; }
+html[data-admin-theme="dark"] .hover\:bg-\[\#a2403b\]:hover { background-color: #932424; }
+html[data-admin-theme="dark"] button.action-cancel { background-color: #7c4a00; border-color: #7c4a00; color: #e5e7eb; }
+html[data-admin-theme="dark"] button.action-cancel:hover { background-color: #8f5600; }
+html[data-admin-theme="dark"] button.action-block { background-color: #5b1111; border-color: #5b1111; color: #e5e7eb; }
+html[data-admin-theme="dark"] button.action-block:hover { background-color: #6d1616; }
 html[data-admin-theme="dark"] .bg-violet-600 { background-color: #7c3aed; color: #fff; }
 html[data-admin-theme="dark"] .hover\:bg-violet-700:hover { background-color: #6d28d9; }
 /* The dashboard's "payments waiting" bar: a calm blue instead of yellow. */

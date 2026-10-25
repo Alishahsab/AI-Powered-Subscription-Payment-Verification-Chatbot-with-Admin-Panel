@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { ImageIcon } from "lucide-react";
-import { isImageFile, prepareImage } from "@/lib/browser";
+import { isImageFile, prepareImageWithStatus } from "@/lib/browser";
 
 type ImagePickerProps = {
   image: string | null;
@@ -14,6 +14,8 @@ export default function ImagePicker({ image, onChange, label = "Choose screensho
   const fileInput = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  // An old browser could not make the picture smaller; the picture still goes, with a hint to update.
+  const [outdated, setOutdated] = useState(false);
 
   const pickFile = async (file?: File) => {
     // Cleared so the same picture can be chosen again after removing it.
@@ -26,7 +28,9 @@ export default function ImagePicker({ image, onChange, label = "Choose screensho
     setError("");
     setLoading(true);
     try {
-      onChange(await prepareImage(file));
+      const prepared = await prepareImageWithStatus(file);
+      setOutdated(prepared.original);
+      onChange(prepared.image);
     } catch (problem) {
       setError(problem instanceof Error ? problem.message : "This picture couldn't be opened. Please choose it again.");
     }
@@ -60,6 +64,7 @@ export default function ImagePicker({ image, onChange, label = "Choose screensho
         </button>
       )}
       {error && <p className="mt-2 text-[12.5px] text-red-600">{error}</p>}
+      {image && outdated && <p className="mt-2 text-[12.5px] text-amber-700">Your browser is out of date. Please update it for a smoother experience.</p>}
     </div>
   );
 }

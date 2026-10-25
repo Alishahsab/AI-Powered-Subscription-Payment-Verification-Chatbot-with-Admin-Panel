@@ -169,6 +169,7 @@ test("a picture an old browser cannot shrink is still sent, and an unreadable on
   await (await page.$("input[type=file]")).setInputFiles({ name: "receipt.png", mimeType: "image/png", buffer: tinyPng });
   await page.waitForSelector("img[alt='Selected screenshot']", { timeout: 5000 });
   assert.ok((await page.getAttribute("img[alt='Selected screenshot']", "src")).startsWith("data:image/png"), "the original PNG is used");
+  assert.ok(await page.isVisible("text=Your browser is out of date. Please update it for a smoother experience."), "asks to update the browser");
 
   await page.click("text=Remove screenshot");
   await (await page.$("input[type=file]")).setInputFiles({ name: "photo.heic", mimeType: "", buffer: Buffer.from("not really a picture") });
