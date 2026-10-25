@@ -112,6 +112,7 @@ export function validateConfig(config: StoreConfig) {
   if (guideSteps.some((step) => step.text.length > limits.longTextMax)) errors.push(`Each step can be at most ${limits.longTextMax} characters.`);
   if (!settings.rejectionMessage.trim()) errors.push("Rejection message cannot be empty.");
   if (!settings.waitForAdminMessage.trim()) errors.push("The waiting message cannot be empty.");
+  if (Object.values(settings.menuLock).some((text) => !text.trim())) errors.push("Closed menu messages cannot be empty.");
   if (settings.rejectReasons.length === 0) errors.push("Add at least one rejection reason.");
   if (!settings.support.stillFacingLabel.trim() || !settings.support.resolvedLabel.trim()) errors.push("Support button labels cannot be empty.");
   if (Object.values(settings.messages).some((text) => !text.trim())) errors.push("Bot messages cannot be empty.");
@@ -127,6 +128,7 @@ export function validateConfig(config: StoreConfig) {
     ...Object.values(settings.statusMessages),
     ...Object.values(settings.supportMessages),
     ...Object.values(settings.supportClosedMessages),
+    ...Object.values(settings.menuLock),
   ];
   if (longTexts.some((text) => text.length > limits.longTextMax)) errors.push(`Messages can be at most ${limits.longTextMax} characters.`);
   if ([...Object.values(settings.statusMessages), ...Object.values(settings.supportMessages), ...Object.values(settings.supportClosedMessages)].some((text) => !text.trim())) errors.push("Status messages cannot be empty.");

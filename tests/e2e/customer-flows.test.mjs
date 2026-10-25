@@ -100,8 +100,7 @@ test("while an app issue is open both menu buttons are closed and explain why", 
   await tapClosed(page, "Buy a Subscription");
   assert.ok(await page.isVisible("text=Request open"), "buying is closed too");
   await click(page, "Got it");
-  await click(page, "Go to my request");
-  assert.ok(!(await page.isVisible("text=Your request is with our team")), "back at the request");
+  assert.equal(await page.locator("button:has-text('Go to my request')").count(), 0, "no way around the closed menu");
   assert.ok(!(await page.isVisible("textarea")), "no message box while a request is open");
   assert.deepEqual(errors, []);
 });

@@ -223,6 +223,7 @@ export function configFromRow(row: Row): StoreConfig {
       statusMessages: { ...defaults.settings.statusMessages, ...saved.statusMessages },
       supportMessages: { ...defaults.settings.supportMessages, ...saved.supportMessages },
       supportClosedMessages: { ...defaults.settings.supportClosedMessages, ...saved.supportClosedMessages },
+      menuLock: { ...defaults.settings.menuLock, ...saved.menuLock },
       timers: { ...defaults.settings.timers, ...saved.timers },
       limits: { ...defaults.settings.limits, ...saved.limits },
       support: { ...defaults.settings.support, ...saved.support },

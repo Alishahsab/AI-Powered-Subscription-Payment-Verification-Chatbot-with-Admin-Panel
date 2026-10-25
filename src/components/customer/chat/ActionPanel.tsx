@@ -39,7 +39,8 @@ export default function ActionPanel({ customerId, conversation, onOpenSheet }: A
 const MENU_STEPS = ["support", "choose_plan", "choose_method", "terms"];
 
 function StageActions({ customerId, conversation, onOpenSheet }: ActionPanelProps) {
-  if (MENU_STEPS.includes(conversation.stage) && findMenuLock(getState(), customerId)) return <MenuOptions customerId={customerId} />;
+  const target = conversation.stage === "support" ? "support" : "buy";
+  if (MENU_STEPS.includes(conversation.stage) && findMenuLock(getState(), customerId, target)) return <MenuOptions customerId={customerId} />;
   switch (conversation.stage) {
     case "menu":
       return <MenuOptions customerId={customerId} />;

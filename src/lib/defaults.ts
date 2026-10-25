@@ -72,6 +72,15 @@ export function createDefaultConfig(): StoreConfig {
       rejectionMessage:
         "We couldn't verify the payment for order {order_id}. Reason: {reason}.\nIf you think this is a mistake, describe your side below and attach a screenshot.",
       waitForAdminMessage: "Thanks, we've received your reply. Please wait for our team to respond here.",
+      menuLock: {
+        pendingTitle: "Payment being verified",
+        pending: "Your payment is being verified. The menu opens again once we approve it.",
+        rejectedTitle: "Payment not approved",
+        rejected: "Your payment was not approved. Please reply to our team about it in the chat. The menu opens again once it is sorted out.",
+        issueTitle: "Request open",
+        issue: "Your request is with our team. The menu opens again once it is resolved.",
+        closedTitle: "Admin not available",
+      },
       rejectReasons: ["Screenshot is unclear", "Amount does not match", "Payment not received", "Sender name does not match"],
       quickReplies: [
         "Payment received, verifying now. Please wait a few minutes.",

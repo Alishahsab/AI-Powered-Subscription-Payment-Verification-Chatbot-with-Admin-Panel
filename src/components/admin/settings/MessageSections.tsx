@@ -1,5 +1,5 @@
 import { botMessageGroups, defaultBotMessages, type MessageTab } from "@/lib/botMessages";
-import type { AdminStatus } from "@/lib/types";
+import type { AdminStatus, MenuLockTexts } from "@/lib/types";
 import { limits } from "@/lib/validation";
 import { textareaClass } from "../ui/styles";
 import type { SettingsTabProps } from "./Settings";
@@ -8,13 +8,13 @@ import { Field, SettingsSection } from "./SettingsSection";
 const orderMessageLabels: Record<AdminStatus, string> = {
   active: "Active: after the payment screenshot is sent",
   away: "Away (accepting): after the payment screenshot is sent",
-  away_closed: "Away (not accepting): when the customer taps Buy",
-  offline: "Offline: when the customer taps Buy",
+  away_closed: "Away (not accepting): pop-up when the customer taps Buy",
+  offline: "Offline: pop-up when the customer taps Buy",
 };
 
 const closedSupportLabels: Record<"away_closed" | "offline", string> = {
-  away_closed: "Away (not accepting): when the customer taps Other issues",
-  offline: "Offline: when the customer taps Other issues",
+  away_closed: "Away (not accepting): pop-up when the customer taps Other issues",
+  offline: "Offline: pop-up when the customer taps Other issues",
 };
 
 export function OrderMessagesSection({ draft, updateDraft }: SettingsTabProps) {
@@ -37,7 +37,7 @@ export function SupportMessagesSection({ draft, updateDraft }: SettingsTabProps)
   const { supportMessages, supportClosedMessages } = draft.settings;
 
   return (
-    <SettingsSection title="Support messages" description="New support requests (Other issues) are taken while you are Active or Away (accepting). Common questions stay open in every status.">
+    <SettingsSection title="Support messages" description="New support requests (Other issues) are taken while you are Active or Away (accepting). Common questions stay open in every status. The Away (not accepting) and Offline messages show in a pop-up when Other issues is tapped.">
       <div className="space-y-4">
         <Field label="Active: after a support request is sent" hint="Use {ticket_id} for the request number">
           <textarea rows={2} maxLength={limits.longTextMax} value={supportMessages.active} onChange={(event) => updateDraft((next) => (next.settings.supportMessages.active = event.target.value))} className={textareaClass} />
@@ -48,6 +48,35 @@ export function SupportMessagesSection({ draft, updateDraft }: SettingsTabProps)
         {(Object.keys(closedSupportLabels) as (keyof typeof closedSupportLabels)[]).map((status) => (
           <Field key={status} label={closedSupportLabels[status]}>
             <textarea rows={2} maxLength={limits.longTextMax} value={supportClosedMessages[status]} onChange={(event) => updateDraft((next) => (next.settings.supportClosedMessages[status] = event.target.value))} className={textareaClass} />
+          </Field>
+        ))}
+      </div>
+    </SettingsSection>
+  );
+}
+
+const menuLockFields: { key: keyof MenuLockTexts; label: string; long?: boolean }[] = [
+  { key: "pendingTitle", label: "Payment sent, waiting for approval: pop-up title" },
+  { key: "pending", label: "Payment sent, waiting for approval: message", long: true },
+  { key: "rejectedTitle", label: "Payment rejected: pop-up title" },
+  { key: "rejected", label: "Payment rejected: message", long: true },
+  { key: "issueTitle", label: "Support request open: pop-up title" },
+  { key: "issue", label: "Support request open: message", long: true },
+  { key: "closedTitle", label: "Away (not accepting) or Offline: pop-up title", long: false },
+];
+
+export function MenuLockSection({ draft, updateDraft }: SettingsTabProps) {
+  const { menuLock } = draft.settings;
+
+  return (
+    <SettingsSection
+      title="Closed menu"
+      description="Buy a Subscription and Customer Support close while a payment or a support request waits for you. The message shows above the menu and in the pop-up when a closed button is tapped. When you are Away (not accepting) or Offline, only Buy and Other issues close, with the order and support messages above."
+    >
+      <div className="space-y-4">
+        {menuLockFields.map((field) => (
+          <Field key={field.key} label={field.label}>
+            <textarea rows={field.long ? 2 : 1} maxLength={limits.longTextMax} value={menuLock[field.key]} onChange={(event) => updateDraft((next) => (next.settings.menuLock[field.key] = event.target.value))} className={textareaClass} />
           </Field>
         ))}
       </div>

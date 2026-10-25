@@ -1,14 +1,19 @@
 import { useState } from "react";
-import { chooseOtherIssue } from "@/lib/store/customer";
+import { useNow } from "@/hooks/useNow";
+import { chooseOtherIssue, findMenuLock, type MenuLock } from "@/lib/store/customer";
 import { useAppState } from "@/lib/store/state";
 import type { Faq } from "@/lib/types";
 import FaqSheet from "../sheets/FaqSheet";
+import LockSheet from "../sheets/LockSheet";
 import BackToMenuButton from "./BackToMenuButton";
 import { primaryButtonClass } from "./buttonStyles";
 
 export default function SupportOptions({ customerId }: { customerId: string }) {
   const state = useAppState();
   const [openFaq, setOpenFaq] = useState<Faq | null>(null);
+  const [shownLock, setShownLock] = useState<MenuLock | null>(null);
+  // While the store is closed, common questions stay open and only new requests close.
+  const lock = findMenuLock(state, customerId, "other_issues", useNow(1000));
 
   return (
     <div>
@@ -25,12 +30,17 @@ export default function SupportOptions({ customerId }: { customerId: string }) {
         ))}
       </div>
       <div className="max-w-[560px] mx-auto mt-3.5">
-        <button onClick={() => chooseOtherIssue(customerId)} className={primaryButtonClass}>
+        <button
+          onClick={() => (lock ? setShownLock(lock) : chooseOtherIssue(customerId))}
+          aria-disabled={Boolean(lock)}
+          className={`${primaryButtonClass} ${lock ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
           Other issues
         </button>
         <BackToMenuButton customerId={customerId} />
       </div>
       {openFaq && <FaqSheet faq={openFaq} onClose={() => setOpenFaq(null)} />}
+      {shownLock && <LockSheet lock={shownLock} onClose={() => setShownLock(null)} />}
     </div>
   );
 }

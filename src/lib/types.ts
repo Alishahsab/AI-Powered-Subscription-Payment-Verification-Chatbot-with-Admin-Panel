@@ -91,6 +91,17 @@ export type Limits = {
   repliesAfterRejection: number;
 };
 
+// What the customer sees while the menu is closed: a notice above it and the pop-up when a closed button is tapped.
+export type MenuLockTexts = {
+  pendingTitle: string;
+  pending: string;
+  rejectedTitle: string;
+  rejected: string;
+  issueTitle: string;
+  issue: string;
+  closedTitle: string;
+};
+
 export type Settings = {
   storeName: string;
   welcome: string;
@@ -105,6 +116,7 @@ export type Settings = {
   nextTimeSteps: GuideStep[];
   rejectionMessage: string;
   waitForAdminMessage: string;
+  menuLock: MenuLockTexts;
   rejectReasons: string[];
   quickReplies: string[];
   support: SupportSettings;
