@@ -14,7 +14,7 @@ import WhatsAppLink from "../ui/WhatsAppLink";
 import BlockCustomerButton from "./BlockCustomerButton";
 import { inputClass } from "../ui/styles";
 
-const rowGrid = "grid grid-cols-[2.9rem_minmax(0,1fr)_2.6rem_6rem] md:grid-cols-[6rem_13rem_8rem_10rem] items-center gap-x-1.5 md:gap-x-4";
+const rowGrid = "grid grid-cols-[2.9rem_minmax(0,1fr)_2.6rem_6rem] md:grid-cols-[6rem_13rem_8rem_7.75rem] items-center gap-x-1.5 md:gap-x-4";
 
 export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
   const state = useAppState();
@@ -28,7 +28,7 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
 
   return (
     <div className="h-full">
-      <div className="h-full max-w-[1200px] mx-auto p-4 lg:p-7 flex flex-col gap-5">
+      <div className="h-full max-w-[1200px] mx-auto md:mx-0 md:w-fit p-4 lg:p-7 flex flex-col gap-5">
         <div className="shrink-0 flex flex-wrap items-end justify-between gap-3">
           <div>
             <button
@@ -46,7 +46,7 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
           </div>
         </div>
 
-        <Card className="overflow-hidden flex-1 min-h-0 flex flex-col">
+        <Card className="overflow-hidden flex-1 min-h-0 flex flex-col md:w-fit md:max-w-full md:self-start">
           {rows.length === 0 ? (
             <EmptyState icon={<Users size={20} />} title="No customers found" />
           ) : (
