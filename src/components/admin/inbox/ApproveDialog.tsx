@@ -17,7 +17,6 @@ type ApproveDialogProps = {
 
 export default function ApproveDialog({ order, customerEmail, onClose }: ApproveDialogProps) {
   const [message, setMessage] = useState("");
-  const [emailCopy, setEmailCopy] = useState(false);
   const [typedCode, setTypedCode] = useState("");
 
   const foundCode = extractCode(message);
@@ -29,7 +28,7 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
 
   const approve = () => {
     if (!canApprove) return;
-    approveOrder(order.id, message, code, emailCopy);
+    approveOrder(order.id, message, code);
     onClose();
   };
 
@@ -72,11 +71,6 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
           </span>
         </div>
       )}
-
-      <label className="mt-4 inline-flex items-center gap-2 text-[13px] text-zinc-700 cursor-pointer select-none">
-        <input type="checkbox" checked={emailCopy} onChange={(event) => setEmailCopy(event.target.checked)} className="size-4 accent-[#0C2660]" />
-        Notify user by email
-      </label>
 
       <div className="mt-5 grid grid-cols-2 gap-2.5">
         <button onClick={onClose} className="h-11 rounded-xl border border-zinc-200 text-[14px] font-semibold text-zinc-700 hover:bg-zinc-50 transition">

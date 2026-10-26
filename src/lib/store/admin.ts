@@ -1,7 +1,6 @@
 import { isAuthApiError } from "@supabase/supabase-js";
 import { serverNow } from "../clock";
 import { createTemporaryClient, getSupabase } from "../supabase/client";
-import { sendEmailCopy } from "../supabase/email";
 import { deleteScreenshots, uploadScreenshot } from "../supabase/screenshots";
 import type { AdminStatus, AppState, Message, Ticket } from "../types";
 import { extractCode } from "../validation";
@@ -115,13 +114,12 @@ export function setAdminStatus(status: AdminStatus) {
   });
 }
 
-export function sendAdminMessage(customerId: string, text: string, emailCopy: boolean, ticketReply = false) {
+export function sendAdminMessage(customerId: string, text: string, ticketReply = false) {
   const codes = extractCodes(text);
   const containsCode = codes.length > 0;
 
   updateState((state) => {
-    const customer = state.customers.find((item) => item.id === customerId);
-    addMessage(state, customerId, "admin", text, { emailedTo: emailCopy ? customer?.email : undefined });
+    addMessage(state, customerId, "admin", text);
     if (containsCode) {
       const order = findOrderAwaitingCode(state, customerId);
       if (order) order.code = codes[0];
@@ -129,8 +127,6 @@ export function sendAdminMessage(customerId: string, text: string, emailCopy: bo
 
     updateStageAfterReply(state, customerId, containsCode, ticketReply);
   });
-
-  if (emailCopy) sendEmailCopy(customerId);
 }
 
 // A Reply from a request card lets the customer answer (Resolved / Still facing).
@@ -211,7 +207,7 @@ export function findCodeAlreadySent(text: string, sameCustomerId?: string) {
   return null;
 }
 
-export function approveOrder(orderId: string, codeMessage: string, code: string, emailCopy: boolean) {
+export function approveOrder(orderId: string, codeMessage: string, code: string) {
   const order = getState().orders.find((item) => item.id === orderId);
   if (!order) return;
 
@@ -224,8 +220,7 @@ export function approveOrder(orderId: string, codeMessage: string, code: string,
     current.code = code;
     current.codeUnused = false;
 
-    const customer = state.customers.find((item) => item.id === current.customerId);
-    addMessage(state, current.customerId, "admin", codeMessage, { kind: "code", orderId, emailedTo: emailCopy ? customer?.email : undefined });
+    addMessage(state, current.customerId, "admin", codeMessage, { kind: "code", orderId });
 
     const conversation = state.conversations[current.customerId];
     if (conversation.activeOrderId === orderId) conversation.activeOrderId = undefined;
@@ -233,8 +228,6 @@ export function approveOrder(orderId: string, codeMessage: string, code: string,
     conversation.unreadByAdmin = 0;
     markNotificationsRead(state, current.customerId);
   });
-
-  if (emailCopy) sendEmailCopy(order.customerId);
 }
 
 export function rejectOrder(orderId: string, reason: string) {

@@ -140,6 +140,8 @@ export type Customer = {
   paymentBlockedUntil?: number;
   cancelCount: number;
   cancelCooldownUntil?: number;
+  // "" once the server has the column but the customer has not given a number yet.
+  whatsapp?: string;
 };
 
 export type MessageSender = "bot" | "customer" | "admin";

@@ -5,11 +5,12 @@ import { ArrowLeft } from "lucide-react";
 import { useFloatingDay } from "@/hooks/useFloatingDay";
 import { useNow } from "@/hooks/useNow";
 import { chatDayLabel, classNames, pakistanDay } from "@/lib/format";
-import { customerNumberLabel } from "@/lib/store/helpers";
+import { customerNumberLabel, customerTitle } from "@/lib/store/helpers";
 import { customerMessages } from "@/lib/store/messageIndex";
 import { useAppState } from "@/lib/store/state";
 import type { Message } from "@/lib/types";
 import Avatar from "../ui/Avatar";
+import WhatsAppLink from "../ui/WhatsAppLink";
 import { isCustomerActive } from "./inboxItems";
 import ReplyBox from "./ReplyBox";
 import ThreadMessage from "./ThreadMessage";
@@ -54,7 +55,9 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
           {active && <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-500 ring-2 ring-white" />}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[15px] font-bold text-zinc-900 truncate">{customer.email}</div>
+          <div className="text-[15px] font-bold text-zinc-900 truncate">
+            {customer.whatsapp ? <WhatsAppLink number={customer.whatsapp} className="text-[15px] font-bold" /> : customerTitle(customer)}
+          </div>
           <div className="text-[12px] text-zinc-500 truncate">
             {customerNumberLabel(customer)} · {active ? "Active now" : "Away from chat"}
           </div>
@@ -87,7 +90,7 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
         </div>
       </div>
 
-      <ReplyBox customerId={customerId} customerEmail={customer.email} />
+      <ReplyBox customerId={customerId} whatsapp={customer.whatsapp} />
     </div>
   );
 }

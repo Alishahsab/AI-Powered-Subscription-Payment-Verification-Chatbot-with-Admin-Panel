@@ -7,7 +7,7 @@ import type { AppState, Customer, Stage, TicketKind } from "../types";
 import { validateName } from "../validation";
 import { hasWaitingReplies } from "./connection";
 import { ADMIN_CANCEL_REASON, addMessage, botText, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
-import { getState, updateState } from "./state";
+import { applyRemoteChange, getState, updateState } from "./state";
 
 const MINUTE = 60_000;
 
@@ -31,14 +31,48 @@ export async function signIn(email: string, pin: string): Promise<AuthResult> {
   return { error: null };
 }
 
-export async function signUp(email: string, pin: string): Promise<AuthResult> {
-  const { data, error } = await getSupabase("customer").auth.signUp({ email: normalizeEmail(email), password: pin });
+// null when the number could not be checked (no connection, or the database does not have numbers yet).
+async function isWhatsAppTaken(number: string) {
+  const { data, error } = await getSupabase("customer").rpc("whatsapp_taken", { check_number: number });
+  if (error) return { taken: false, checked: false, missing: error.code === "PGRST202" };
+  return { taken: Boolean(data), checked: true, missing: false };
+}
+
+const WHATSAPP_TAKEN = "This number is already used by another account.";
+const WHATSAPP_UNCHECKED = "We couldn't check this number right now. Please try again.";
+
+export async function signUp(email: string, pin: string, whatsapp: string): Promise<AuthResult> {
+  const check = await isWhatsAppTaken(whatsapp);
+  if (check.taken) return { error: WHATSAPP_TAKEN };
+  if (!check.checked && !check.missing) return { error: WHATSAPP_UNCHECKED };
+
+  const { data, error } = await getSupabase("customer").auth.signUp({
+    email: normalizeEmail(email),
+    password: pin,
+    options: { data: check.checked ? { whatsapp } : {} },
+  });
   if (error) {
     const message = error.message.toLowerCase();
     if (message.includes("already")) return { error: "This email already has an account. Go back and enter your PIN." };
     return { error: error.message };
   }
   if (!data.session) return { error: "Please confirm your email address, then log in." };
+  return { error: null };
+}
+
+export async function saveWhatsApp(customerId: string, whatsapp: string): Promise<AuthResult> {
+  const check = await isWhatsAppTaken(whatsapp);
+  if (check.taken) return { error: WHATSAPP_TAKEN };
+  if (!check.checked) return { error: WHATSAPP_UNCHECKED };
+
+  const { error } = await getSupabase("customer").from("customers").update({ whatsapp }).eq("id", customerId);
+  if (error?.code === "23505") return { error: WHATSAPP_TAKEN };
+  if (error) return { error: WHATSAPP_UNCHECKED };
+
+  applyRemoteChange((state) => {
+    const customer = state.customers.find((item) => item.id === customerId);
+    if (customer) customer.whatsapp = whatsapp;
+  });
   return { error: null };
 }
 
@@ -70,7 +104,8 @@ export function ensureCustomerProfile(user: User) {
   updateState((draft) => {
     const now = serverNow();
     if (!hasProfile) {
-      draft.customers.push({ id: user.id, email: user.email ?? "", createdAt: now, lastSeenAt: now, blocked: false, cancelCount: 0 });
+      const whatsapp = typeof user.user_metadata?.whatsapp === "string" ? user.user_metadata.whatsapp : undefined;
+      draft.customers.push({ id: user.id, email: user.email ?? "", createdAt: now, lastSeenAt: now, blocked: false, cancelCount: 0, whatsapp });
     }
     if (!hasConversation) {
       draft.conversations[user.id] = { customerId: user.id, stage: "menu", typing: false, unreadByAdmin: 0, lastMessageAt: now };

@@ -13,6 +13,7 @@ import ConfirmDialog from "../ConfirmDialog";
 import SyncNotice from "../SyncNotice";
 import AuthScreen from "./AuthScreen";
 import Sidebar from "./Sidebar";
+import WhatsAppScreen from "./WhatsAppScreen";
 import ChatScreen from "./chat/ChatScreen";
 
 export default function CustomerApp() {
@@ -63,6 +64,8 @@ export default function CustomerApp() {
     <div className="customer-app min-h-dvh w-full bg-[var(--page)] flex" style={themeStyle}>
       {checking || (user && !customer) ? (
         <LoadingScreen />
+      ) : customer?.whatsapp === "" ? (
+        <WhatsAppScreen customerId={customer.id} onSignOut={askToSignOut} />
       ) : customer ? (
         <div className="flex-1 flex h-dvh md:p-4 lg:p-5">
           <div className="relative flex-1 flex max-w-[1440px] mx-auto bg-[var(--bg)] md:rounded-3xl md:border md:border-[var(--line)] md:shadow-[0_24px_60px_-28px_rgba(15,23,42,0.28)] overflow-hidden">

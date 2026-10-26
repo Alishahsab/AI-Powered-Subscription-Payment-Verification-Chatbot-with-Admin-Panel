@@ -12,6 +12,7 @@ import Badge from "../ui/Badge";
 import Button from "../ui/Button";
 import { Card } from "../ui/Card";
 import EmptyState from "../ui/EmptyState";
+import WhatsAppLink from "../ui/WhatsAppLink";
 import BlockCustomerButton from "./BlockCustomerButton";
 import { inputClass } from "../ui/styles";
 
@@ -22,7 +23,7 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
   const search = query.trim().toLowerCase();
 
   const rows = state.customers
-    .filter((customer) => !search || customer.email.includes(search) || customerNumberLabel(customer).includes(search))
+    .filter((customer) => !search || customer.email.includes(search) || customer.whatsapp?.includes(search) || customerNumberLabel(customer).includes(search))
     .map((customer) => {
       const completed = state.orders.filter((order) => order.customerId === customer.id && order.status === "completed");
       return {
@@ -62,6 +63,7 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
                 <thead className="sticky top-0 z-10">
                   <tr className="text-left text-white bg-[linear-gradient(90deg,#0c2660_0%,#14327a_100%)]">
                     <th className="font-medium px-5 py-2.5">ID</th>
+                    <th className="font-medium px-3 py-2.5">WhatsApp</th>
                     <th className="font-medium px-3 py-2.5">Email</th>
                     <th className="font-medium px-3 py-2.5">Current code</th>
                     <th className="font-medium px-3 py-2.5">Orders</th>
@@ -77,6 +79,9 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
                           <span className="font-bold text-[#0C2660] tabular-nums">{customerNumberLabel(customer)}</span>
                           {customer.blocked && <Badge tone="red">Blocked</Badge>}
                         </div>
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        {customer.whatsapp ? <WhatsAppLink number={customer.whatsapp} /> : <span className="text-zinc-400">Not added</span>}
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2.5">

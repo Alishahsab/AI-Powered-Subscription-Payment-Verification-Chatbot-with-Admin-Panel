@@ -30,6 +30,7 @@ async function newCustomer() {
   const pins = page.locator("input[inputmode=numeric]");
   await pins.nth(0).fill("123456");
   await pins.nth(1).fill("123456");
+  await page.fill("input[placeholder='03001234567']", `03${String(Date.now()).slice(-9)}`);
   await page.click("form button:has-text('Create account')");
   await page.waitForSelector("button:has-text('Buy a Subscription')", { timeout: 30000 });
   await wait(1500);
@@ -176,4 +177,20 @@ test("a picture an old browser cannot shrink is still sent, and an unreadable on
   await page.waitForSelector("text=This picture couldn't be opened.", { timeout: 5000 });
   assert.ok(!(await page.isVisible("img[alt='Selected screenshot']")));
   assert.deepEqual(errors, []);
+});
+
+test("creating an account needs a valid 11-digit WhatsApp number", async () => {
+  const page = await (await browser.newContext({ viewport: { width: 420, height: 860 } })).newPage();
+  await page.goto(BASE_URL, { timeout: 60000 });
+  await page.waitForSelector("text=Continue", { timeout: 60000 });
+  await page.fill('input[placeholder="you@example.com"]', `test.e2e${Date.now() % 1000000}@gmail.com`);
+  await page.click("form button:not([type=button])");
+  await page.waitForSelector("text=Create your PIN", { timeout: 15000 });
+  const pins = page.locator("input[inputmode=numeric]");
+  await pins.nth(0).fill("123456");
+  await pins.nth(1).fill("123456");
+  await page.fill("input[placeholder='03001234567']", "03abc12-345");
+  assert.equal(await page.inputValue("input[placeholder='03001234567']"), "0312345", "letters and signs are dropped");
+  await page.click("form button:has-text('Create account')");
+  assert.ok(await page.isVisible("text=Please enter your 11-digit WhatsApp number, like 03001234567."));
 });

@@ -1,5 +1,5 @@
 import { formatMoney, timeAgo } from "@/lib/format";
-import { canStillPay, customerNumberLabel, findCustomerEmail } from "@/lib/store/helpers";
+import { canStillPay, customerNumberLabel, customerTitle, findCustomerTitle } from "@/lib/store/helpers";
 import { customerMessages, lastCustomerMessageAt } from "@/lib/store/messageIndex";
 import type { AppState, InboxTab, Message, Order, OrderStatus, Ticket } from "@/lib/types";
 
@@ -56,7 +56,7 @@ function orderItem(state: AppState, order: Order, time: number, subtitle: string
   return {
     key: order.id,
     customerId: order.customerId,
-    title: findCustomerEmail(state, order.customerId),
+    title: findCustomerTitle(state, order.customerId),
     tag: customerTag(state, order.customerId),
     subtitle,
     time,
@@ -77,7 +77,7 @@ function chatItems(state: AppState, active: boolean, now: number): InboxItem[] {
       return {
         key: conversation.customerId,
         customerId: conversation.customerId,
-        title: findCustomerEmail(state, conversation.customerId),
+        title: findCustomerTitle(state, conversation.customerId),
         tag: customerTag(state, conversation.customerId),
         subtitle: lastMessage ? prefix + describeMessage(lastMessage) : "",
         // The time shown is the customer's last activity, the same time that decides Active or Inactive.
@@ -142,7 +142,7 @@ function issueItems(state: AppState, kind: Ticket["kind"]): InboxItem[] {
     .map((ticket) => ({
       key: ticket.id,
       customerId: ticket.customerId,
-      title: findCustomerEmail(state, ticket.customerId),
+      title: findCustomerTitle(state, ticket.customerId),
       tag: customerTag(state, ticket.customerId),
       subtitle: ticket.message,
       time: ticket.createdAt,
@@ -158,7 +158,7 @@ function blockedItems(state: AppState): InboxItem[] {
     .map((customer) => ({
       key: customer.id,
       customerId: customer.id,
-      title: customer.email,
+      title: customerTitle(customer),
       tag: customerNumberLabel(customer),
       subtitle: customer.blockReason ?? "No reason given",
       time: customer.lastSeenAt,

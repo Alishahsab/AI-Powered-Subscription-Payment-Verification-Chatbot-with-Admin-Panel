@@ -1,6 +1,7 @@
 import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
 import { serverNow, syncClock } from "../clock";
 import { setOnline, setSlow } from "../store/connection";
+import { keepsChat } from "../store/helpers";
 import { applyRemoteChange, clearState, getState, setChangeHandler } from "../store/state";
 import type { AppState, StoreConfig } from "../types";
 import { getSupabase, type AppRole } from "./client";
@@ -238,9 +239,10 @@ async function sendOutbox() {
     }
   }
 
+  // After a refusal the screen holds something the server does not have, so everything is loaded again.
   if (activeRole && (refused || refreshWanted)) {
     refreshWanted = false;
-    void catchUp();
+    void catchUp(false, refused);
   }
 }
 
@@ -279,10 +281,11 @@ const PAGE_SIZE = 1000;
 
 // Supabase returns at most 1000 rows per request, so larger tables are read page by page. The first page
 // also gives the row count, and the remaining pages are then read all at once instead of one after another.
-async function fetchAllRows(client: SupabaseClient, table: TableSync, messagesSince?: number) {
+async function fetchAllRows(client: SupabaseClient, table: TableSync, messagesSince?: number, changedSince?: string) {
   const page = (from: number, withCount = false) => {
     let query = client.from(table.name).select("*", withCount ? { count: "exact" } : undefined);
     if (messagesSince !== undefined && table.name === "messages") query = query.gt("created_at", messagesSince);
+    if (changedSince) query = query.gte("updated_at", changedSince);
     return query.order(table.key).range(from, from + PAGE_SIZE - 1);
   };
   const first = await page(0, true);
@@ -318,6 +321,82 @@ async function fetchEverything(client: SupabaseClient, messagesSince?: number) {
   return { results, config, messagesSince };
 }
 
+// ---------- Changes only ----------
+// After a full load, the regular checks ask only for rows changed since the last check (updated_at,
+// set by the database). Nothing changed means almost no data. Until the updated_at columns exist
+// (supabase/updates/023_updated_at.sql) the app keeps loading everything as before.
+const CHANGES_OVERLAP_MS = 60_000;
+const FULL_LOAD_EVERY_MS = 24 * 60 * 60_000;
+const CHAT_KEPT_MS = 15 * 24 * 60 * 60_000;
+let changesSince: number | null = null;
+let lastFullLoadAt = 0;
+let changesSupported = true;
+
+async function fetchChanges(client: SupabaseClient, since: number) {
+  const changedSince = new Date(since - CHANGES_OVERLAP_MS).toISOString();
+  const [results, config] = await Promise.all([
+    Promise.all(tables.map((table) => fetchAllRows(client, table, undefined, changedSince))),
+    client.from("store_config").select("*").gte("updated_at", changedSince).maybeSingle(),
+  ]);
+  return { results, config };
+}
+
+// A row from the server, keeping the columns this device changed in the last few seconds.
+function mergeRemoteRow(draft: AppState, table: TableSync, row: Row) {
+  const ownColumns = recentlyWrittenColumns(table.name, String(row[table.key]));
+  if (!ownColumns) return table.apply(draft, row);
+  const localItem = table.items(draft).find((item) => table.idOf(item) === String(row[table.key]));
+  const local = localItem === undefined ? undefined : table.toRow(localItem);
+  if (!local) return table.apply(draft, row);
+  const merged: Row = { ...row };
+  for (const column of ownColumns) if (column in local) merged[column] = local[column];
+  table.apply(draft, merged);
+  table.applyServerFields?.(draft, row);
+}
+
+// The server deletes chat messages after 15 days; the copy on the device does the same.
+function removeOldMessages(draft: AppState) {
+  const cutoff = serverNow() - CHAT_KEPT_MS;
+  if (!draft.messages.some((message) => message.createdAt < cutoff)) return;
+  draft.messages = draft.messages.filter((message) => message.createdAt >= cutoff || keepsChat(draft, message.customerId));
+}
+
+type ChangesResult = "done" | "failed" | "unsupported";
+
+async function catchUpChanges(client: SupabaseClient): Promise<ChangesResult> {
+  if (changesSince === null) return "unsupported";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const version = localVersion;
+    const startedAt = serverNow();
+    const started = Date.now();
+    const { results, config } = await fetchChanges(client, changesSince);
+    setSlow(Date.now() - started > SLOW_CONNECTION_MS);
+    if (!activeRole) return "failed";
+
+    const errors = [...results.map((result) => result.error), config.error].filter((error) => error);
+    if (errors.some((error) => error?.code === "42703")) {
+      changesSupported = false;
+      return "unsupported";
+    }
+    if (errors.length) {
+      if (errors.some((error) => error && !error.code)) setOnline(false);
+      return "failed";
+    }
+    setOnline(true);
+    if (version !== localVersion) continue;
+
+    applyRemoteChange((draft) => {
+      tables.forEach((table, index) => results[index].data?.forEach((row) => mergeRemoteRow(draft, table, row)));
+      if (config.data) Object.assign(draft, configFromRow(config.data));
+      removeOldMessages(draft);
+    });
+    changesSince = startedAt;
+    saveCache();
+    return "done";
+  }
+  return "failed";
+}
+
 // The data is kept on the device: a signed-in customer can open the chat without a connection, and the
 // admin panel opens at once with what it showed last time while the fresh data loads.
 let cacheKey = "";
@@ -342,7 +421,12 @@ function writeCache() {
   if (!cacheKey) return;
   try {
     const state = getState();
-    const snapshot = { tables: Object.fromEntries(tables.map((table) => [table.name, table.readRows(state)])), config: configToRow(pickConfig(state)) };
+    const snapshot = {
+      tables: Object.fromEntries(tables.map((table) => [table.name, table.readRows(state)])),
+      config: configToRow(pickConfig(state)),
+      changesSince,
+      lastFullLoadAt,
+    };
     localStorage.setItem(cacheKey, JSON.stringify(snapshot));
   } catch {
     // Without storage the app simply needs a connection to open.
@@ -351,13 +435,21 @@ function writeCache() {
 
 function loadCache() {
   try {
-    const snapshot = JSON.parse(localStorage.getItem(cacheKey) ?? "null") as { tables: Record<string, Row[]>; config: Row } | null;
+    const snapshot = JSON.parse(localStorage.getItem(cacheKey) ?? "null") as {
+      tables: Record<string, Row[]>;
+      config: Row;
+      changesSince?: number | null;
+      lastFullLoadAt?: number;
+    } | null;
     if (!snapshot) return false;
     applyRemoteChange((draft) => {
       tables.forEach((table) => table.replaceAll(draft, snapshot.tables[table.name] ?? []));
       Object.assign(draft, configFromRow(snapshot.config));
+      removeOldMessages(draft);
       draft.loaded = true;
     });
+    changesSince = snapshot.changesSince ?? null;
+    lastFullLoadAt = snapshot.lastFullLoadAt ?? 0;
     return true;
   } catch {
     return false;
@@ -372,12 +464,13 @@ let loadRetryTimer: ReturnType<typeof setTimeout> | undefined;
 async function loadEverything(client: SupabaseClient) {
   for (let attempt = 0; attempt < 3; attempt++) {
     const version = localVersion;
+    const startedAt = serverNow();
     const data = await fetchEverything(client);
     if (!activeRole) return;
     if (!looksComplete(data)) break;
     // A change made on the device's copy while loading is newer than this load, so it loads again.
     if (version === localVersion || attempt === 2) {
-      await applyEverything(client, data);
+      await applyEverything(client, data, startedAt);
       return;
     }
   }
@@ -388,7 +481,8 @@ async function loadEverything(client: SupabaseClient) {
   }, LOAD_RETRY_MS);
 }
 
-async function applyEverything(client: SupabaseClient, { results, config, messagesSince }: Awaited<ReturnType<typeof fetchEverything>>) {
+// startedAt marks a full load: later checks only ask for changes made after it.
+async function applyEverything(client: SupabaseClient, { results, config, messagesSince }: Awaited<ReturnType<typeof fetchEverything>>, startedAt?: number) {
   applyRemoteChange((draft) => {
     // A table that failed to load keeps what is on screen instead of being emptied.
     tables.forEach((table, index) => {
@@ -403,6 +497,10 @@ async function applyEverything(client: SupabaseClient, { results, config, messag
     if (config.data) Object.assign(draft, configFromRow(config.data));
     draft.loaded = true;
   });
+  if (startedAt !== undefined) {
+    changesSince = changesSupported ? startedAt : null;
+    lastFullLoadAt = Date.now();
+  }
   saveCache();
 
   if (!config.data && activeRole === "admin") {
@@ -423,22 +521,7 @@ function listenForChanges(client: SupabaseClient) {
       }
 
       const row = payload.new as Row;
-      const ownColumns = recentlyWrittenColumns(table.name, String(row[table.key]));
-      if (!ownColumns) {
-        applyRemoteChange((draft) => table.apply(draft, row));
-        return;
-      }
-
-      // Keep our own recent values, but take every column someone else changed.
-      applyRemoteChange((draft) => {
-        const localItem = table.items(draft).find((item) => table.idOf(item) === String(row[table.key]));
-        const local = localItem === undefined ? undefined : table.toRow(localItem);
-        if (!local) return table.apply(draft, row);
-        const merged: Row = { ...row };
-        for (const column of ownColumns) if (column in local) merged[column] = local[column];
-        table.apply(draft, merged);
-        table.applyServerFields?.(draft, row);
-      });
+      applyRemoteChange((draft) => mergeRemoteRow(draft, table, row));
     });
   }
 
@@ -464,9 +547,9 @@ const ADMIN_REFRESH_MS = 20_000;
 const ADMIN_REFRESH_MESSAGES_MS = 30 * 60_000;
 let refreshTimer: ReturnType<typeof setInterval> | undefined;
 
-// Events sent while the connection was down are not replayed, so reload everything once.
+// Events sent while the connection was down are not replayed, so what changed is loaded again.
 // A reload that overlapped a local change is older than the screen, so it is retried.
-async function catchUp(recentMessagesOnly = false) {
+async function catchUp(recentMessagesOnly = false, fullLoadNeeded = false) {
   void syncClock();
   for (let attempt = 0; attempt < 3; attempt++) {
     if (!activeRole) return;
@@ -482,8 +565,15 @@ async function catchUp(recentMessagesOnly = false) {
     // empty or half loaded, so what is on screen is kept and the next return tries again.
     const { data: auth } = await client.auth.getSession();
     if (!auth.session) return;
+    // Only what changed, with a full load once a day in case something was missed.
+    if (!fullLoadNeeded && changesSupported && Date.now() - lastFullLoadAt < FULL_LOAD_EVERY_MS) {
+      const result = await catchUpChanges(client);
+      if (result !== "unsupported") return;
+    }
+    const fullLoad = !recentMessagesOnly;
+    const startedAt = serverNow();
     const started = Date.now();
-    const data = await fetchEverything(client, recentMessagesOnly ? serverNow() - ADMIN_REFRESH_MESSAGES_MS : undefined);
+    const data = await fetchEverything(client, fullLoad ? undefined : serverNow() - ADMIN_REFRESH_MESSAGES_MS);
     setSlow(Date.now() - started > SLOW_CONNECTION_MS);
     if (!activeRole) return;
     if (!looksComplete(data)) {
@@ -491,7 +581,7 @@ async function catchUp(recentMessagesOnly = false) {
       return;
     }
     setOnline(true);
-    if (version === localVersion) return applyEverything(client, data);
+    if (version === localVersion) return applyEverything(client, data, fullLoad ? startedAt : undefined);
   }
 }
 
@@ -532,9 +622,12 @@ export async function startSync(role: AppRole) {
   loadOutbox(`premium-store-outbox:${role}:${userId}`);
   cacheKey = role === "customer" ? `premium-store-cache:${userId}` : `premium-store-cache:admin:${userId}`;
   // The admin panel shows its copy from last time right away; changes made on it are sent as usual.
-  if (role === "admin" && loadCache()) setChangeHandler(handleLocalChange);
+  const cached = role === "admin" && loadCache();
+  if (cached) setChangeHandler(handleLocalChange);
   if (outbox.length) await flushOutbox();
-  await loadEverything(client);
+  // With a copy from the last day, only what changed since then is loaded.
+  const fresh = cached && changesSince !== null && Date.now() - lastFullLoadAt < FULL_LOAD_EVERY_MS;
+  if (!fresh || (await catchUpChanges(client)) === "unsupported") await loadEverything(client);
   setChangeHandler(handleLocalChange);
   listenForChanges(client);
   document.addEventListener("visibilitychange", handleVisibility);
@@ -561,6 +654,9 @@ export async function stopSync() {
     // Nothing was stored.
   }
   cacheKey = "";
+  changesSince = null;
+  lastFullLoadAt = 0;
+  changesSupported = true;
   window.removeEventListener("online", handleOnline);
   window.removeEventListener("pagehide", flushCache);
   document.removeEventListener("visibilitychange", handleVisibility);

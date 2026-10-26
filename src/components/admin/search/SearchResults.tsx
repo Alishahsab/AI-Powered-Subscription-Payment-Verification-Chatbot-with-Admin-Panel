@@ -18,7 +18,7 @@ export default function SearchResults({ query, onNavigate }: SearchResultsProps)
   const text = query.trim();
   const lower = text.toLowerCase();
 
-  const customers = text ? state.customers.filter((customer) => customer.email.includes(lower) || customerNumberLabel(customer).includes(lower)) : [];
+  const customers = text ? state.customers.filter((customer) => customer.email.includes(lower) || customer.whatsapp?.includes(lower) || customerNumberLabel(customer).includes(lower)) : [];
   const orders = text
     ? state.orders.filter((order) => order.id.toLowerCase().includes(lower) || order.senderName?.toLowerCase().includes(lower) || order.code?.toLowerCase().includes(lower))
     : [];

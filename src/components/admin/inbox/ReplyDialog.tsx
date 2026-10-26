@@ -36,7 +36,7 @@ export default function ReplyDialog({ customerId, onClose }: ReplyDialogProps) {
   const send = async () => {
     if (!text.trim() && images.length === 0) return;
     setBusy(true);
-    if (text.trim()) sendAdminMessage(customerId, text.trim(), false, true);
+    if (text.trim()) sendAdminMessage(customerId, text.trim(), true);
     for (const image of images) {
       const problem = await sendAdminImage(customerId, image, true);
       if (problem) {

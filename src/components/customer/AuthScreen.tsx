@@ -6,7 +6,7 @@ import { classNames } from "@/lib/format";
 import SecretInput from "@/components/SecretInput";
 import { NO_INTERNET_MESSAGE, isOnline } from "@/lib/store/connection";
 import { checkEmailStatus, requestPinReset, signIn, signUp } from "@/lib/store/customer";
-import { cleanDigits, cleanEmail, limits, validateEmail, validatePin } from "@/lib/validation";
+import { cleanDigits, cleanEmail, limits, validateEmail, validatePin, validateWhatsApp } from "@/lib/validation";
 
 type Step = "email" | "login" | "create" | "forgot";
 
@@ -33,6 +33,7 @@ export default function AuthScreen() {
   const [email, setEmail] = useState("");
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -50,6 +51,7 @@ export default function AuthScreen() {
     const pinProblem = validatePin(pin);
     if (pinProblem) return pinProblem;
     if (step === "create" && pin !== confirmPin) return "The two PINs do not match.";
+    if (step === "create") return validateWhatsApp(whatsapp);
     return null;
   };
 
@@ -86,7 +88,7 @@ export default function AuthScreen() {
       return;
     }
 
-    const result = step === "login" ? await signIn(email, pin) : await signUp(email, pin);
+    const result = step === "login" ? await signIn(email, pin) : await signUp(email, pin, whatsapp);
     setBusy(false);
     if (result.error) setError(result.error);
   };
@@ -162,6 +164,21 @@ export default function AuthScreen() {
                 <label className="block">
                   <span className="text-[13.5px] font-semibold">Confirm your PIN</span>
                   <SecretInput value={confirmPin} onChange={(event) => setConfirmPin(cleanDigits(event.target.value, limits.pinLength))} placeholder="••••••" inputMode="numeric" autoComplete="new-password" className={pinClass} />
+                </label>
+              )}
+
+              {step === "create" && (
+                <label className="block">
+                  <span className="text-[13.5px] font-semibold">WhatsApp number</span>
+                  <input
+                    value={whatsapp}
+                    onChange={(event) => setWhatsapp(cleanDigits(event.target.value, limits.whatsappLength))}
+                    placeholder="03001234567"
+                    inputMode="numeric"
+                    autoComplete="tel"
+                    className={inputClass}
+                  />
+                  <span className="mt-1 block text-[12px] text-[var(--muted)]">Enter your valid 11-digit WhatsApp number</span>
                 </label>
               )}
             </div>

@@ -42,6 +42,7 @@ async function customerWithOrder(context, email) {
   const pins = page.locator("input[inputmode=numeric]");
   await pins.nth(0).fill("123456");
   await pins.nth(1).fill("123456");
+  await page.fill("input[placeholder='03001234567']", `03${String(Date.now()).slice(-9)}`);
   await page.click("form button:has-text('Create account')");
   await page.waitForSelector("button:has-text('Buy a Subscription')", { timeout: 30000 });
   await wait(1500);

@@ -4,6 +4,7 @@ export const limits = {
   nameMin: 2,
   nameMax: 40,
   pinLength: 6,
+  whatsappLength: 11,
   passwordMin: 6,
   messageMax: 500,
   issueMin: 10,
@@ -83,6 +84,16 @@ export function validateName(name: string, label = "Name") {
 export function validateEmail(email: string) {
   if (!EMAIL_PATTERN.test(email.trim())) return "Please enter a valid email address.";
   return null;
+}
+
+export function validateWhatsApp(number: string) {
+  if (!/^03\d{9}$/.test(number)) return "Please enter your 11-digit WhatsApp number, like 03001234567.";
+  return null;
+}
+
+export function whatsAppLink(number: string, text = "") {
+  const link = `https://wa.me/92${number.slice(1)}`;
+  return text ? `${link}?text=${encodeURIComponent(text)}` : link;
 }
 
 export function validatePin(pin: string) {

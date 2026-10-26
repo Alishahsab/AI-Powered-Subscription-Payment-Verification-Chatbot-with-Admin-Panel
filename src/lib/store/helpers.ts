@@ -100,6 +100,11 @@ export function findCustomerEmail(state: AppState, customerId: string) {
   return state.customers.find((customer) => customer.id === customerId)?.email ?? "Customer";
 }
 
+export function findCustomerTitle(state: AppState, customerId: string) {
+  const customer = state.customers.find((item) => item.id === customerId);
+  return customer ? customerTitle(customer) : "Customer";
+}
+
 export function customerNumberLabel(customer?: Customer) {
   return customer?.number ? `#${customer.number}` : "New";
 }
@@ -110,6 +115,11 @@ export function liftPaymentPause(state: AppState, customerId: string) {
 }
 
 // A customer with a code marked as unused keeps the whole chat; it is not cleared after 15 days.
+// Customers are shown by their WhatsApp number; older accounts without one by their email.
+export function customerTitle(customer: Customer) {
+  return customer.whatsapp || customer.email;
+}
+
 export function keepsChat(state: AppState, customerId: string) {
   return state.orders.some((order) => order.customerId === customerId && order.codeUnused);
 }
