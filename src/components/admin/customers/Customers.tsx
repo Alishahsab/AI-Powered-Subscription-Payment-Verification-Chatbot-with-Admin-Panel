@@ -14,7 +14,7 @@ import WhatsAppLink from "../ui/WhatsAppLink";
 import BlockCustomerButton from "./BlockCustomerButton";
 import { inputClass } from "../ui/styles";
 
-const rowGrid = "grid grid-cols-[2.9rem_minmax(0,1fr)_2.6rem_6rem] md:grid-cols-[6rem_13rem_8rem_7.75rem] items-center gap-x-1.5 md:gap-x-4";
+const rowGrid = "grid grid-cols-[2.9rem_minmax(0,1fr)_2.6rem_6rem] md:grid-cols-[6rem_13rem_8rem_7.75rem] xl:grid-cols-[7rem_14rem_9rem_7.75rem] items-center gap-x-1.5 md:gap-x-4 xl:gap-x-10";
 
 export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
   const state = useAppState();
@@ -28,7 +28,7 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
 
   return (
     <div className="h-full">
-      <div className="h-full max-w-[1200px] mx-auto md:mx-0 md:w-fit p-4 lg:p-7 flex flex-col gap-5">
+      <div className="h-full max-w-[1200px] mx-auto md:w-fit p-4 lg:p-7 flex flex-col gap-5">
         <div className="shrink-0 flex flex-wrap items-end justify-between gap-3">
           <div>
             <button
