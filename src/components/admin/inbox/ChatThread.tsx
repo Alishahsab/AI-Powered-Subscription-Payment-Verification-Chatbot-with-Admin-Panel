@@ -56,7 +56,7 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[15px] font-bold text-zinc-900 truncate">
-            {customer.whatsapp ? <WhatsAppLink number={customer.whatsapp} className="text-[15px] font-bold" /> : customerTitle(customer)}
+            {customer.whatsapp ? <WhatsAppLink number={customer.whatsapp} clickable={false} /> : customerTitle(customer)}
           </div>
           <div className="text-[12px] text-zinc-500 truncate">
             {customerNumberLabel(customer)} · {active ? "Active now" : "Away from chat"}
@@ -90,7 +90,7 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
         </div>
       </div>
 
-      <ReplyBox customerId={customerId} whatsapp={customer.whatsapp} />
+      <ReplyBox customerId={customerId} />
     </div>
   );
 }

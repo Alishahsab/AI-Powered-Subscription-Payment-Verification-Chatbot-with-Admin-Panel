@@ -13,7 +13,6 @@ export const defaultBotMessages: BotMessages = {
   ordersPausedAfterCancels: "Your order has been cancelled. Because several orders were cancelled in a short time, new orders are paused for {time_left}. Customer Support is still open.",
   ordersPaused: "New orders are paused right now. You can create a new order in {time_left}.",
   orderExpired: "Order {order_id} has been cancelled because the payment time ran out. If you still want to buy, please start again from the main menu.",
-  paymentIssueReceived: "Thanks for letting us know. Please don't send any payment right now, we're checking our account details. Please try again after {time_left}. Our team will reply here.",
   supportIntro: "How can we help? Pick a question below, or choose Other issues to contact our team.",
   describeIssue: "Please describe your issue and attach a screenshot.",
   issueResolvedByCustomer: "Glad it's sorted. Anything else we can help with?",
@@ -48,7 +47,6 @@ export const botMessageGroups: { title: string; tab: MessageTab; fields: Message
       { key: "ordersPausedAfterCancels", label: "Order cancelled and new orders paused", variables: "{time_left}" },
       { key: "ordersPaused", label: "Customer tries to buy while paused", variables: "{time_left}" },
       { key: "orderExpired", label: "Payment time ran out", variables: "{order_id}" },
-      { key: "paymentIssueReceived", label: "Payment problem reported", variables: "{time_left}" },
     ],
   },
   {

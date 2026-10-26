@@ -400,6 +400,7 @@ async function catchUpChanges(client: SupabaseClient): Promise<ChangesResult> {
 // The data is kept on the device: a signed-in customer can open the chat without a connection, and the
 // admin panel opens at once with what it showed last time while the fresh data loads.
 let cacheKey = "";
+const CACHE_VERSION = 2;
 let cacheTimer: ReturnType<typeof setTimeout> | undefined;
 const CACHE_DELAY_MS = 1500;
 
@@ -422,6 +423,7 @@ function writeCache() {
   try {
     const state = getState();
     const snapshot = {
+      version: CACHE_VERSION,
       tables: Object.fromEntries(tables.map((table) => [table.name, table.readRows(state)])),
       config: configToRow(pickConfig(state)),
       changesSince,
@@ -436,12 +438,13 @@ function writeCache() {
 function loadCache() {
   try {
     const snapshot = JSON.parse(localStorage.getItem(cacheKey) ?? "null") as {
+      version?: number;
       tables: Record<string, Row[]>;
       config: Row;
       changesSince?: number | null;
       lastFullLoadAt?: number;
     } | null;
-    if (!snapshot) return false;
+    if (!snapshot || snapshot.version !== CACHE_VERSION) return false;
     applyRemoteChange((draft) => {
       tables.forEach((table) => table.replaceAll(draft, snapshot.tables[table.name] ?? []));
       Object.assign(draft, configFromRow(snapshot.config));

@@ -57,7 +57,6 @@ export type BotMessageKey =
   | "ordersPausedAfterCancels"
   | "ordersPaused"
   | "orderExpired"
-  | "paymentIssueReceived"
   | "supportIntro"
   | "describeIssue"
   | "issueResolvedByCustomer"

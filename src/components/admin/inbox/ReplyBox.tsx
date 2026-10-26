@@ -6,16 +6,14 @@ import { isImageFile, prepareImage } from "@/lib/browser";
 import { classNames, formatDateTime } from "@/lib/format";
 import { findCodeAlreadySent, sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
-import WhatsAppLink from "../ui/WhatsAppLink";
 
 const MAX_INPUT_HEIGHT = 200;
 
 type ReplyBoxProps = {
   customerId: string;
-  whatsapp?: string;
 };
 
-export default function ReplyBox({ customerId, whatsapp }: ReplyBoxProps) {
+export default function ReplyBox({ customerId }: ReplyBoxProps) {
   const quickReplies = useAppState().settings.quickReplies.filter((reply) => reply.trim());
   const [text, setText] = useState("");
   const [showQuickReplies, setShowQuickReplies] = useState(false);
@@ -127,13 +125,6 @@ export default function ReplyBox({ customerId, whatsapp }: ReplyBoxProps) {
 
         {imageError && <p className="mt-2 text-[12px] text-red-600">{imageError}</p>}
 
-        <div className="mt-2 text-[12px] text-zinc-500">
-          {whatsapp ? (
-            <WhatsAppLink number={whatsapp} text={text.trim()} label={`Send on WhatsApp · ${whatsapp}`} className="text-[12px]" />
-          ) : (
-            "No WhatsApp number yet"
-          )}
-        </div>
       </div>
     </div>
   );

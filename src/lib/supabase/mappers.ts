@@ -35,6 +35,7 @@ export function customerToRow(customer: Customer): Row {
     payment_blocked_until: nullable(customer.paymentBlockedUntil),
     cancel_count: customer.cancelCount,
     cancel_cooldown_until: nullable(customer.cancelCooldownUntil),
+    ...(customer.number !== undefined ? { customer_number: customer.number } : {}),
     ...(customer.whatsapp ? { whatsapp: customer.whatsapp } : {}),
   };
 }
