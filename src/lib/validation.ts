@@ -47,7 +47,10 @@ export function cleanCode(value: string) {
 
 export function extractCode(text: string) {
   const trimmed = text.trim();
-  if (!/\s/.test(trimmed)) return cleanCode(trimmed);
+  if (!/\s/.test(trimmed)) {
+    const word = trimmed.replace(/[^A-Za-z0-9]/g, "");
+    return word.length === limits.codeLength ? word : "";
+  }
 
   // The portal puts the code on a line of its own, so a line that is only the code wins.
   const ownLine = trimmed.split("\n").map((line) => line.trim()).find((line) => /^[A-Za-z0-9]{6}$/.test(line));

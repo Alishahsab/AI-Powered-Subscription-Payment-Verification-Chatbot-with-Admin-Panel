@@ -71,9 +71,13 @@ export default function Inbox({ view, initialTab, initialCustomerId, initialBotF
             <div className="xl:hidden fixed inset-0 z-40">
               <div className="absolute inset-0 bg-black/30 fade-in" onClick={() => setDetailsOpen(false)} />
               <div className="absolute inset-y-0 right-0 w-full max-w-[380px] bg-white overflow-y-auto shadow-2xl">
-                <div className="flex justify-end p-2">
-                  <button onClick={() => setDetailsOpen(false)} className="size-9 grid place-items-center rounded-lg hover:bg-zinc-100" aria-label="Close details">
-                    <X size={18} />
+                <div className="sticky top-0 z-10 flex justify-end p-3">
+                  <button
+                    onClick={() => setDetailsOpen(false)}
+                    className="size-11 grid place-items-center rounded-full bg-zinc-100 text-zinc-800 shadow-sm hover:bg-zinc-200 transition"
+                    aria-label="Close details"
+                  >
+                    <X size={24} strokeWidth={2.5} />
                   </button>
                 </div>
                 <CustomerPanel customerId={selectedCustomerId} />

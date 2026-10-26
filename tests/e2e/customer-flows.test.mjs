@@ -194,3 +194,42 @@ test("creating an account needs a valid 11-digit WhatsApp number", async () => {
   await page.click("form button:has-text('Create account')");
   assert.ok(await page.isVisible("text=Please enter your 11-digit WhatsApp number, like 03001234567."));
 });
+
+test("a phone that draws the picture blank sends the original instead of a black image", async (t) => {
+  const { page, errors } = await newCustomer();
+  await click(page, "Customer Support");
+  if (await page.isVisible("text=Admin not available")) return t.skip("the store is closed right now");
+  await click(page, "Other issues");
+  if (!(await page.isVisible("textarea"))) return t.skip("the store is not taking requests right now");
+
+  const receipt = Buffer.from(
+    await page.evaluate(() => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 40;
+      canvas.height = 40;
+      const context = canvas.getContext("2d");
+      context.fillStyle = "#0a0";
+      context.fillRect(0, 0, 40, 40);
+      context.fillStyle = "#fff";
+      context.fillRect(0, 0, 20, 40);
+      return canvas.toDataURL("image/png").split(",")[1];
+    }),
+    "base64"
+  );
+  const fileInput = await page.$("input[type=file]");
+  const preview = "img[alt='Selected screenshot']";
+
+  await fileInput.setInputFiles({ name: "receipt.png", mimeType: "image/png", buffer: receipt });
+  await page.waitForSelector(preview, { timeout: 5000 });
+  assert.ok((await page.getAttribute(preview, "src")).startsWith("data:image/jpeg"), "a normal phone sends a smaller JPEG");
+
+  await page.click("text=Remove screenshot");
+  await page.evaluate(() => {
+    // Like a phone whose browser silently fails to draw: the canvas stays one plain colour.
+    CanvasRenderingContext2D.prototype.drawImage = () => {};
+  });
+  await fileInput.setInputFiles({ name: "receipt.png", mimeType: "image/png", buffer: receipt });
+  await page.waitForSelector(preview, { timeout: 5000 });
+  assert.ok((await page.getAttribute(preview, "src")).startsWith("data:image/png"), "the original PNG is used, not a blank JPEG");
+  assert.deepEqual(errors, []);
+});

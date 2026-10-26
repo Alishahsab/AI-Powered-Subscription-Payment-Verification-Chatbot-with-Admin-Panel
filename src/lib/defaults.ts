@@ -110,7 +110,7 @@ export function createDefaultConfig(): StoreConfig {
       ],
       bank: { bankName: "Meezan Bank", accountTitle: "Premium Store", accountNumber: "0123 4567 8901 2345" },
       timers: { orderMinutes: 15, inactiveMinutes: 20, retryMinutes: 30, cancelCooldownMinutes: 30, cancelWindowMinutes: 5, issueInactiveMinutes: 6 * 60 },
-      limits: { cancelsBeforeCooldown: 2, repliesAfterRejection: 1 },
+      limits: { cancelsBeforeCooldown: 2, cancelsBeforeBlock: 3, repliesAfterRejection: 1 },
       accent: "#0C2660",
     },
     plans: [

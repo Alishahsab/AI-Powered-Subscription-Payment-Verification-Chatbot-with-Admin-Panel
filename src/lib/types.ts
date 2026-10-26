@@ -87,6 +87,7 @@ export type SupportSettings = {
 
 export type Limits = {
   cancelsBeforeCooldown: number;
+  cancelsBeforeBlock: number;
   repliesAfterRejection: number;
 };
 
@@ -136,6 +137,7 @@ export type Customer = {
   lastSeenAt: number;
   blocked: boolean;
   blockReason?: string;
+  blockedAt?: number;
   paymentBlockedUntil?: number;
   cancelCount: number;
   cancelCooldownUntil?: number;

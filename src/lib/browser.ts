@@ -32,7 +32,11 @@ async function compressImage(file: File, maxSize: number, quality: number) {
     canvas.height = Math.round(image.height * scale);
     const context = canvas.getContext("2d");
     if (!context) throw new Error("No canvas");
+    // A white background, so see-through parts of a PNG do not turn black in the JPEG.
+    context.fillStyle = "#fff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    if (isOneColour(canvas)) throw new Error("Blank image");
 
     const dataUrl = canvas.toDataURL("image/jpeg", quality);
     // A browser that cannot draw the picture returns an empty image ("data:,").
@@ -40,6 +44,30 @@ async function compressImage(file: File, maxSize: number, quality: number) {
     return dataUrl;
   } finally {
     URL.revokeObjectURL(url);
+  }
+}
+
+// Some phones fail to draw the picture without any error and give a plain black (or white) image.
+// A real screenshot always has some detail, so an image of one colour means the drawing failed.
+function isOneColour(source: HTMLCanvasElement) {
+  try {
+    const sample = document.createElement("canvas");
+    sample.width = 24;
+    sample.height = 24;
+    const context = sample.getContext("2d");
+    if (!context) return false;
+    context.drawImage(source, 0, 0, sample.width, sample.height);
+    const pixels = context.getImageData(0, 0, sample.width, sample.height).data;
+    let darkest = 765;
+    let lightest = 0;
+    for (let index = 0; index < pixels.length; index += 4) {
+      const brightness = pixels[index] + pixels[index + 1] + pixels[index + 2];
+      darkest = Math.min(darkest, brightness);
+      lightest = Math.max(lightest, brightness);
+    }
+    return lightest - darkest < 24;
+  } catch {
+    return false;
   }
 }
 

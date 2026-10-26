@@ -20,6 +20,8 @@ test("finds a code after a colon or a code-looking word", () => {
 test("does not mistake ordinary words for a code", () => {
   assert.equal(extractCode("Block duration: how long a user is blocked, set by the admin. Client Change Requests"), "");
   assert.equal(extractCode("Please wait a few minutes"), "");
+  assert.equal(extractCode("Blocked"), "");
+  assert.equal(extractCode("Hi"), "");
 });
 
 test("cleans and validates codes", () => {

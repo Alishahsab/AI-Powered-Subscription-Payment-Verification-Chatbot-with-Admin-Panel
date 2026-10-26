@@ -18,8 +18,10 @@ export type InboxItem = {
 
 const cancelledLabels: Partial<Record<OrderStatus, string>> = {
   cancelled: "Cancelled by customer",
-  expired: "Expired before payment",
+  expired: "Time ran out",
 };
+
+const sinceLabel = (label: string, time: number) => `${label} · ${timeAgo(time)}`;
 
 const isPending = (order: Order) => order.status === "pending_review" || order.status === "rejected";
 
@@ -83,6 +85,7 @@ function chatItems(state: AppState, active: boolean, now: number): InboxItem[] {
         // The time shown is the customer's last activity, the same time that decides Active or Inactive.
         time: activeAt,
         unread: conversation.unreadByAdmin > 0,
+        badge: active ? undefined : { label: `Inactive · ${timeAgo(activeAt, now).replace(" ago", "")}`, tone: "gray" as const },
       };
     });
 }
@@ -126,11 +129,18 @@ function completedItems(state: AppState, unused: boolean): InboxItem[] {
     );
 }
 
+const cancelledAt = (order: Order) => (order.status === "expired" ? order.expiresAt : (order.reviewedAt ?? order.createdAt));
+
 function cancelledItems(state: AppState): InboxItem[] {
   return state.orders
     .filter(isCancelled)
-    .sort((a, b) => b.createdAt - a.createdAt)
-    .map((order) => orderItem(state, order, order.createdAt, `${order.planName} · ${formatMoney(order.amount)}`, { label: cancelledLabels[order.status] ?? "Cancelled", tone: "gray" }));
+    .sort((a, b) => cancelledAt(b) - cancelledAt(a))
+    .map((order) =>
+      orderItem(state, order, cancelledAt(order), `${order.planName} · ${formatMoney(order.amount)}`, {
+        label: sinceLabel(cancelledLabels[order.status] ?? "Cancelled", cancelledAt(order)),
+        tone: "gray",
+      })
+    );
 }
 
 const isOpenTicket = (kind: Ticket["kind"]) => (ticket: Ticket) => ticket.status === "open" && ticket.kind === kind;
@@ -154,16 +164,16 @@ function issueItems(state: AppState, kind: Ticket["kind"]): InboxItem[] {
 function blockedItems(state: AppState): InboxItem[] {
   return state.customers
     .filter((customer) => customer.blocked)
-    .sort((a, b) => b.lastSeenAt - a.lastSeenAt)
+    .sort((a, b) => (b.blockedAt ?? b.lastSeenAt) - (a.blockedAt ?? a.lastSeenAt))
     .map((customer) => ({
       key: customer.id,
       customerId: customer.id,
       title: customerTitle(customer),
       tag: customerNumberLabel(customer),
       subtitle: customer.blockReason ?? "No reason given",
-      time: customer.lastSeenAt,
+      time: customer.blockedAt ?? customer.lastSeenAt,
       unread: false,
-      badge: { label: "Blocked", tone: "red" },
+      badge: { label: customer.blockedAt ? sinceLabel("Blocked", customer.blockedAt) : "Blocked", tone: "red" },
     }));
 }
 

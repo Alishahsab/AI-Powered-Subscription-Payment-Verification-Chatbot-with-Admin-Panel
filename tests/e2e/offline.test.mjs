@@ -69,6 +69,7 @@ test("a cancel made offline is saved when the connection returns", async (t) => 
   const context = await browser.newContext({ viewport: { width: 420, height: 860 } });
   const { page, ok } = await customerWithOrder(context, email);
   if (!ok) return t.skip("the store is not taking orders right now");
+  for (let tries = 0; tries < 15 && (await savedState(email)).order !== "awaiting_payment"; tries++) await wait(1000);
 
   await context.setOffline(true);
   await click(page, "Cancel");

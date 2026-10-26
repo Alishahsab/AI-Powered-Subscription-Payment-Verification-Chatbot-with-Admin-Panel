@@ -24,6 +24,10 @@ export default function TimersTab({ draft, updateDraft }: SettingsTabProps) {
             <ChoiceButtons values={[1, 2, 3, 5]} value={limits.cancelsBeforeCooldown} unit="times" onChange={(value) => updateDraft((next) => (next.settings.limits.cancelsBeforeCooldown = value))} />
           </div>
           <div>
+            <div className="text-[13px] font-medium text-zinc-700 mb-1.5">Block the customer after more than this many cancelled orders in one day</div>
+            <ChoiceButtons values={[2, 3, 5, 10]} value={limits.cancelsBeforeBlock} unit="times" onChange={(value) => updateDraft((next) => (next.settings.limits.cancelsBeforeBlock = value))} />
+          </div>
+          <div>
             <div className="text-[13px] font-medium text-zinc-700 mb-1.5">Replies allowed after a payment is rejected</div>
             <ChoiceButtons values={[1, 2, 3]} value={limits.repliesAfterRejection} unit="times" onChange={(value) => updateDraft((next) => (next.settings.limits.repliesAfterRejection = value))} />
           </div>

@@ -187,8 +187,8 @@ function codesIn(text: string) {
   return [...new Set([extractCode(cleaned), ...extractCodes(cleaned)].filter((code) => code.length === 6).map((code) => code.toLowerCase()))];
 }
 
-// With sameCustomerId, codes already sent to that customer can be sent to them again (for example when the
-// customer says it did not arrive); only a code that went to someone else is refused.
+// From the chat (with sameCustomerId) only a real code, one saved on another customer's order, is refused;
+// ordinary messages never are, and the same customer can get their code again. Approving checks the chat too.
 export function findCodeAlreadySent(text: string, sameCustomerId?: string) {
   const state = getState();
   const codes = codesIn(text);
@@ -199,8 +199,10 @@ export function findCodeAlreadySent(text: string, sameCustomerId?: string) {
     return { code: earlierOrder.code ?? "", customerEmail: findCustomerEmail(state, earlierOrder.customerId), sentAt: earlierOrder.reviewedAt ?? earlierOrder.createdAt };
   }
 
+  if (sameCustomerId !== undefined) return null;
+
   for (const message of state.messages) {
-    if (message.sender !== "admin" || message.kind === "deleted" || message.customerId === sameCustomerId) continue;
+    if (message.sender !== "admin" || message.kind === "deleted") continue;
     const repeated = codesIn(message.text).find((code) => codes.includes(code));
     if (repeated) return { code: repeated.toUpperCase(), customerEmail: findCustomerEmail(state, message.customerId), sentAt: message.createdAt };
   }
