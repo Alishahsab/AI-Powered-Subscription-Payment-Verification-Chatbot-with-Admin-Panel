@@ -20,7 +20,7 @@ export default function BlockCustomerButton({ customer, compact = false }: Block
   const [open, setOpen] = useState(false);
 
   const buttonClass = compact
-    ? "h-8 px-3 rounded-lg text-[12.5px] font-medium text-zinc-600 hover:bg-zinc-100 transition"
+    ? "h-8 px-2 md:px-3 rounded-lg text-[12.5px] font-medium text-zinc-600 hover:bg-zinc-100 transition"
     : `w-full ${actionButton.softDanger}`;
 
   if (customer.blocked) {

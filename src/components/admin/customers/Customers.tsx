@@ -8,12 +8,13 @@ import { customerNumberLabel } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { Navigate } from "../navigation";
 import Badge from "../ui/Badge";
-import Button from "../ui/Button";
 import { Card } from "../ui/Card";
 import EmptyState from "../ui/EmptyState";
 import WhatsAppLink from "../ui/WhatsAppLink";
 import BlockCustomerButton from "./BlockCustomerButton";
 import { inputClass } from "../ui/styles";
+
+const rowGrid = "grid grid-cols-[2.9rem_minmax(0,1fr)_2.6rem_6rem] md:grid-cols-[6rem_13rem_8rem_10rem] items-center gap-x-1.5 md:gap-x-4";
 
 export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
   const state = useAppState();
@@ -49,59 +50,37 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
           {rows.length === 0 ? (
             <EmptyState icon={<Users size={20} />} title="No customers found" />
           ) : (
-            <div className="flex-1 min-h-0 overflow-auto">
-              <table className="hidden md:table w-full text-[13px]">
-                <thead className="sticky top-0 z-10">
-                  <tr className="text-left text-white bg-[linear-gradient(90deg,#0c2660_0%,#14327a_100%)]">
-                    <th className="font-medium px-5 py-2.5 w-32">ID</th>
-                    <th className="font-medium px-3 py-2.5 w-56">WhatsApp</th>
-                    <th className="font-medium px-3 py-2.5 w-40">Last active</th>
-                    <th className="px-5 py-2.5" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((customer) => (
-                    <tr key={customer.id} className="border-b border-zinc-200 last:border-0 hover:bg-zinc-50/70">
-                      <td className="px-5 py-2.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-[#0C2660] tabular-nums">{customerNumberLabel(customer)}</span>
-                          {customer.blocked && <Badge tone="red">Blocked</Badge>}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap">
-                        {customer.whatsapp ? <WhatsAppLink number={customer.whatsapp} /> : <span className="text-zinc-400">Not added</span>}
-                      </td>
-                      <td className="px-3 py-2.5 text-zinc-500 whitespace-nowrap">{timeAgo(customer.lastSeenAt, now)}</td>
-                      <td className="px-5 py-2.5">
-                        <div className="flex justify-end gap-1.5">
-                          <Button size="sm" onClick={() => onNavigate({ section: "bot", customerId: customer.id })}>
-                            Chat
-                          </Button>
-                          <BlockCustomerButton customer={customer} compact />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <ul className="md:hidden divide-y divide-zinc-200">
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              <div className={`${rowGrid} sticky top-0 z-10 px-3 md:px-5 py-2.5 text-white text-[12px] md:text-[13px] font-medium bg-[linear-gradient(90deg,#0c2660_0%,#14327a_100%)]`}>
+                <span>ID</span>
+                <span>WhatsApp</span>
+                <span>
+                  <span className="md:hidden">Active</span>
+                  <span className="hidden md:inline">Last active</span>
+                </span>
+                <span />
+              </div>
+              <ul className="divide-y divide-zinc-200">
                 {rows.map((customer) => (
-                  <li key={customer.id} className="px-4 py-3 flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-[#0C2660] tabular-nums">{customerNumberLabel(customer)}</span>
-                        {customer.blocked && <Badge tone="red">Blocked</Badge>}
-                      </div>
-                      <div className="mt-1 text-[13.5px]">
-                        {customer.whatsapp ? <WhatsAppLink number={customer.whatsapp} /> : <span className="text-zinc-400">No WhatsApp yet</span>}
-                      </div>
-                      <div className="mt-0.5 text-[12px] text-zinc-500">Active {timeAgo(customer.lastSeenAt, now)}</div>
+                  <li key={customer.id} className={`${rowGrid} px-3 md:px-5 py-2.5 hover:bg-zinc-50/70`}>
+                    <div className="min-w-0 flex flex-col md:flex-row md:items-center items-start gap-1 md:gap-2">
+                      <span className="font-bold text-[#0C2660] tabular-nums text-[12.5px] md:text-[13px]">{customerNumberLabel(customer)}</span>
+                      {customer.blocked && <Badge tone="red">Blocked</Badge>}
                     </div>
-                    <div className="flex flex-col items-end gap-1.5 shrink-0">
-                      <Button size="sm" onClick={() => onNavigate({ section: "bot", customerId: customer.id })}>
+                    <div className="min-w-0 truncate text-[12.5px] md:text-[13px]">
+                      {customer.whatsapp ? <WhatsAppLink number={customer.whatsapp} /> : <span className="text-zinc-400">Not added</span>}
+                    </div>
+                    <span className="text-[12px] md:text-[13px] text-zinc-500 whitespace-nowrap">
+                      <span className="md:hidden">{timeAgo(customer.lastSeenAt, now).replace(" ago", "")}</span>
+                      <span className="hidden md:inline">{timeAgo(customer.lastSeenAt, now)}</span>
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => onNavigate({ section: "bot", customerId: customer.id })}
+                        className="h-8 px-2 md:px-3 rounded-lg border border-zinc-200 bg-white text-[12.5px] font-medium text-zinc-800 hover:bg-zinc-50 transition"
+                      >
                         Chat
-                      </Button>
+                      </button>
                       <BlockCustomerButton customer={customer} compact />
                     </div>
                   </li>
