@@ -45,6 +45,14 @@ export function cleanCode(value: string) {
   return value.replace(/[^A-Za-z0-9]/g, "").slice(0, limits.codeLength);
 }
 
+// The code template puts the code on a line of its own (the third line), so in a message of several
+// lines only such a line is a code.
+export function codeOnOwnLine(text: string) {
+  const lines = text.split("\n").map((line) => line.trim());
+  if (lines.length < 2) return "";
+  return lines.find((line) => /^[A-Za-z0-9]{6}$/.test(line)) ?? "";
+}
+
 export function extractCode(text: string) {
   const trimmed = text.trim();
   if (!/\s/.test(trimmed)) {

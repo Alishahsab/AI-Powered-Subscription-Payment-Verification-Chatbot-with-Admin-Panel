@@ -3,8 +3,8 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { ImagePlus, MessageSquareText } from "lucide-react";
 import { isImageFile, prepareImage } from "@/lib/browser";
-import { classNames, formatDateTime } from "@/lib/format";
-import { findCodeAlreadySent, sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
+import { classNames } from "@/lib/format";
+import { sendAdminImage, sendAdminMessage } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 
 const MAX_INPUT_HEIGHT = 200;
@@ -17,7 +17,6 @@ export default function ReplyBox({ customerId }: ReplyBoxProps) {
   const quickReplies = useAppState().settings.quickReplies.filter((reply) => reply.trim());
   const [text, setText] = useState("");
   const [showQuickReplies, setShowQuickReplies] = useState(false);
-  const [warning, setWarning] = useState("");
   const [uploading, setUploading] = useState(false);
   const [imageError, setImageError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
@@ -46,15 +45,8 @@ export default function ReplyBox({ customerId }: ReplyBoxProps) {
     const content = message.trim();
     if (!content) return;
 
-    const duplicate = findCodeAlreadySent(content, customerId);
-    if (duplicate) {
-      setWarning(`Code ${duplicate.code} was already sent to ${duplicate.customerEmail} on ${formatDateTime(duplicate.sentAt)}. A code can only be sent once.`);
-      return;
-    }
-
     sendAdminMessage(customerId, content);
     setText("");
-    setWarning("");
     setShowQuickReplies(false);
   };
 
@@ -71,19 +63,12 @@ export default function ReplyBox({ customerId }: ReplyBoxProps) {
           </div>
         )}
 
-        {warning && (
-          <div className="mb-2.5 rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 text-[12.5px] text-red-700">{warning}</div>
-        )}
-
         <div className="rounded-2xl border border-zinc-200 bg-[#f8f9fb] focus-within:border-[#0C2660]/40 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0C2660]/[0.06] transition">
           <textarea
             ref={textArea}
             value={text}
             maxLength={1000}
-            onChange={(event) => {
-              setText(event.target.value);
-              setWarning("");
-            }}
+            onChange={(event) => setText(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();

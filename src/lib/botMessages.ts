@@ -35,7 +35,6 @@ export const botMessageGroups: { title: string; tab: MessageTab; fields: Message
       { key: "chooseMethod", label: "Choose a payment method" },
       { key: "termsIntro", label: "Before the terms" },
       { key: "orderCreated", label: "Order created", variables: "{order_id} {plan}" },
-      { key: "openOrderExists", label: "Customer already has an open order", variables: "{order_id}" },
     ],
   },
   {
@@ -58,8 +57,6 @@ export const botMessageGroups: { title: string; tab: MessageTab; fields: Message
       { key: "issueResolvedByCustomer", label: "Customer marks the request resolved" },
       { key: "issueResolvedByAdmin", label: "You mark the request resolved", variables: "{ticket_id}" },
       { key: "issueAutoResolved", label: "Request closed: the customer stopped replying after your answer", variables: "{ticket_id}" },
-      { key: "issueClosedNoReply", label: "Request closed: you did not reply in time", variables: "{ticket_id}" },
-      { key: "paymentIssueResolved", label: "You mark a payment issue resolved" },
     ],
   },
 ];

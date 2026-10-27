@@ -3,7 +3,7 @@
 import { formatDate } from "@/lib/format";
 import { customerNumberLabel } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
-import Avatar from "../ui/Avatar";
+import CustomerAvatar from "../ui/CustomerAvatar";
 import WhatsAppLink from "../ui/WhatsAppLink";
 import BlockCustomerButton from "../customers/BlockCustomerButton";
 import OrderReview from "./OrderReview";
@@ -24,7 +24,7 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
   return (
     <div className="p-5 space-y-4">
       <div className="flex flex-col items-center text-center pt-2">
-        <Avatar name={customer.email} size={64} />
+        <CustomerAvatar customerId={customer.id} size={64} />
         <div className="mt-3 font-bold text-[18px] text-[#0C2660]">{customerNumberLabel(customer)}</div>
         {customer.whatsapp && <WhatsAppLink number={customer.whatsapp} className="mt-0.5 text-[14px]" />}
         <div className="text-[13.5px] font-medium text-zinc-800 break-all">{customer.email}</div>

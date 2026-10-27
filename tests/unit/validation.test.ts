@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { cleanCode, cleanIban, extractCode, validateCode, validateEmail, validatePin } from "../../src/lib/validation.ts";
+import { cleanCode, cleanIban, codeOnOwnLine, extractCode, validateCode, validateEmail, validatePin } from "../../src/lib/validation.ts";
 
 const portalMessage = (code: string) =>
   `Your premium code for 1 month is: \n\n ${code} \n\nPlease copy and paste it in the App 'Activate with Premium Code'. Don't enter manually to prevent make a mistake`;
@@ -39,4 +39,11 @@ test("validates email and PIN", () => {
   assert.notEqual(validateEmail("not-an-email"), null);
   assert.equal(validatePin("123456"), null);
   assert.notEqual(validatePin("12ab"), null);
+});
+
+test("finds the code on the third line of the code template", () => {
+  assert.equal(codeOnOwnLine(portalMessage("6JI4IN")), "6JI4IN");
+  assert.equal(codeOnOwnLine(portalMessage("itfify")), "itfify");
+  assert.equal(codeOnOwnLine("Blocked"), "");
+  assert.equal(codeOnOwnLine("Please wait\nWe are checking"), "");
 });

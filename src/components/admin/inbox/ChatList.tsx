@@ -4,7 +4,7 @@ import { AlertTriangle, Ban, CheckCircle2, Hourglass, Inbox as InboxIcon, Packag
 import { chatListTime, classNames } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import type { InboxTab } from "@/lib/types";
-import Avatar from "../ui/Avatar";
+import CustomerAvatar from "../ui/CustomerAvatar";
 import Badge from "../ui/Badge";
 import EmptyState from "../ui/EmptyState";
 import type { BotFilter, InboxItem } from "./inboxItems";
@@ -22,10 +22,10 @@ const tabIcons: Record<InboxTab, React.ReactNode> = {
 const urgentTabs: InboxTab[] = ["pending", "issues"];
 
 const botFilters: { key: BotFilter; label: string; dot: string }[] = [
-  { key: "active_orders", label: "Active orders", dot: "bg-sky-500" },
-  { key: "cancelled", label: "Cancelled", dot: "bg-zinc-400" },
-  { key: "active_chats", label: "Active chats", dot: "bg-emerald-500" },
-  { key: "inactive_chats", label: "Inactive chats", dot: "bg-zinc-300" },
+  { key: "active_orders", label: "Active orders", dot: "bg-[#0a84ff]" },
+  { key: "cancelled", label: "Cancelled", dot: "bg-[#c38763]" },
+  { key: "active_chats", label: "Active chats", dot: "bg-[#22c55e]" },
+  { key: "inactive_chats", label: "Inactive chats", dot: "bg-[#9ca3af]" },
 ];
 
 const emptyText: Record<InboxTab | BotFilter, string> = {
@@ -123,7 +123,7 @@ export default function ChatList({ view, tab, onTabChange, botFilter, onBotFilte
                 onClick={() => onSelect(item.customerId)}
                 className={classNames("w-full text-left px-3 py-3 rounded-xl flex gap-3 transition mb-0.5", selected ? "chat-row-selected bg-[#0C2660]/[0.06]" : "hover:bg-zinc-50")}
               >
-                <Avatar name={item.title} size={40} />
+                <CustomerAvatar customerId={item.customerId} size={38} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5 min-w-0">

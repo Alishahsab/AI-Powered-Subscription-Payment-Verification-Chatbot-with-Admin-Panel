@@ -82,7 +82,6 @@ export type SupportSettings = {
   stillFacingLabel: string;
   resolvedLabel: string;
   issueScreenshotRequired: boolean;
-  problemScreenshotRequired: boolean;
 };
 
 export type Limits = {

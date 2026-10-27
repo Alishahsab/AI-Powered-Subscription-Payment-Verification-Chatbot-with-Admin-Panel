@@ -41,7 +41,6 @@ export default function SupportTab({ draft, updateDraft }: SettingsTabProps) {
           </div>
           <div className="space-y-2.5 pt-1">
             <Toggle on={support.issueScreenshotRequired} onChange={(value) => updateDraft((next) => (next.settings.support.issueScreenshotRequired = value))} label="Screenshot required for Other issues" />
-            <Toggle on={support.problemScreenshotRequired} onChange={(value) => updateDraft((next) => (next.settings.support.problemScreenshotRequired = value))} label="Screenshot required for payment problems" />
           </div>
         </div>
       </SettingsSection>

@@ -9,8 +9,7 @@ import { customerNumberLabel, customerTitle } from "@/lib/store/helpers";
 import { customerMessages } from "@/lib/store/messageIndex";
 import { useAppState } from "@/lib/store/state";
 import type { Message } from "@/lib/types";
-import Avatar from "../ui/Avatar";
-import WhatsAppLink from "../ui/WhatsAppLink";
+import CustomerAvatar from "../ui/CustomerAvatar";
 import { isCustomerActive } from "./inboxItems";
 import ReplyBox from "./ReplyBox";
 import ThreadMessage from "./ThreadMessage";
@@ -50,13 +49,10 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
         <button onClick={onBack} className="lg:hidden size-9 grid place-items-center rounded-lg hover:bg-zinc-100" aria-label="Back">
           <ArrowLeft size={18} />
         </button>
-        <div className="relative">
-          <Avatar name={customer.email} size={38} />
-          {active && <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-500 ring-2 ring-white" />}
-        </div>
+        <CustomerAvatar customerId={customer.id} size={36} />
         <div className="min-w-0 flex-1">
           <div className="text-[15px] font-bold text-zinc-900 truncate">
-            {customer.whatsapp ? <WhatsAppLink number={customer.whatsapp} clickable={false} /> : customerTitle(customer)}
+            {customerTitle(customer)}
           </div>
           <div className="text-[12px] text-zinc-500 truncate">
             {customerNumberLabel(customer)} · {active ? "Active now" : "Away from chat"}

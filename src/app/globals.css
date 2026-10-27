@@ -215,8 +215,8 @@ html[data-admin-theme="dark"] .bg-\[\#b84a45\] { background-color: #7f1d1d; colo
 html[data-admin-theme="dark"] .hover\:bg-\[\#a2403b\]:hover { background-color: #932424; }
 html[data-admin-theme="dark"] button.action-cancel { background-color: #7c4a00; border-color: #7c4a00; color: #e5e7eb; }
 html[data-admin-theme="dark"] button.action-cancel:hover { background-color: #8f5600; }
-html[data-admin-theme="dark"] button.action-block { background-color: #5b1111; border-color: #5b1111; color: #e5e7eb; }
-html[data-admin-theme="dark"] button.action-block:hover { background-color: #6d1616; }
+html[data-admin-theme="dark"] button.action-block { background-color: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.45); color: #fca5a5; }
+html[data-admin-theme="dark"] button.action-block:hover { background-color: rgba(239, 68, 68, 0.2); }
 html[data-admin-theme="dark"] .bg-violet-600 { background-color: #7c3aed; color: #fff; }
 html[data-admin-theme="dark"] .hover\:bg-violet-700:hover { background-color: #6d28d9; }
 /* The dashboard's "payments waiting" bar: a calm blue instead of yellow. */

@@ -3,7 +3,7 @@ import { serverNow } from "../clock";
 import { createTemporaryClient, getSupabase } from "../supabase/client";
 import { deleteScreenshots, uploadScreenshot } from "../supabase/screenshots";
 import type { AdminStatus, AppState, Message, Ticket } from "../types";
-import { extractCode } from "../validation";
+import { codeOnOwnLine, extractCode } from "../validation";
 import { ADMIN_CANCEL_REASON, addMessage, botText, extractCodes, findCustomerEmail, liftPaymentPause } from "./helpers";
 import { getState, updateState } from "./state";
 
@@ -115,14 +115,14 @@ export function setAdminStatus(status: AdminStatus) {
 }
 
 export function sendAdminMessage(customerId: string, text: string, ticketReply = false) {
-  const codes = extractCodes(text);
-  const containsCode = codes.length > 0;
+  const code = codeOnOwnLine(text) || extractCodes(text)[0];
+  const containsCode = Boolean(code);
 
   updateState((state) => {
     addMessage(state, customerId, "admin", text);
     if (containsCode) {
       const order = findOrderAwaitingCode(state, customerId);
-      if (order) order.code = codes[0];
+      if (order) order.code = code;
     }
 
     updateStageAfterReply(state, customerId, containsCode, ticketReply);
@@ -187,19 +187,16 @@ function codesIn(text: string) {
   return [...new Set([extractCode(cleaned), ...extractCodes(cleaned)].filter((code) => code.length === 6).map((code) => code.toLowerCase()))];
 }
 
-// From the chat (with sameCustomerId) only a real code, one saved on another customer's order, is refused;
-// ordinary messages never are, and the same customer can get their code again. Approving checks the chat too.
-export function findCodeAlreadySent(text: string, sameCustomerId?: string) {
+// Only the Approve dialog refuses a code that was already sent; messages from the chat are never checked.
+export function findCodeAlreadySent(text: string) {
   const state = getState();
   const codes = codesIn(text);
   if (codes.length === 0) return null;
 
-  const earlierOrder = state.orders.find((order) => order.customerId !== sameCustomerId && order.code && codes.includes(order.code.toLowerCase()));
+  const earlierOrder = state.orders.find((order) => order.code && codes.includes(order.code.toLowerCase()));
   if (earlierOrder) {
     return { code: earlierOrder.code ?? "", customerEmail: findCustomerEmail(state, earlierOrder.customerId), sentAt: earlierOrder.reviewedAt ?? earlierOrder.createdAt };
   }
-
-  if (sameCustomerId !== undefined) return null;
 
   for (const message of state.messages) {
     if (message.sender !== "admin" || message.kind === "deleted") continue;
@@ -357,6 +354,8 @@ export function blockCustomer(customerId: string, reason: string) {
     if (!customer) return;
     customer.blocked = true;
     customer.blockReason = reason;
+    addMessage(state, customerId, "admin", `${state.settings.blocking.message}
+Reason: ${reason}`);
   });
 }
 

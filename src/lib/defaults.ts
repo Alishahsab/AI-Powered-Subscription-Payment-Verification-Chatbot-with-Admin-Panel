@@ -92,7 +92,6 @@ export function createDefaultConfig(): StoreConfig {
         stillFacingLabel: "Still facing the issue",
         resolvedLabel: "Resolved",
         issueScreenshotRequired: true,
-        problemScreenshotRequired: false,
       },
       messages: { ...defaultBotMessages },
       blocking: {
