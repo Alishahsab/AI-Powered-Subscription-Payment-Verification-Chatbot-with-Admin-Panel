@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Bell } from "lucide-react";
+import { useBackButton } from "@/hooks/useBackButton";
 import { useNow } from "@/hooks/useNow";
 import { timeAgo } from "@/lib/format";
 import { markAllNotificationsRead } from "@/lib/store/admin";
@@ -19,6 +20,7 @@ export default function NotificationBell({ onNavigate }: { onNavigate: Navigate 
   const state = useAppState();
   const now = useNow(30_000);
   const [open, setOpen] = useState(false);
+  useBackButton(open, () => setOpen(false));
   const unreadCount = state.notifications.filter((notification) => !notification.read).length;
 
   return (
@@ -33,7 +35,7 @@ export default function NotificationBell({ onNavigate }: { onNavigate: Navigate 
       {open && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-11 z-40 w-[340px] bg-white rounded-xl border border-zinc-200 shadow-xl fade-in">
+          <div className="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-11 sm:w-[340px] z-40 bg-white rounded-xl border border-zinc-200 shadow-xl fade-in">
             <div className="flex items-center justify-between px-4 h-11 border-b border-zinc-100">
               <span className="font-semibold text-[13.5px]">Notifications</span>
               <button onClick={markAllNotificationsRead} className="text-[12px] text-zinc-500 hover:text-zinc-900">
@@ -41,7 +43,7 @@ export default function NotificationBell({ onNavigate }: { onNavigate: Navigate 
               </button>
             </div>
 
-            <div className="max-h-[380px] overflow-y-auto">
+            <div className="max-h-[min(380px,60dvh)] overflow-y-auto">
               {state.notifications.length === 0 && <div className="px-4 py-8 text-center text-[13px] text-zinc-400">No notifications yet</div>}
               {state.notifications.slice(0, 15).map((notification) => (
                 <button

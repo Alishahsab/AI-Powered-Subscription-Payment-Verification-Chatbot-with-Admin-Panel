@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useBackButton } from "@/hooks/useBackButton";
 
 type SheetProps = {
   title: string;
@@ -8,6 +9,7 @@ type SheetProps = {
 };
 
 export default function Sheet({ title, subtitle, onClose, children }: SheetProps) {
+  useBackButton(true, onClose);
   return (
     <div className="absolute inset-0 z-30 flex flex-col justify-end md:justify-center md:items-center md:p-6">
       <div className="absolute inset-0 bg-black/40 fade-in" onClick={onClose} />

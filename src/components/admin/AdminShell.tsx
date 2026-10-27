@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAdminTheme } from "@/hooks/useAdminTheme";
+import { useBackButton } from "@/hooks/useBackButton";
 import { useOrderExpiry } from "@/hooks/useOrderExpiry";
 import { isInApp, tellApp } from "@/lib/appMode";
 import SyncNotice from "../SyncNotice";
@@ -43,11 +44,17 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
     if (query.trim()) setTarget({ section: "search" });
   };
 
+  // Back from any other part returns to the dashboard; Back on the dashboard leaves the panel.
+  useBackButton(target.section !== "dashboard", () => navigate({ section: "dashboard" }));
+  useBackButton(menuOpen, () => setMenuOpen(false));
+
   useEffect(() => {
     if (!inApp) return;
-    const followTab = () => setTarget({ section: sectionFromHash() });
-    window.addEventListener("hashchange", followTab);
-    return () => window.removeEventListener("hashchange", followTab);
+    const app = window as unknown as { premiumStoreShowSection?: (section: Section) => void };
+    app.premiumStoreShowSection = (section) => setTarget({ section: appTabs.includes(section) ? section : "dashboard" });
+    return () => {
+      delete app.premiumStoreShowSection;
+    };
   }, [inApp]);
 
   useEffect(() => {

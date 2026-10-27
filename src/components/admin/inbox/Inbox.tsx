@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { MessageSquareText, X } from "lucide-react";
+import { useBackButton } from "@/hooks/useBackButton";
 import { useNow } from "@/hooks/useNow";
 import { classNames } from "@/lib/format";
 import { markConversationRead } from "@/lib/store/admin";
@@ -29,6 +30,8 @@ export default function Inbox({ view, initialTab, initialCustomerId, initialBotF
   const [botFilter, setBotFilter] = useState<BotFilter>(initialBotFilter ?? "active_chats");
   const [chosenCustomerId, setChosenCustomerId] = useState(initialCustomerId);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  useBackButton(Boolean(chosenCustomerId), () => setChosenCustomerId(undefined));
+  useBackButton(detailsOpen, () => setDetailsOpen(false));
   const [isWideScreen] = useState(() => window.innerWidth >= 1024);
 
   const list = view === "bot" ? "bot" : tab;

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { X } from "lucide-react";
+import { useBackButton } from "@/hooks/useBackButton";
 
 type ModalProps = {
   title: string;
@@ -11,6 +12,7 @@ type ModalProps = {
 };
 
 export default function Modal({ title, description, onClose, children }: ModalProps) {
+  useBackButton(true, onClose);
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => event.key === "Escape" && onClose();
     window.addEventListener("keydown", closeOnEscape);
