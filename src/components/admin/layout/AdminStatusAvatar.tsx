@@ -2,6 +2,7 @@
 
 import { useNow } from "@/hooks/useNow";
 import { getEffectiveStatus } from "@/lib/availability";
+import { classNames } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import type { AdminStatus } from "@/lib/types";
 import type { Navigate } from "../navigation";
@@ -13,17 +14,21 @@ const statuses: Record<AdminStatus, { label: string; dot: string }> = {
   offline: { label: "Offline", dot: "bg-zinc-400" },
 };
 
-// The admin's status shows as a dot on the profile picture; it is changed in Settings, so a stray tap
-// in the top bar can no longer switch the store off.
-export default function AdminStatusAvatar({ onNavigate }: { onNavigate: Navigate }) {
+export function useAdminStatus() {
   const state = useAppState();
   const now = useNow(60_000);
-  const status = statuses[getEffectiveStatus(state.settings, now)];
+  return statuses[getEffectiveStatus(state.settings, now)];
+}
+
+// The admin's status shows as a dot on the profile picture; it is changed in Settings, so a stray tap
+// in the top bar can no longer switch the store off.
+export default function AdminStatusAvatar({ onNavigate, large = false }: { onNavigate: Navigate; large?: boolean }) {
+  const status = useAdminStatus();
 
   return (
     <button
       onClick={() => onNavigate({ section: "settings" })}
-      className="relative size-9 rounded-full bg-[#0C2660] text-white grid place-items-center text-[12px] font-semibold"
+      className={classNames("relative shrink-0 rounded-full bg-[#0C2660] text-white grid place-items-center font-semibold", large ? "size-11 text-[13px]" : "size-9 text-[12px]")}
       aria-label={`Status: ${status.label}. Change it in Settings`}
       title={`Status: ${status.label}`}
     >

@@ -47,6 +47,11 @@ body {
   background: #f5f6f8;
 }
 
+.admin-app.in-app {
+  background: #f3f5fa;
+  font-family: var(--font-app), var(--font-heading), system-ui, sans-serif;
+}
+
 @keyframes rise-in {
   from {
     opacity: 0;
@@ -201,6 +206,8 @@ html[data-admin-theme="dark"] .focus\:bg-white:focus,
 html[data-admin-theme="dark"] .focus-within\:bg-white:focus-within,
 html[data-admin-theme="dark"] .hover\:bg-white:hover { background-color: #1c212b; }
 html[data-admin-theme="dark"] .border-white { border-color: #161a22; }
+html[data-admin-theme="dark"] .bg-\[\#eef1f7\] { background-color: #1c2440; }
+html[data-admin-theme="dark"] .bg-\[\#c7d2ec\] { background-color: #34426e; }
 html[data-admin-theme="dark"] .ring-white { --tw-ring-color: #161a22; }
 
 /* Brand navy is too dark on a dark page; buttons and accents use a muted slate blue that sits calmly on it. */

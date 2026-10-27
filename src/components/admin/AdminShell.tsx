@@ -10,9 +10,11 @@ import AdminSidebar from "./layout/AdminSidebar";
 import PaymentIssueTimer from "./layout/PaymentIssueTimer";
 import Toasts from "./layout/Toasts";
 import ConnectionBar from "./layout/ConnectionBar";
+import AppTopBar from "./layout/AppTopBar";
 import TopBar from "./layout/TopBar";
 import type { NavTarget, Section } from "./navigation";
 import Customers from "./customers/Customers";
+import AppDashboard from "./dashboard/AppDashboard";
 import Dashboard from "./dashboard/Dashboard";
 import Inbox from "./inbox/Inbox";
 import SearchResults from "./search/SearchResults";
@@ -64,7 +66,7 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
   const sidebar = <AdminSidebar current={target.section} onNavigate={navigate} onSignOut={onSignOut} />;
 
   return (
-    <div className="admin-app fixed inset-0 flex overflow-hidden">
+    <div className={inApp ? "admin-app in-app fixed inset-0 flex overflow-hidden" : "admin-app fixed inset-0 flex overflow-hidden"}>
       {!inApp && <aside className="hidden lg:block w-[244px] shrink-0">{sidebar}</aside>}
 
       {menuOpen && (
@@ -75,23 +77,27 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
       )}
 
       <div className="flex-1 min-w-0 flex flex-col">
-        <TopBar
-          searchQuery={searchQuery}
-          onSearch={search}
-          onClearSearch={() => navigate({ section: "dashboard" })}
-          onOpenMenu={inApp ? undefined : () => setMenuOpen(true)}
-          onNavigate={navigate}
-          theme={theme}
-          onToggleTheme={toggleTheme}
-        />
+        {inApp ? (
+          <AppTopBar searchQuery={searchQuery} onSearch={search} onClearSearch={() => navigate({ section: "dashboard" })} onNavigate={navigate} theme={theme} onToggleTheme={toggleTheme} />
+        ) : (
+          <TopBar
+            searchQuery={searchQuery}
+            onSearch={search}
+            onClearSearch={() => navigate({ section: "dashboard" })}
+            onOpenMenu={() => setMenuOpen(true)}
+            onNavigate={navigate}
+            theme={theme}
+            onToggleTheme={toggleTheme}
+          />
+        )}
         <ConnectionBar />
 
-        <main className="flex-1 min-h-0 overflow-hidden">
-          {target.section === "dashboard" && <Dashboard onNavigate={navigate} />}
+        <main className={inApp ? "flex-1 min-h-0 overflow-hidden pb-[92px]" : "flex-1 min-h-0 overflow-hidden"}>
+          {target.section === "dashboard" && (inApp ? <AppDashboard onNavigate={navigate} /> : <Dashboard onNavigate={navigate} />)}
           {target.section === "customers" && <Customers onNavigate={navigate} />}
           {target.section === "inbox" && <Inbox key={`inbox-${target.customerId}-${target.tab}`} view="inbox" initialTab={target.tab} initialCustomerId={target.customerId} />}
           {target.section === "bot" && <Inbox key={`bot-${target.customerId}-${target.botFilter}`} view="bot" initialCustomerId={target.customerId} initialBotFilter={target.botFilter} />}
-          {target.section === "settings" && <Settings />}
+          {target.section === "settings" && <Settings onSignOut={inApp ? () => tellApp("sign-out") : undefined} />}
           {target.section === "search" && <SearchResults query={searchQuery} onNavigate={navigate} />}
         </main>
       </div>

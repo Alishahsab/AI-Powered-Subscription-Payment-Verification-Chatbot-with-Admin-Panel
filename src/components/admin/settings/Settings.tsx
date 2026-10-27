@@ -53,7 +53,7 @@ function cleanDraft(draft: EditableSettings): EditableSettings {
   return clean;
 }
 
-export default function Settings() {
+export default function Settings({ onSignOut }: { onSignOut?: () => void }) {
   const state = useAppState();
   const [tab, setTab] = useState<TabKey>("availability");
   const [draft, setDraft] = useState(() => pickEditable(state));
@@ -110,6 +110,7 @@ export default function Settings() {
             <Button variant="primary" onClick={save} disabled={!hasChanges} className="px-5">
               Save changes
             </Button>
+            {onSignOut && <Button onClick={onSignOut}>Sign out</Button>}
           </div>
         </div>
 
