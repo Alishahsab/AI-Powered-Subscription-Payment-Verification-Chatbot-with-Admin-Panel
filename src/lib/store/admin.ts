@@ -365,6 +365,7 @@ export function unblockCustomer(customerId: string) {
     if (!customer) return;
     customer.blocked = false;
     customer.blockReason = undefined;
+    addMessage(state, customerId, "admin", state.settings.blocking.unblockMessage);
   });
 }
 

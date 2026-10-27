@@ -73,6 +73,7 @@ export type InboxTabSetting = { key: InboxTab; label: string };
 
 export type BlockingSettings = {
   message: string;
+  unblockMessage: string;
   channelLabel: string;
   channelUrl: string;
   reasons: string[];

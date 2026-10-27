@@ -57,6 +57,9 @@ export default function InboxTab({ draft, updateDraft }: SettingsTabProps) {
           <Field label="Message for blocked customers" hint="The reason you choose is shown under it">
             <textarea rows={2} maxLength={limits.longTextMax} value={blocking.message} onChange={(event) => updateDraft((next) => (next.settings.blocking.message = event.target.value))} className={textareaClass} />
           </Field>
+          <Field label="Message sent when you unblock a customer">
+            <textarea rows={2} maxLength={limits.longTextMax} value={blocking.unblockMessage} onChange={(event) => updateDraft((next) => (next.settings.blocking.unblockMessage = event.target.value))} className={textareaClass} />
+          </Field>
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Email button text">
               <input value={blocking.channelLabel} maxLength={40} onChange={(event) => updateDraft((next) => (next.settings.blocking.channelLabel = event.target.value))} className={inputClass} />

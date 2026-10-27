@@ -96,6 +96,7 @@ export function createDefaultConfig(): StoreConfig {
       messages: { ...defaultBotMessages },
       blocking: {
         message: "Your access has been restricted. Please contact us by email.",
+        unblockMessage: "Your access has been restored. You can use the chat again.",
         channelLabel: "Contact us by email",
         channelUrl: "",
         reasons: ["Fake payment screenshot", "Abusive messages", "Repeated cancelled orders", "Sharing codes with others"],
