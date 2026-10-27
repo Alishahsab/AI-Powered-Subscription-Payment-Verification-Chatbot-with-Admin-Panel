@@ -188,7 +188,7 @@ export function findOrderPause(customer: Customer | undefined, now = serverNow()
   return pauses.sort((a, b) => b.until - a.until)[0] ?? null;
 }
 
-export type MenuLock = { reason: "pending" | "rejected" | "issue" | "closed"; title: string; message: string };
+export type MenuLock = { reason: "pending" | "rejected" | "issue" | "closed" | "paused"; title: string; message: string };
 export type LockTarget = MenuOption | "other_issues";
 
 // Both menu buttons stay closed while the admin still has to act on this customer's payment or support request.
@@ -200,6 +200,13 @@ export function findMenuLock(state: AppState, customerId: string, target: LockTa
   if (order?.status === "pending_review") return { reason: "pending", title: texts.pendingTitle, message: texts.pending };
   if (order?.status === "rejected") return { reason: "rejected", title: texts.rejectedTitle, message: texts.rejected };
   if (findOpenTicket(state, customerId)) return { reason: "issue", title: texts.issueTitle, message: texts.issue };
+
+  // After several cancelled orders, new support requests wait for the same timer as new orders.
+  const pause = findOrderPause(state.customers.find((customer) => customer.id === customerId), now);
+  if (target === "other_issues" && pause?.reason === "cancels") {
+    const timeLeft = formatDuration(Math.ceil((pause.until - now) / MINUTE));
+    return { reason: "paused", title: "Requests paused", message: `New orders and support requests are paused after several cancelled orders. Please try again in ${timeLeft}.` };
+  }
 
   const status = getEffectiveStatus(state.settings, now);
   if (target === "support" || (status !== "offline" && status !== "away_closed")) return null;
@@ -454,7 +461,7 @@ async function uploadOptional(customerId: string, screenshot?: string) {
 export const OTHER_ISSUES_LABEL = "Other issues";
 
 export function chooseOtherIssue(customerId: string) {
-  if (botIsReplying(customerId) || findMenuLock(getState(), customerId, "other_issues")?.reason === "closed") return;
+  if (botIsReplying(customerId) || findMenuLock(getState(), customerId, "other_issues")) return;
   updateState((state) => {
     addMessage(state, customerId, "customer", OTHER_ISSUES_LABEL);
   });

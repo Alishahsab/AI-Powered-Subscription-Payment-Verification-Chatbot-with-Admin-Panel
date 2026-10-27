@@ -49,7 +49,7 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
         <button onClick={onBack} className="lg:hidden size-9 grid place-items-center rounded-lg hover:bg-zinc-100" aria-label="Back">
           <ArrowLeft size={18} />
         </button>
-        <CustomerAvatar customerId={customer.id} size={36} />
+        <CustomerAvatar customerId={customer.id} size={46} />
         <div className="min-w-0 flex-1">
           <div className="text-[15px] font-bold text-zinc-900 truncate">
             {customerTitle(customer)}

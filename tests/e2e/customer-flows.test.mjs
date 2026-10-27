@@ -233,3 +233,21 @@ test("a phone that draws the picture blank sends the original instead of a black
   assert.ok((await page.getAttribute(preview, "src")).startsWith("data:image/png"), "the original PNG is used, not a blank JPEG");
   assert.deepEqual(errors, []);
 });
+
+test("after several cancelled orders, other issues wait for the timer but common questions stay open", async (t) => {
+  const { page, errors } = await newCustomer();
+  for (let round = 0; round < 2; round++) {
+    if (!(await createOrder(page))) return t.skip("the store is not taking orders right now");
+    await click(page, "Cancel");
+    await wait(1500);
+  }
+  if (!(await page.isVisible("text=New orders are paused"))) return t.skip("orders are not paused after two cancels with these settings");
+
+  await click(page, "Customer Support");
+  if (await page.isVisible("text=Admin not available")) return t.skip("the store is closed right now");
+  assert.ok(await page.isVisible("text=Common questions"), "common questions stay open");
+  await tapClosed(page, "Other issues");
+  assert.ok(await page.isVisible("text=Requests paused"), "other issues explain the pause");
+  assert.ok(!(await page.isVisible("textarea")), "no request form");
+  assert.deepEqual(errors, []);
+});

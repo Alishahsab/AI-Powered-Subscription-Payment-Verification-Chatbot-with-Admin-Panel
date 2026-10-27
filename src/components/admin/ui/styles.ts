@@ -14,5 +14,6 @@ export const actionButton = {
   reject: `${actionBase} bg-[#b84a45] hover:bg-[#a2403b] text-white`,
   cancel: `${actionBase} action-cancel border border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100`,
   softDanger: `${actionBase} action-block border border-red-200 bg-red-50 text-red-700 hover:bg-red-100`,
+  blocked: `${actionBase} bg-red-600 hover:bg-red-700 text-white`,
   unused: `${actionBase} bg-violet-600 hover:bg-violet-700 text-white`,
 };

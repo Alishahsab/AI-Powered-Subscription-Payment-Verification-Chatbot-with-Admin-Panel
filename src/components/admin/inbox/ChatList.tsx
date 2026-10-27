@@ -123,7 +123,7 @@ export default function ChatList({ view, tab, onTabChange, botFilter, onBotFilte
                 onClick={() => onSelect(item.customerId)}
                 className={classNames("w-full text-left px-3 py-3 rounded-xl flex gap-3 transition mb-0.5", selected ? "chat-row-selected bg-[#0C2660]/[0.06]" : "hover:bg-zinc-50")}
               >
-                <CustomerAvatar customerId={item.customerId} size={38} />
+                <CustomerAvatar customerId={item.customerId} size={50} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5 min-w-0">

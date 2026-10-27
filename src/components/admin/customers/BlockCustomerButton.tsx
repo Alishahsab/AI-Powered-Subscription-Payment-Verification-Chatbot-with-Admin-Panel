@@ -26,7 +26,7 @@ export default function BlockCustomerButton({ customer, compact = false }: Block
   if (customer.blocked) {
     return (
       <>
-        <button onClick={() => setOpen(true)} className={buttonClass}>
+        <button onClick={() => setOpen(true)} className={compact ? buttonClass : `w-full ${actionButton.blocked}`}>
           Unblock
         </button>
         {open && <ConfirmDialog description={`${customer.email} will be able to use the chat again.`} confirmLabel="Yes, unblock" onConfirm={() => unblockCustomer(customer.id)} onClose={() => setOpen(false)} />}
