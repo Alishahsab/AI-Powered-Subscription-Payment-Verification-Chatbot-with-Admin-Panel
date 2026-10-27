@@ -1,23 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAdminTheme } from "@/hooks/useAdminTheme";
 import { useOrderExpiry } from "@/hooks/useOrderExpiry";
+import { isInApp, tellApp } from "@/lib/appMode";
 import SyncNotice from "../SyncNotice";
 import AdminSidebar from "./layout/AdminSidebar";
 import PaymentIssueTimer from "./layout/PaymentIssueTimer";
 import Toasts from "./layout/Toasts";
 import ConnectionBar from "./layout/ConnectionBar";
 import TopBar from "./layout/TopBar";
-import type { NavTarget } from "./navigation";
+import type { NavTarget, Section } from "./navigation";
 import Customers from "./customers/Customers";
 import Dashboard from "./dashboard/Dashboard";
 import Inbox from "./inbox/Inbox";
 import SearchResults from "./search/SearchResults";
 import Settings from "./settings/Settings";
 
+const appTabs: Section[] = ["inbox", "bot", "dashboard", "settings"];
+
+function sectionFromHash(): Section {
+  const section = window.location.hash.slice(1) as Section;
+  return appTabs.includes(section) ? section : "dashboard";
+}
+
 export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
-  const [target, setTarget] = useState<NavTarget>({ section: "dashboard" });
+  const [inApp] = useState(isInApp);
+  const [target, setTarget] = useState<NavTarget>(() => ({ section: inApp ? sectionFromHash() : "dashboard" }));
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   useOrderExpiry();
@@ -34,11 +43,22 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
     if (query.trim()) setTarget({ section: "search" });
   };
 
+  useEffect(() => {
+    if (!inApp) return;
+    const followTab = () => setTarget({ section: sectionFromHash() });
+    window.addEventListener("hashchange", followTab);
+    return () => window.removeEventListener("hashchange", followTab);
+  }, [inApp]);
+
+  useEffect(() => {
+    if (inApp) tellApp(target.section);
+  }, [inApp, target.section]);
+
   const sidebar = <AdminSidebar current={target.section} onNavigate={navigate} onSignOut={onSignOut} />;
 
   return (
     <div className="admin-app fixed inset-0 flex overflow-hidden">
-      <aside className="hidden lg:block w-[244px] shrink-0">{sidebar}</aside>
+      {!inApp && <aside className="hidden lg:block w-[244px] shrink-0">{sidebar}</aside>}
 
       {menuOpen && (
         <div className="lg:hidden fixed inset-0 z-40">
@@ -48,7 +68,15 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
       )}
 
       <div className="flex-1 min-w-0 flex flex-col">
-        <TopBar searchQuery={searchQuery} onSearch={search} onClearSearch={() => navigate({ section: "dashboard" })} onOpenMenu={() => setMenuOpen(true)} onNavigate={navigate} theme={theme} onToggleTheme={toggleTheme} />
+        <TopBar
+          searchQuery={searchQuery}
+          onSearch={search}
+          onClearSearch={() => navigate({ section: "dashboard" })}
+          onOpenMenu={inApp ? undefined : () => setMenuOpen(true)}
+          onNavigate={navigate}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+        />
         <ConnectionBar />
 
         <main className="flex-1 min-h-0 overflow-hidden">

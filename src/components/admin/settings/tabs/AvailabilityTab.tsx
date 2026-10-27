@@ -21,7 +21,7 @@ export default function AvailabilityTab({ draft, updateDraft }: SettingsTabProps
 
   return (
     <>
-      <SettingsSection title="Your status" description="Switches instantly. Also available in the top bar.">
+      <SettingsSection title="Your status" description="Switches instantly. The dot on your profile picture in the top bar shows the current status.">
         <div className="grid sm:grid-cols-2 gap-2">
           {statuses.map((item) => (
             <button

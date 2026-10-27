@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useAuthUser } from "@/hooks/useAuthUser";
-import { adminSignOut, checkAdminAccess, rememberedAdmin } from "@/lib/store/admin";
+import { isInApp } from "@/lib/appMode";
+import { adminSignIn, adminSignOut, checkAdminAccess, rememberedAdmin } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import { startSync, stopSync } from "@/lib/supabase/sync";
 import ConfirmDialog from "../ConfirmDialog";
@@ -43,6 +44,16 @@ export default function AdminApp() {
   }, [user]);
 
   const waitingForAccess = Boolean(user && !checked && !remembered);
+
+  // The admin app signs the panel in with the email and password typed in the app, so the admin signs in once.
+  useEffect(() => {
+    if (!isInApp()) return;
+    const app = window as unknown as { premiumStoreSignIn?: typeof adminSignIn };
+    app.premiumStoreSignIn = adminSignIn;
+    return () => {
+      delete app.premiumStoreSignIn;
+    };
+  }, []);
 
   // The sync runs only while the panel is open; whenever the sign-in screen shows it stops,
   // so the next sign-in always loads everything fresh.
