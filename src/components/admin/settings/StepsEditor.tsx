@@ -44,14 +44,21 @@ export default function StepsEditor({ value, onChange }: StepsEditorProps) {
           onDragOver={(event) => event.preventDefault()}
           onDrop={() => dropOn(index)}
           onDragEnd={() => setDragging(null)}
-          className={classNames("flex items-center gap-1.5 rounded-xl transition", dragging === index && "opacity-40")}
+          className={classNames("flex items-start gap-1.5 rounded-xl transition", dragging === index && "opacity-40")}
         >
-          <span className="cursor-grab text-zinc-300 hover:text-zinc-500" title="Drag to reorder">
+          <span className="mt-2.5 cursor-grab text-zinc-300 hover:text-zinc-500" title="Drag to reorder">
             <GripVertical size={16} />
           </span>
-          <span className="size-6 shrink-0 rounded-full bg-[#0C2660] text-white text-[11.5px] font-bold grid place-items-center">{index + 1}</span>
-          <input value={step} maxLength={limits.questionMax} onChange={(event) => update(index, event.target.value)} className={inputClass} placeholder="Describe this step" />
-          <button type="button" onClick={() => remove(index)} className="size-8 shrink-0 grid place-items-center rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50" aria-label="Delete step">
+          <span className="mt-1.5 size-6 shrink-0 rounded-full bg-[#0C2660] text-white text-[11.5px] font-bold grid place-items-center">{index + 1}</span>
+          <textarea
+            rows={1}
+            value={step}
+            maxLength={limits.questionMax}
+            onChange={(event) => update(index, event.target.value)}
+            className={`${inputClass} h-auto min-h-9 py-2 leading-snug resize-none field-sizing-content`}
+            placeholder="Describe this step"
+          />
+          <button type="button" onClick={() => remove(index)} className="mt-0.5 size-8 shrink-0 grid place-items-center rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50" aria-label="Delete step">
             <Trash2 size={14} />
           </button>
         </div>

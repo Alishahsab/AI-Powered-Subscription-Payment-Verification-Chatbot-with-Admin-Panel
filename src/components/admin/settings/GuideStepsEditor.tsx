@@ -46,7 +46,14 @@ export default function GuideStepsEditor({ steps, onChange }: GuideStepsEditorPr
           </span>
           <span className="mt-1.5 size-6 shrink-0 rounded-full bg-[#0C2660] text-white text-[11.5px] font-bold grid place-items-center">{index + 1}</span>
           <div className="flex-1 min-w-0 space-y-1.5">
-            <input value={step.text} maxLength={limits.questionMax} onChange={(event) => update(index, { text: event.target.value })} className={inputClass} placeholder="Describe this step" />
+            <textarea
+              rows={1}
+              value={step.text}
+              maxLength={limits.questionMax}
+              onChange={(event) => update(index, { text: event.target.value.replace(/\n/g, " ") })}
+              className={`${inputClass} h-auto min-h-9 py-2 leading-snug resize-none field-sizing-content`}
+              placeholder="Describe this step"
+            />
             {step.image && (
               <div className="relative inline-block">
                 <img src={step.image} alt={`Step ${index + 1}`} className="h-20 rounded-lg border border-zinc-200 object-cover" />

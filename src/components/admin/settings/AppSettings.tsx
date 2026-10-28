@@ -9,7 +9,14 @@ import { loadAdminProfile, saveAdminName, type AdminProfile } from "@/lib/supaba
 import Modal from "../ui/Modal";
 import { inputClass } from "../ui/styles";
 import AdminPhoto from "./AdminPhoto";
-import { SettingsErrors, SettingsTabContent, settingsTabs, type SettingsTabKey } from "./settingsTabs";
+import AppearanceSection from "./app/AppearanceSection";
+import AvailabilitySection from "./app/AvailabilitySection";
+import InboxSection from "./app/InboxSection";
+import type { Page, PageProps } from "./app/pages";
+import PaymentsSection from "./app/PaymentsSection";
+import SupportSection from "./app/SupportSection";
+import TimersSection from "./app/TimersSection";
+import { SettingsErrors, settingsTabs, type SettingsTabKey } from "./settingsTabs";
 import { useSettingsDraft } from "./useSettingsDraft";
 
 type AppSettingsProps = {
@@ -111,6 +118,11 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSett
         </div>
       </div>
 
+      <div className="sticky bottom-[104px] z-20 px-4 space-y-2 empty:hidden">
+        <SettingsErrors errors={settings.errors} />
+        <SaveBar settings={settings} />
+      </div>
+
       {editingName && profile && (
         <NameDialog
           profile={profile}
@@ -122,6 +134,20 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSett
   );
 }
 
+const sections: Record<SettingsTabKey, (props: PageProps) => React.ReactNode> = {
+  availability: (props) => <AvailabilitySection {...props} />,
+  payments: (props) => <PaymentsSection {...props} />,
+  support: (props) => <SupportSection {...props} />,
+  inbox: (props) => <InboxSection {...props} />,
+  timers: (props) => <TimersSection {...props} />,
+  appearance: (props) => <AppearanceSection {...props} />,
+};
+
+function BackStep({ onBack }: { onBack: () => void }) {
+  useBackButton(true, onBack);
+  return null;
+}
+
 type SettingsScreenProps = {
   tab: SettingsTabKey;
   settings: ReturnType<typeof useSettingsDraft>;
@@ -129,43 +155,60 @@ type SettingsScreenProps = {
 };
 
 function SettingsScreen({ tab, settings, onBack }: SettingsScreenProps) {
-  const { draft, updateDraft, hasChanges, justSaved, errors, save, discard } = settings;
-  const title = settingsTabs.find((item) => item.key === tab)?.label;
+  const { draft, updateDraft, errors } = settings;
+  const [pages, setPages] = useState<Page[]>([]);
+  const page = pages.at(-1);
+  const closePage = () => setPages((current) => current.slice(0, -1));
+  const props: PageProps = { draft, updateDraft, open: (next) => setPages((current) => [...current, next]) };
+  const section = settingsTabs.find((item) => item.key === tab)?.label;
+  const title = page?.title ?? section;
+  const subtitle = page ? (page.subtitle ?? section) : undefined;
 
   return (
     <div className="relative h-full flex flex-col">
+      {pages.map((_, index) => (
+        <BackStep key={index} onBack={closePage} />
+      ))}
       <div className="profile-glow pointer-events-none absolute inset-x-0 top-0 h-[420px]" />
 
       <header className="relative shrink-0 flex items-center gap-2 px-4 pt-3 pb-2">
-        <button onClick={onBack} className={roundButton} aria-label="Back">
+        <button onClick={page ? closePage : onBack} className={roundButton} aria-label="Back">
           <ChevronLeft size={22} strokeWidth={2.4} />
         </button>
-        <h1 className="flex-1 text-center text-[17px] font-extrabold text-[#0C2660] pr-11">{title}</h1>
+        <div className="flex-1 min-w-0 pr-11 text-center">
+          <h1 className="truncate text-[17px] font-extrabold text-[#0C2660]">{title}</h1>
+          {subtitle && <p className="truncate text-[11.5px] font-semibold text-zinc-500">{subtitle}</p>}
+        </div>
       </header>
 
-      <div className="relative flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-4">
+      <div key={pages.length} className="relative flex-1 min-h-0 overflow-y-auto px-4 pb-5 fade-in">
         <SettingsErrors errors={errors} />
-        <SettingsTabContent tab={tab} draft={draft} updateDraft={updateDraft} />
+        {page ? page.render(props) : sections[tab](props)}
       </div>
 
-      {(hasChanges || justSaved) && (
-        <div className="relative shrink-0 px-4 pt-2 pb-3">
-          {hasChanges ? (
-            <div className="grid grid-cols-[1fr_2fr] gap-2">
-              <button onClick={discard} className="h-12 rounded-2xl bg-white text-[14px] font-bold text-zinc-700 shadow-[0_8px_24px_-16px_rgba(12,38,96,0.35)]">
-                Discard
-              </button>
-              <button onClick={save} className="h-12 rounded-2xl bg-[#0C2660] text-[14px] font-extrabold text-white shadow-[0_12px_24px_-12px_#0C2660]">
-                Save changes
-              </button>
-            </div>
-          ) : (
-            <div className="h-12 rounded-2xl bg-emerald-50 text-emerald-700 text-[13.5px] font-bold grid place-items-center fade-in">Saved and live</div>
-          )}
-        </div>
-      )}
+      <div className="relative shrink-0 px-4 pt-2 pb-3 empty:hidden">
+        <SaveBar settings={settings} />
+      </div>
     </div>
   );
+}
+
+function SaveBar({ settings }: { settings: ReturnType<typeof useSettingsDraft> }) {
+  const { hasChanges, justSaved, save, discard } = settings;
+  if (hasChanges) {
+    return (
+      <div className="grid grid-cols-[1fr_2fr] gap-2">
+        <button onClick={discard} className="h-12 rounded-2xl bg-white text-[14px] font-bold text-zinc-700 shadow-[0_8px_24px_-16px_rgba(12,38,96,0.35)]">
+          Discard
+        </button>
+        <button onClick={save} className="h-12 rounded-2xl bg-[#0C2660] text-[14px] font-extrabold text-white shadow-[0_12px_24px_-12px_#0C2660]">
+          Save changes
+        </button>
+      </div>
+    );
+  }
+  if (justSaved) return <div className="h-12 rounded-2xl bg-emerald-50 text-emerald-700 text-[13.5px] font-bold grid place-items-center fade-in">Saved and live</div>;
+  return null;
 }
 
 function NameDialog({ profile, onSaved, onClose }: { profile: AdminProfile; onSaved: (name: string) => void; onClose: () => void }) {

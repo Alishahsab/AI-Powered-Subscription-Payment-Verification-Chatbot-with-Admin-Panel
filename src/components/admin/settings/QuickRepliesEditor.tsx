@@ -29,7 +29,14 @@ export default function QuickRepliesEditor({ replies, onChange }: QuickRepliesEd
       {replies.map((reply, index) => (
         <div key={index} className="flex items-center gap-1.5">
           <span className="size-6 shrink-0 rounded-full bg-[#0C2660] text-white text-[11.5px] font-bold grid place-items-center">{index + 1}</span>
-          <input value={reply} maxLength={MAX_REPLY_LENGTH} onChange={(event) => update(index, event.target.value)} className={inputClass} placeholder="Type a quick reply" />
+          <textarea
+            rows={1}
+            value={reply}
+            maxLength={MAX_REPLY_LENGTH}
+            onChange={(event) => update(index, event.target.value.replace(/\n/g, " "))}
+            className={`${inputClass} h-auto min-h-9 py-2 leading-snug resize-none field-sizing-content`}
+            placeholder="Type a quick reply"
+          />
           <button type="button" onClick={() => move(index, -1)} disabled={index === 0} className={iconButton} aria-label="Move up">
             <ChevronUp size={16} />
           </button>
