@@ -10,6 +10,7 @@ import { markConversationRead } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import type { InboxTab } from "@/lib/types";
 import EmptyState from "../ui/EmptyState";
+import AppBotChat from "./AppBotChat";
 import AppInbox from "./AppInbox";
 import ChatList from "./ChatList";
 import ChatThread from "./ChatThread";
@@ -47,8 +48,12 @@ export default function Inbox({ view, initialTab, initialCustomerId, initialBotF
     if (selectedCustomerId) markConversationRead(selectedCustomerId);
   }, [selectedCustomerId, state.messages.length]);
 
-  if (inApp && view === "inbox" && !selectedCustomerId) {
-    return <AppInbox tab={tab} onTabChange={setTab} counts={counts} items={items} now={now} onOpenChat={setChosenCustomerId} />;
+  if (inApp && !selectedCustomerId) {
+    return view === "bot" ? (
+      <AppBotChat filter={botFilter} onFilterChange={setBotFilter} counts={botCounts} items={items} now={now} onOpenChat={setChosenCustomerId} />
+    ) : (
+      <AppInbox tab={tab} onTabChange={setTab} counts={counts} items={items} now={now} onOpenChat={setChosenCustomerId} />
+    );
   }
 
   return (

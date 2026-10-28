@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Inbox as InboxIcon, Search, X } from "lucide-react";
+import { Inbox as InboxIcon } from "lucide-react";
 import { classNames } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import type { InboxTab } from "@/lib/types";
 import EmptyState from "../ui/EmptyState";
 import AppInboxCard from "./AppInboxCard";
-import type { InboxItem } from "./inboxItems";
+import AppSectionHeader from "./AppSectionHeader";
+import { matchesSearch, type InboxItem } from "./inboxItems";
 
 const tabs: { key: InboxTab; label: string }[] = [
   { key: "pending", label: "Pending" },
@@ -38,7 +39,6 @@ type AppInboxProps = {
 
 export default function AppInbox({ tab, onTabChange, counts, items, now, onOpenChat }: AppInboxProps) {
   const state = useAppState();
-  const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
   const chipsRef = useRef<HTMLDivElement>(null);
 
@@ -46,45 +46,12 @@ export default function AppInbox({ tab, onTabChange, counts, items, now, onOpenC
     chipsRef.current?.querySelector("[data-selected=true]")?.scrollIntoView({ inline: "center", block: "nearest" });
   }, [tab]);
 
-  const closeSearch = () => {
-    setSearching(false);
-    setQuery("");
-  };
-
   const words = query.trim().toLowerCase();
-  const matches = (item: InboxItem) => {
-    const order = state.orders.find((entry) => entry.id === item.key);
-    return [item.title, item.tag, item.subtitle, order?.senderName, order?.code].join(" ").toLowerCase().includes(words);
-  };
-  const shown = words ? items.filter(matches) : items;
+  const shown = words ? items.filter((item) => matchesSearch(state, item, words)) : items;
 
   return (
     <div className="h-full flex flex-col">
-      <header className="shrink-0 px-4 pt-3">
-        <div className="flex items-center justify-between py-1.5">
-          <h1 className="text-[28px] font-extrabold tracking-tight text-[#0C2660]">Inbox</h1>
-          <button
-            onClick={() => (searching ? closeSearch() : setSearching(true))}
-            className="size-11 rounded-full bg-white text-[#0C2660] shadow-[0_8px_24px_-16px_rgba(12,38,96,0.4)] grid place-items-center"
-            aria-label={searching ? "Close search" : "Search"}
-          >
-            {searching ? <X size={20} strokeWidth={2.4} /> : <Search size={20} strokeWidth={2.4} />}
-          </button>
-        </div>
-
-        {searching && (
-          <div className="relative mt-2">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
-            <input
-              autoFocus
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Number, ID, name, plan or code"
-              className="w-full h-11 rounded-full bg-white pl-10 pr-4 text-[14px] outline-none shadow-[0_8px_24px_-16px_rgba(12,38,96,0.35)] placeholder:text-zinc-400"
-            />
-          </div>
-        )}
-
+      <AppSectionHeader title="Inbox" query={query} onQueryChange={setQuery}>
         <div ref={chipsRef} className="-mx-4 px-4 mt-3 pb-3 flex gap-1.5 overflow-x-auto [scrollbar-width:none]">
           {tabs.map((item) => {
             const selected = tab === item.key;
@@ -114,7 +81,7 @@ export default function AppInbox({ tab, onTabChange, counts, items, now, onOpenC
             );
           })}
         </div>
-      </header>
+      </AppSectionHeader>
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-2.5">
         {shown.length === 0 ? (

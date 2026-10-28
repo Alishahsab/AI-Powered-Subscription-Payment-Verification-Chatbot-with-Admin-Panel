@@ -212,3 +212,8 @@ export function countBotFilters(state: AppState, now: number): Record<BotFilter,
     inactive_chats: chatItems(state, false, now).length,
   };
 }
+
+export function matchesSearch(state: AppState, item: InboxItem, words: string) {
+  const order = state.orders.find((entry) => entry.id === item.key);
+  return [item.title, item.tag, item.subtitle, order?.senderName, order?.code].join(" ").toLowerCase().includes(words);
+}
