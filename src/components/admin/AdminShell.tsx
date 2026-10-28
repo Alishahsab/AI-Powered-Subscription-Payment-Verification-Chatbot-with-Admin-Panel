@@ -10,6 +10,7 @@ import AdminSidebar from "./layout/AdminSidebar";
 import PaymentIssueTimer from "./layout/PaymentIssueTimer";
 import Toasts from "./layout/Toasts";
 import ConnectionBar from "./layout/ConnectionBar";
+import AppInboxCount from "./layout/AppInboxCount";
 import AppTopBar from "./layout/AppTopBar";
 import TopBar from "./layout/TopBar";
 import type { NavTarget, Section } from "./navigation";
@@ -104,6 +105,7 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
         </main>
       </div>
 
+      {inApp && <AppInboxCount />}
       <Toasts onNavigate={navigate} />
       <SyncNotice />
       <PaymentIssueTimer />

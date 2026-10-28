@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { setAdminProfile } from "@/hooks/useAdminProfile";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { isInApp } from "@/lib/appMode";
 import { adminSignIn, adminSignOut, checkAdminAccess, rememberedAdmin } from "@/lib/store/admin";
@@ -77,6 +78,7 @@ export default function AdminApp() {
   const signOut = async () => {
     await adminSignOut();
     await stopSync();
+    setAdminProfile(null);
   };
 
   if (checking || waitingForAccess || loading) {

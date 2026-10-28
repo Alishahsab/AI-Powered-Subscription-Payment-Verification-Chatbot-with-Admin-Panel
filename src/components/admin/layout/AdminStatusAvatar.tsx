@@ -1,8 +1,10 @@
 "use client";
 
+import { useAdminProfile } from "@/hooks/useAdminProfile";
 import { useNow } from "@/hooks/useNow";
 import { getEffectiveStatus } from "@/lib/availability";
 import { classNames } from "@/lib/format";
+import { avatarUrl } from "@/lib/supabase/adminProfile";
 import { useAppState } from "@/lib/store/state";
 import type { AdminStatus } from "@/lib/types";
 import type { Navigate } from "../navigation";
@@ -24,6 +26,8 @@ export function useAdminStatus() {
 // in the top bar can no longer switch the store off.
 export default function AdminStatusAvatar({ onNavigate, large = false }: { onNavigate: Navigate; large?: boolean }) {
   const status = useAdminStatus();
+  const profile = useAdminProfile();
+  const photo = avatarUrl(profile?.avatarPath ?? null);
 
   return (
     <button
@@ -32,7 +36,7 @@ export default function AdminStatusAvatar({ onNavigate, large = false }: { onNav
       aria-label={`Status: ${status.label}. Change it in Settings`}
       title={`Status: ${status.label}`}
     >
-      AD
+      {photo ? <img src={photo} alt="" className="size-full rounded-full object-cover" /> : "AD"}
       <span className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full ring-2 ring-white ${status.dot}`} />
     </button>
   );

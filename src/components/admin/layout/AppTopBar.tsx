@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Moon, Search, Sun, X } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import type { AdminTheme } from "@/hooks/useAdminTheme";
 import type { Navigate } from "../navigation";
+import ExpandingSearch from "../ui/ExpandingSearch";
 import AdminStatusAvatar, { useAdminStatus } from "./AdminStatusAvatar";
 
 type AppTopBarProps = {
@@ -22,14 +23,14 @@ export default function AppTopBar({ searchQuery, onSearch, onClearSearch, onNavi
   const status = useAdminStatus();
   const [searching, setSearching] = useState(Boolean(searchQuery));
 
-  const closeSearch = () => {
-    setSearching(false);
-    onClearSearch();
+  const toggleSearch = (open: boolean) => {
+    setSearching(open);
+    if (!open) onClearSearch();
   };
 
   return (
-    <header className="shrink-0 px-4 pt-3 pb-2 space-y-2.5">
-      <div className="flex items-center gap-2">
+    <header className="shrink-0 px-4 pt-3 pb-2">
+      <div className="relative flex items-center gap-2">
         <div className="flex-1 min-w-0 flex items-center gap-2.5 rounded-full bg-white p-1.5 pr-4 shadow-[0_8px_24px_-16px_rgba(12,38,96,0.35)]">
           <img src="/logo-icon.png" alt="" className="size-10 rounded-full shrink-0" />
           <div className="min-w-0">
@@ -43,24 +44,10 @@ export default function AppTopBar({ searchQuery, onSearch, onClearSearch, onNavi
         <button onClick={onToggleTheme} className={roundButton} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
           {theme === "dark" ? <Sun size={19} /> : <Moon size={19} />}
         </button>
-        <button onClick={() => (searching ? closeSearch() : setSearching(true))} className={roundButton} aria-label={searching ? "Close search" : "Search"}>
-          {searching ? <X size={19} /> : <Search size={19} />}
-        </button>
+        <span className="size-11 shrink-0" />
+        <ExpandingSearch open={searching} onOpenChange={toggleSearch} query={searchQuery} onQueryChange={onSearch} placeholder="Search codes, customers, orders…" rightSpace={52} />
         <AdminStatusAvatar onNavigate={onNavigate} large />
       </div>
-
-      {searching && (
-        <div className="relative">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
-          <input
-            autoFocus
-            value={searchQuery}
-            onChange={(event) => onSearch(event.target.value)}
-            placeholder="Search codes, customers, orders, messages…"
-            className="w-full h-11 rounded-full bg-white pl-10 pr-4 text-[14px] outline-none shadow-[0_8px_24px_-16px_rgba(12,38,96,0.35)] placeholder:text-zinc-400"
-          />
-        </div>
-      )}
     </header>
   );
 }

@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, LogOut, Moon, Search, X } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, LogOut, Moon } from "lucide-react";
 import type { AdminTheme } from "@/hooks/useAdminTheme";
 import { useBackButton } from "@/hooks/useBackButton";
 import { classNames } from "@/lib/format";
-import { loadAdminProfile, saveAdminName, type AdminProfile } from "@/lib/supabase/adminProfile";
+import { setAdminProfile, useAdminProfile } from "@/hooks/useAdminProfile";
+import { saveAdminName, type AdminProfile } from "@/lib/supabase/adminProfile";
+import ExpandingSearch from "../ui/ExpandingSearch";
 import Modal from "../ui/Modal";
 import { inputClass } from "../ui/styles";
 import AdminPhoto from "./AdminPhoto";
@@ -32,15 +34,11 @@ const cardIcon = "size-9 shrink-0 rounded-xl grid place-items-center";
 export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSettingsProps) {
   const settings = useSettingsDraft();
   const [openTab, setOpenTab] = useState<SettingsTabKey | null>(null);
-  const [profile, setProfile] = useState<AdminProfile | null>(null);
+  const profile = useAdminProfile();
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
   const [editingName, setEditingName] = useState(false);
   useBackButton(Boolean(openTab), () => setOpenTab(null));
-
-  useEffect(() => {
-    loadAdminProfile().then(setProfile);
-  }, []);
 
   if (openTab) return <SettingsScreen tab={openTab} settings={settings} onBack={() => setOpenTab(null)} />;
 
@@ -53,24 +51,13 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSett
       <div className="profile-doodle pointer-events-none absolute inset-x-0 top-0 h-[240px]" />
 
       <div className="relative px-4 pt-3">
-        <div className="flex justify-end">
-          <button onClick={() => (searching ? (setSearching(false), setQuery("")) : setSearching(true))} className={roundButton} aria-label={searching ? "Close search" : "Search settings"}>
-            {searching ? <X size={20} strokeWidth={2.4} /> : <Search size={20} strokeWidth={2.4} />}
-          </button>
+        <div className="relative h-11">
+          <ExpandingSearch open={searching} onOpenChange={setSearching} query={query} onQueryChange={setQuery} placeholder="Search settings" />
         </div>
-        {searching && (
-          <input
-            autoFocus
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search settings"
-            className="mt-2 w-full h-11 rounded-full bg-white px-4 text-[14px] outline-none shadow-[0_8px_24px_-16px_rgba(12,38,96,0.35)] placeholder:text-zinc-400"
-          />
-        )}
       </div>
 
       <div className="relative mt-5">
-        <AdminPhoto profile={profile} onChange={(avatarPath) => setProfile((current) => current && { ...current, avatarPath })} />
+        <AdminPhoto profile={profile} onChange={(avatarPath) => profile && setAdminProfile({ ...profile, avatarPath })} />
 
         <div className="-mt-16 min-h-[calc(100%-4rem)] rounded-t-[34px] bg-white px-4 pt-[84px] pb-[116px]">
           <button onClick={() => profile && setEditingName(true)} className="block mx-auto text-center">
@@ -126,7 +113,7 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSett
       {editingName && profile && (
         <NameDialog
           profile={profile}
-          onSaved={(name) => setProfile({ ...profile, name })}
+          onSaved={(name) => setAdminProfile({ ...profile, name })}
           onClose={() => setEditingName(false)}
         />
       )}

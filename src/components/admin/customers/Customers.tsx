@@ -14,7 +14,7 @@ import WhatsAppLink from "../ui/WhatsAppLink";
 import BlockCustomerButton from "./BlockCustomerButton";
 import { inputClass } from "../ui/styles";
 
-const rowGrid = "grid grid-cols-[2.9rem_minmax(0,1fr)_2.6rem_6rem] md:grid-cols-[6rem_13rem_8rem_7.75rem] xl:grid-cols-[7rem_14rem_9rem_7.75rem] items-center gap-x-1.5 md:gap-x-4 xl:gap-x-10";
+const rowGrid = "grid grid-cols-[2.6rem_minmax(0,1fr)_2.2rem_6.4rem] md:grid-cols-[6rem_13rem_8rem_7.75rem] xl:grid-cols-[7rem_14rem_9rem_7.75rem] items-center gap-x-1.5 md:gap-x-4 xl:gap-x-10";
 
 export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
   const state = useAppState();
@@ -28,7 +28,7 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
 
   return (
     <div className="h-full">
-      <div className="h-full max-w-[1200px] mx-auto md:w-fit p-4 lg:p-7 flex flex-col gap-5">
+      <div className="h-full max-w-[1200px] mx-auto md:w-fit p-3 md:p-4 lg:p-7 flex flex-col gap-5">
         <div className="shrink-0 flex flex-wrap items-end justify-between gap-3">
           <div>
             <button
@@ -51,21 +51,28 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
             <EmptyState icon={<Users size={20} />} title="No customers found" />
           ) : (
             <div className="flex-1 min-h-0 overflow-y-auto">
-              <div className={`${rowGrid} sticky top-0 z-10 px-3 md:px-5 py-2.5 text-white text-[12px] md:text-[13px] font-medium bg-[linear-gradient(90deg,#0c2660_0%,#14327a_100%)]`}>
+              <div className={`${rowGrid} sticky top-0 z-10 px-2.5 md:px-5 py-2.5 text-white text-[12px] md:text-[13px] font-medium bg-[linear-gradient(90deg,#0c2660_0%,#14327a_100%)]`}>
                 <span>ID</span>
                 <span>WhatsApp</span>
                 <span>
                   <span className="md:hidden">Active</span>
                   <span className="hidden md:inline">Last active</span>
                 </span>
-                <span />
+                <span>Actions</span>
               </div>
               <ul className="divide-y divide-zinc-200">
                 {rows.map((customer) => (
-                  <li key={customer.id} className={`${rowGrid} px-3 md:px-5 py-2.5 hover:bg-zinc-50/70`}>
-                    <div className="min-w-0 flex flex-col md:flex-row md:items-center items-start gap-1 md:gap-2">
+                  <li key={customer.id} className={`${rowGrid} px-2.5 md:px-5 py-2.5 hover:bg-zinc-50/70`}>
+                    <div className="min-w-0 flex flex-col md:flex-row md:items-center items-start gap-0.5 md:gap-2">
                       <span className="font-bold text-[#0C2660] tabular-nums text-[12.5px] md:text-[13px]">{customerNumberLabel(customer)}</span>
-                      {customer.blocked && <Badge tone="red">Blocked</Badge>}
+                      {customer.blocked && (
+                        <>
+                          <span className="md:hidden text-[10px] font-bold text-red-600">Blocked</span>
+                          <span className="hidden md:inline-flex">
+                            <Badge tone="red">Blocked</Badge>
+                          </span>
+                        </>
+                      )}
                     </div>
                     <div className="min-w-0 truncate text-[12.5px] md:text-[13px]">
                       {customer.whatsapp ? <WhatsAppLink number={customer.whatsapp} /> : <span className="text-zinc-400">Not added</span>}
