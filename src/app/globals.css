@@ -212,9 +212,19 @@ html[data-admin-theme="dark"] .bg-\[\#c7d2ec\] { background-color: #34426e; }
 html[data-admin-theme="dark"] .ring-white { --tw-ring-color: #161a22; }
 
 /* Brand navy is too dark on a dark page; buttons and accents use a muted slate blue that sits calmly on it. */
-html[data-admin-theme="dark"] .bg-\[\#0C2660\] { background-color: #2a3a63; }
+html[data-admin-theme="dark"] .bg-\[\#0C2660\] { background-color: #344c8a; }
 html[data-admin-theme="dark"] .hover\:bg-\[\#0a1f52\]:hover,
-html[data-admin-theme="dark"] .hover\:bg-\[\#0C2660\]:hover { background-color: #33467a; }
+html[data-admin-theme="dark"] .hover\:bg-\[\#0C2660\]:hover { background-color: #3d5699; }
+html[data-admin-theme="dark"] .bg-\[\#0C2660\]\/\[0\.07\] { background-color: rgba(168, 189, 245, 0.12); }
+html[data-admin-theme="dark"] .bg-\[\#D4A551\].text-\[\#0C2660\] { color: #0C2660; }
+html[data-admin-theme="dark"] .bg-\[\#e9eefb\] { background-color: #1c2440; }
+html[data-admin-theme="dark"] .bg-\[\#f6eedc\] { background-color: #2b2416; }
+html[data-admin-theme="dark"] .bg-\[\#e3f5ef\] { background-color: #11261e; }
+html[data-admin-theme="dark"] .text-\[\#8a6420\] { color: #dcbb79; }
+html[data-admin-theme="dark"] .text-\[\#047857\] { color: #7fe0b8; }
+html[data-admin-theme="dark"] .segment-on { background-color: #344c8a; color: #fff; }
+html[data-admin-theme="dark"] .chart-picked { background-color: #8fabf0; }
+html[data-admin-theme="dark"] [role="switch"].bg-\[\#0C2660\] { background-color: #D4A551; }
 
 /* Action buttons: deep solid colours with light text, as chosen by the client. */
 html[data-admin-theme="dark"] .bg-emerald-600 { background-color: #0f5132; color: #e5e7eb; }

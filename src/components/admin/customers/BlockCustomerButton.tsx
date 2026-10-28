@@ -14,19 +14,24 @@ const OTHER = "other";
 type BlockCustomerButtonProps = {
   customer: Customer;
   compact?: boolean;
+  pill?: boolean;
 };
 
-export default function BlockCustomerButton({ customer, compact = false }: BlockCustomerButtonProps) {
+const pillClass = "h-[30px] px-3 rounded-full text-[12px] font-bold transition";
+
+export default function BlockCustomerButton({ customer, compact = false, pill = false }: BlockCustomerButtonProps) {
   const [open, setOpen] = useState(false);
 
-  const buttonClass = compact
+  const buttonClass = pill
+    ? `${pillClass} bg-red-50 text-red-700`
+    : compact
     ? "h-8 px-1.5 md:px-3 rounded-lg text-[12.5px] font-medium text-zinc-600 hover:bg-zinc-100 transition"
     : `w-full ${actionButton.softDanger}`;
 
   if (customer.blocked) {
     return (
       <>
-        <button onClick={() => setOpen(true)} className={compact ? buttonClass : `w-full ${actionButton.blocked}`}>
+        <button onClick={() => setOpen(true)} className={pill ? `${pillClass} bg-red-500 text-white` : compact ? buttonClass : `w-full ${actionButton.blocked}`}>
           Unblock
         </button>
         {open && <ConfirmDialog description={`${customer.email} will be able to use the chat again.`} confirmLabel="Yes, unblock" onConfirm={() => unblockCustomer(customer.id)} onClose={() => setOpen(false)} />}

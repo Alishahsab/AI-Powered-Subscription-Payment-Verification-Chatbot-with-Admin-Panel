@@ -96,7 +96,7 @@ export default function AppDashboard({ onNavigate }: { onNavigate: Navigate }) {
                       {day.count}
                     </span>
                   )}
-                  <span className={classNames("w-full rounded-full transition-all duration-300", picked ? "bg-[#0C2660]" : "bg-[#c7d2ec]")} style={{ height: `${Math.max(6, (day.count / top) * 100)}%` }} />
+                  <span className={classNames("w-full rounded-full transition-all duration-300", picked ? "chart-picked bg-[#0C2660]" : "bg-[#c7d2ec]")} style={{ height: `${Math.max(6, (day.count / top) * 100)}%` }} />
                 </span>
                 <span className={classNames("text-[11px] font-bold", picked ? "text-zinc-900" : "text-zinc-400")}>{day.label}</span>
               </button>

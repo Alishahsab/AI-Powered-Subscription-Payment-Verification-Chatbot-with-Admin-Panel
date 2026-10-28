@@ -1,25 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Moon, Sun } from "lucide-react";
-import type { AdminTheme } from "@/hooks/useAdminTheme";
-import type { Navigate } from "../navigation";
 import ExpandingSearch from "../ui/ExpandingSearch";
-import AdminStatusAvatar, { useAdminStatus } from "./AdminStatusAvatar";
+import SignalButton from "../ui/SignalButton";
+import { useAdminStatus } from "./AdminStatusAvatar";
 
 type AppTopBarProps = {
   searchQuery: string;
   onSearch: (query: string) => void;
   onClearSearch: () => void;
-  onNavigate: Navigate;
-  theme: AdminTheme;
-  onToggleTheme: () => void;
 };
 
-const roundButton = "size-11 shrink-0 rounded-full bg-white text-zinc-800 shadow-[0_8px_24px_-16px_rgba(12,38,96,0.35)] grid place-items-center";
-
-// The top of the panel inside the admin app: the store pill on the left, theme, search and the admin on the right.
-export default function AppTopBar({ searchQuery, onSearch, onClearSearch, onNavigate, theme, onToggleTheme }: AppTopBarProps) {
+export default function AppTopBar({ searchQuery, onSearch, onClearSearch }: AppTopBarProps) {
   const status = useAdminStatus();
   const [searching, setSearching] = useState(Boolean(searchQuery));
 
@@ -41,12 +33,9 @@ export default function AppTopBar({ searchQuery, onSearch, onClearSearch, onNavi
             </div>
           </div>
         </div>
-        <button onClick={onToggleTheme} className={roundButton} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
-          {theme === "dark" ? <Sun size={19} /> : <Moon size={19} />}
-        </button>
+        <SignalButton />
         <span className="size-11 shrink-0" />
-        <ExpandingSearch open={searching} onOpenChange={toggleSearch} query={searchQuery} onQueryChange={onSearch} placeholder="Search codes, customers, orders…" rightSpace={52} />
-        <AdminStatusAvatar onNavigate={onNavigate} large />
+        <ExpandingSearch open={searching} onOpenChange={toggleSearch} query={searchQuery} onQueryChange={onSearch} placeholder="Search codes, customers, orders…" />
       </div>
     </header>
   );

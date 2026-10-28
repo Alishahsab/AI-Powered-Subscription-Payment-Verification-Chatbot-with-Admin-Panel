@@ -44,7 +44,7 @@ function TimerRow({ label, help, minutes, onChange }: { label: string; help: str
               setUnit(option);
               onChange(amount * (option === "hr" ? 60 : 1));
             }}
-            className={classNames("rounded-md px-1.5 py-1 text-[10.5px] font-bold", unit === option ? "bg-white text-[#0C2660] shadow-sm" : "text-zinc-400")}
+            className={classNames("rounded-md px-1.5 py-1 text-[10.5px] font-bold", unit === option ? "segment-on bg-white text-[#0C2660] shadow-sm" : "text-zinc-400")}
           >
             {option}
           </button>

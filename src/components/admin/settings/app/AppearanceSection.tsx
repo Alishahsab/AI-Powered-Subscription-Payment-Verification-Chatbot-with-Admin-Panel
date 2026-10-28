@@ -29,7 +29,7 @@ export default function AppearanceSection({ draft, updateDraft }: PageProps) {
               onClick={() => updateDraft((next) => (next.settings.accent = color.value))}
               className={classNames(tile, selected ? "border-[#0C2660] bg-white" : "border-transparent bg-[#f3f5fa]")}
             >
-              <span className="mx-auto mb-1.5 block size-10 rounded-full" style={{ background: color.value }} />
+              <span className="mx-auto mb-1.5 block size-10 rounded-full ring-1 ring-inset ring-zinc-300" style={{ background: color.value }} />
               {color.name}
             </button>
           );

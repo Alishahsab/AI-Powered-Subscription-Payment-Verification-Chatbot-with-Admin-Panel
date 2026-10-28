@@ -9,6 +9,7 @@ import { setAdminProfile, useAdminProfile } from "@/hooks/useAdminProfile";
 import { saveAdminName, type AdminProfile } from "@/lib/supabase/adminProfile";
 import ExpandingSearch from "../ui/ExpandingSearch";
 import Modal from "../ui/Modal";
+import SignalButton from "../ui/SignalButton";
 import { inputClass } from "../ui/styles";
 import AdminPhoto from "./AdminPhoto";
 import AppearanceSection from "./app/AppearanceSection";
@@ -51,7 +52,9 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSett
       <div className="profile-doodle pointer-events-none absolute inset-x-0 top-0 h-[240px]" />
 
       <div className="relative px-4 pt-3">
-        <div className="relative h-11">
+        <div className="relative h-11 flex justify-end gap-2">
+          <SignalButton />
+          <span className="size-11 shrink-0" />
           <ExpandingSearch open={searching} onOpenChange={setSearching} query={query} onQueryChange={setQuery} placeholder="Search settings" />
         </div>
       </div>
