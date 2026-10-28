@@ -181,6 +181,7 @@ html[data-admin-theme="dark"] {
   --color-emerald-50: #11261e;
   --color-emerald-100: #153427;
   --color-sky-50: #10222f;
+  --color-violet-50: #221b3d;
   --admin-chart-bar: #5b74b3;
 }
 
@@ -252,5 +253,6 @@ html[data-admin-theme="dark"] .text-amber-600 { color: #c9a45c; }
 html[data-admin-theme="dark"] .text-emerald-700,
 html[data-admin-theme="dark"] .text-emerald-800,
 html[data-admin-theme="dark"] .text-emerald-950 { color: #7fe0b8; }
+html[data-admin-theme="dark"] .text-violet-700 { color: #c4b5fd; }
 html[data-admin-theme="dark"] .text-sky-700,
 html[data-admin-theme="dark"] .text-sky-950 { color: #8fd3f7; }

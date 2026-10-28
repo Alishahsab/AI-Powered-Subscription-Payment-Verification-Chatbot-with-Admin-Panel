@@ -78,7 +78,7 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
 
       <div className="flex-1 min-w-0 flex flex-col">
         {inApp ? (
-          <AppTopBar searchQuery={searchQuery} onSearch={search} onClearSearch={() => navigate({ section: "dashboard" })} onNavigate={navigate} theme={theme} onToggleTheme={toggleTheme} />
+          target.section !== "inbox" && <AppTopBar searchQuery={searchQuery} onSearch={search} onClearSearch={() => navigate({ section: "dashboard" })} onNavigate={navigate} theme={theme} onToggleTheme={toggleTheme} />
         ) : (
           <TopBar
             searchQuery={searchQuery}

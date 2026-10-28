@@ -4,11 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { MessageSquareText, X } from "lucide-react";
 import { useBackButton } from "@/hooks/useBackButton";
 import { useNow } from "@/hooks/useNow";
+import { isInApp } from "@/lib/appMode";
 import { classNames } from "@/lib/format";
 import { markConversationRead } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import type { InboxTab } from "@/lib/types";
 import EmptyState from "../ui/EmptyState";
+import AppInbox from "./AppInbox";
 import ChatList from "./ChatList";
 import ChatThread from "./ChatThread";
 import CustomerPanel from "./CustomerPanel";
@@ -33,6 +35,7 @@ export default function Inbox({ view, initialTab, initialCustomerId, initialBotF
   useBackButton(Boolean(chosenCustomerId), () => setChosenCustomerId(undefined));
   useBackButton(detailsOpen, () => setDetailsOpen(false));
   const [isWideScreen] = useState(() => window.innerWidth >= 1024);
+  const [inApp] = useState(isInApp);
 
   const list = view === "bot" ? "bot" : tab;
   const items = useMemo(() => buildInboxItems(state, list, botFilter, now), [state, list, botFilter, now]);
@@ -43,6 +46,10 @@ export default function Inbox({ view, initialTab, initialCustomerId, initialBotF
   useEffect(() => {
     if (selectedCustomerId) markConversationRead(selectedCustomerId);
   }, [selectedCustomerId, state.messages.length]);
+
+  if (inApp && view === "inbox" && !selectedCustomerId) {
+    return <AppInbox tab={tab} onTabChange={setTab} counts={counts} items={items} now={now} onOpenChat={setChosenCustomerId} />;
+  }
 
   return (
     <div className="h-full flex lg:gap-3 lg:p-3 bg-[#e9ecf1]">
