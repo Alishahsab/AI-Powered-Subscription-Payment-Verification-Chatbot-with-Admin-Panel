@@ -54,10 +54,12 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
 
   useEffect(() => {
     if (!inApp) return;
-    const app = window as unknown as { premiumStoreShowSection?: (section: Section) => void };
+    const app = window as unknown as { premiumStoreShowSection?: (section: Section) => void; premiumStoreOpen?: (next: NavTarget) => void };
     app.premiumStoreShowSection = (section) => setTarget({ section: appTabs.includes(section) ? section : "dashboard" });
+    app.premiumStoreOpen = (next) => setTarget(appTabs.includes(next.section) ? next : { section: "dashboard" });
     return () => {
       delete app.premiumStoreShowSection;
+      delete app.premiumStoreOpen;
     };
   }, [inApp]);
 
