@@ -1,5 +1,5 @@
 import { classNames } from "@/lib/format";
-import type { SettingsTabProps } from "../Settings";
+import type { SettingsTabProps } from "../settingsTabs";
 import { SettingsSection } from "../SettingsSection";
 
 const colors = [

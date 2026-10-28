@@ -3,7 +3,7 @@ import { createId } from "@/lib/format";
 import { limits } from "@/lib/validation";
 import Button from "../../ui/Button";
 import { inputClass, textareaClass } from "../../ui/styles";
-import type { SettingsTabProps } from "../Settings";
+import type { SettingsTabProps } from "../settingsTabs";
 import { SettingsSection } from "../SettingsSection";
 
 export default function FaqsSection({ draft, updateDraft }: SettingsTabProps) {

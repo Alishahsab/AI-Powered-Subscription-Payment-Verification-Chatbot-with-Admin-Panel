@@ -1,7 +1,7 @@
 import { cleanLetters, limits } from "@/lib/validation";
 import Toggle from "../../ui/Toggle";
 import { inputClass, textareaClass } from "../../ui/styles";
-import type { SettingsTabProps } from "../Settings";
+import type { SettingsTabProps } from "../settingsTabs";
 import { Field, SettingsSection } from "../SettingsSection";
 import { BotMessageSections } from "../MessageSections";
 import FaqsSection from "./FaqsSection";

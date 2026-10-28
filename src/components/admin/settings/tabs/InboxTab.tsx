@@ -6,7 +6,7 @@ import { classNames } from "@/lib/format";
 import { cleanEmail, limits } from "@/lib/validation";
 import { inputClass, textareaClass } from "../../ui/styles";
 import QuickRepliesEditor from "../QuickRepliesEditor";
-import type { SettingsTabProps } from "../Settings";
+import type { SettingsTabProps } from "../settingsTabs";
 import { Field, SettingsSection } from "../SettingsSection";
 
 export default function InboxTab({ draft, updateDraft }: SettingsTabProps) {

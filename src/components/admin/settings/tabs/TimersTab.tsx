@@ -1,5 +1,5 @@
 import DurationField from "../DurationField";
-import type { SettingsTabProps } from "../Settings";
+import type { SettingsTabProps } from "../settingsTabs";
 import { ChoiceButtons, SettingsSection } from "../SettingsSection";
 
 export default function TimersTab({ draft, updateDraft }: SettingsTabProps) {

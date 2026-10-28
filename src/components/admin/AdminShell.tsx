@@ -18,6 +18,7 @@ import AppDashboard from "./dashboard/AppDashboard";
 import Dashboard from "./dashboard/Dashboard";
 import Inbox from "./inbox/Inbox";
 import SearchResults from "./search/SearchResults";
+import AppSettings from "./settings/AppSettings";
 import Settings from "./settings/Settings";
 
 const appTabs: Section[] = ["inbox", "bot", "dashboard", "settings"];
@@ -78,7 +79,7 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
 
       <div className="flex-1 min-w-0 flex flex-col">
         {inApp ? (
-          target.section !== "inbox" && target.section !== "bot" && <AppTopBar searchQuery={searchQuery} onSearch={search} onClearSearch={() => navigate({ section: "dashboard" })} onNavigate={navigate} theme={theme} onToggleTheme={toggleTheme} />
+          !["inbox", "bot", "settings"].includes(target.section) && <AppTopBar searchQuery={searchQuery} onSearch={search} onClearSearch={() => navigate({ section: "dashboard" })} onNavigate={navigate} theme={theme} onToggleTheme={toggleTheme} />
         ) : (
           <TopBar
             searchQuery={searchQuery}
@@ -97,7 +98,8 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
           {target.section === "customers" && <Customers onNavigate={navigate} />}
           {target.section === "inbox" && <Inbox key={`inbox-${target.customerId}-${target.tab}`} view="inbox" initialTab={target.tab} initialCustomerId={target.customerId} />}
           {target.section === "bot" && <Inbox key={`bot-${target.customerId}-${target.botFilter}`} view="bot" initialCustomerId={target.customerId} initialBotFilter={target.botFilter} />}
-          {target.section === "settings" && <Settings onSignOut={inApp ? () => tellApp("sign-out") : undefined} />}
+          {target.section === "settings" &&
+            (inApp ? <AppSettings theme={theme} onToggleTheme={toggleTheme} onSignOut={() => tellApp("sign-out")} /> : <Settings />)}
           {target.section === "search" && <SearchResults query={searchQuery} onNavigate={navigate} />}
         </main>
       </div>

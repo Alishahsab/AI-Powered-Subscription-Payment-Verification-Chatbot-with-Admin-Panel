@@ -2,7 +2,7 @@ import { botMessageGroups, defaultBotMessages, type MessageTab } from "@/lib/bot
 import type { AdminStatus, MenuLockTexts } from "@/lib/types";
 import { limits } from "@/lib/validation";
 import { textareaClass } from "../ui/styles";
-import type { SettingsTabProps } from "./Settings";
+import type { SettingsTabProps } from "./settingsTabs";
 import { Field, SettingsSection } from "./SettingsSection";
 
 const orderMessageLabels: Record<AdminStatus, string> = {

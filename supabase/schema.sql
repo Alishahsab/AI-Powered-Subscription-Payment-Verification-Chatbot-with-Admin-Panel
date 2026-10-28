@@ -1,5 +1,7 @@
 create table if not exists public.admins (
-  user_id uuid primary key references auth.users (id) on delete cascade
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  display_name text,
+  avatar_path text
 );
 
 create or replace function public.is_admin()
@@ -158,6 +160,10 @@ drop policy if exists "admins read own row" on public.admins;
 create policy "admins read own row" on public.admins
 for select to authenticated using (user_id = auth.uid());
 
+drop policy if exists "admins update own row" on public.admins;
+create policy "admins update own row" on public.admins
+for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+
 drop policy if exists "anyone reads config" on public.store_config;
 create policy "anyone reads config" on public.store_config
 for select to anon, authenticated using (true);
@@ -248,6 +254,20 @@ drop policy if exists "customer uploads own screenshots" on storage.objects;
 create policy "customer uploads own screenshots" on storage.objects
 for insert to authenticated
 with check (bucket_id = 'screenshots' and (storage.foldername(name))[1] = auth.uid()::text);
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('avatars', 'avatars', true, 2097152, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update set file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "admin uploads own avatar" on storage.objects;
+create policy "admin uploads own avatar" on storage.objects
+for insert to authenticated
+with check (bucket_id = 'avatars' and public.is_admin() and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "admin deletes own avatar" on storage.objects;
+create policy "admin deletes own avatar" on storage.objects
+for delete to authenticated
+using (bucket_id = 'avatars' and public.is_admin() and (storage.foldername(name))[1] = auth.uid()::text);
 
 insert into storage.buckets (id, name, public)
 values ('guides', 'guides', true)

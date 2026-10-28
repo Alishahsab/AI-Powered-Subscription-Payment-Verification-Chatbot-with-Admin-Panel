@@ -4,7 +4,7 @@ import { useAppState } from "@/lib/store/state";
 import type { AdminStatus } from "@/lib/types";
 import Toggle from "../../ui/Toggle";
 import { inputClass } from "../../ui/styles";
-import type { SettingsTabProps } from "../Settings";
+import type { SettingsTabProps } from "../settingsTabs";
 import { MenuLockSection, OrderMessagesSection, SupportMessagesSection } from "../MessageSections";
 import { Field, SettingsSection } from "../SettingsSection";
 
