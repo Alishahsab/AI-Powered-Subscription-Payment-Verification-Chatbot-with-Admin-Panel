@@ -14,7 +14,7 @@ import WhatsAppLink from "../ui/WhatsAppLink";
 import BlockCustomerButton from "./BlockCustomerButton";
 import { inputClass } from "../ui/styles";
 
-const rowGrid = "grid grid-cols-[2.6rem_minmax(0,1fr)_2.2rem_6.4rem] md:grid-cols-[6rem_13rem_8rem_7.75rem] xl:grid-cols-[7rem_14rem_9rem_7.75rem] items-center gap-x-1.5 md:gap-x-4 xl:gap-x-10";
+const rowGrid = "grid grid-cols-[2.6rem_minmax(0,1fr)_2.3rem_6.4rem] md:grid-cols-[6rem_13rem_8rem_7.75rem] xl:grid-cols-[7rem_14rem_9rem_7.75rem] items-center gap-x-1.5 md:gap-x-4 xl:gap-x-10";
 
 export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
   const state = useAppState();
@@ -58,7 +58,7 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
                   <span className="md:hidden">Active</span>
                   <span className="hidden md:inline">Last active</span>
                 </span>
-                <span>Actions</span>
+                <span className="pl-1.5 md:pl-0">Actions</span>
               </div>
               <ul className="divide-y divide-zinc-200">
                 {rows.map((customer) => (
@@ -81,7 +81,7 @@ export default function Customers({ onNavigate }: { onNavigate: Navigate }) {
                       <span className="md:hidden">{timeAgo(customer.lastSeenAt, now).replace(" ago", "")}</span>
                       <span className="hidden md:inline">{timeAgo(customer.lastSeenAt, now)}</span>
                     </span>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 pl-1.5 md:pl-0">
                       <button
                         onClick={() => onNavigate({ section: "bot", customerId: customer.id })}
                         className="h-8 px-2 md:px-3 rounded-lg border border-zinc-200 bg-white text-[12.5px] font-medium text-zinc-800 hover:bg-zinc-50 transition"

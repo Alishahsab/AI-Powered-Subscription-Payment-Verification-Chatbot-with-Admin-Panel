@@ -36,7 +36,13 @@ export default function AdminStatusAvatar({ onNavigate, large = false }: { onNav
       aria-label={`Status: ${status.label}. Change it in Settings`}
       title={`Status: ${status.label}`}
     >
-      {photo ? <img src={photo} alt="" className="size-full rounded-full object-cover" /> : "AD"}
+      {photo ? (
+        <span className="absolute inset-0 overflow-hidden rounded-full">
+          <img src={photo} alt="" className="size-full object-cover" />
+        </span>
+      ) : (
+        "AD"
+      )}
       <span className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full ring-2 ring-white ${status.dot}`} />
     </button>
   );
