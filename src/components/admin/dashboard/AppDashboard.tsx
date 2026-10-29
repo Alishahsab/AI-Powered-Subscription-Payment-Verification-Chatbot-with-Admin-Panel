@@ -23,7 +23,7 @@ export default function AppDashboard({ onNavigate }: { onNavigate: Navigate }) {
   const issues = state.tickets.filter((ticket) => ticket.status === "open" && ticket.kind === "support").length;
 
   const stats: { label: string; value: number; dot: string; target: NavTarget }[] = [
-    { label: "Pending orders", value: pending, dot: "bg-[#7a6248]", target: { section: "inbox", tab: "pending" } },
+    { label: "Pending orders", value: pending, dot: "bg-[#ff5d7d]", target: { section: "inbox", tab: "pending" } },
     { label: "App issues", value: issues, dot: "bg-[#ffb02e]", target: { section: "inbox", tab: "issues" } },
     { label: "Active chats", value: botCounts.active_chats, dot: "bg-[#22c55e]", target: { section: "bot", botFilter: "active_chats" } },
     { label: "Active orders", value: botCounts.active_orders, dot: "bg-[#0a84ff]", target: { section: "bot", botFilter: "active_orders" } },

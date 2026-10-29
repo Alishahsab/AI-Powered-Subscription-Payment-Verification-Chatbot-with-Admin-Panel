@@ -99,7 +99,7 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut, onNavigat
                     <span className="block truncate text-[11.5px] text-zinc-500">Switch between light and dark</span>
                   </span>
                   <span className={classNames("relative h-6 w-[42px] shrink-0 rounded-full transition", theme === "dark" ? "bg-[#D4A551]" : "bg-zinc-300")}>
-                    <span className={classNames("absolute top-[3px] size-[18px] rounded-full bg-white transition-all", theme === "dark" ? "left-[21px]" : "left-[3px]")} />
+                    <span className={classNames("absolute top-[3px] left-[3px] size-[18px] rounded-full bg-white transition-transform duration-200 ease-out", theme === "dark" && "translate-x-[18px]")} />
                   </span>
                 </button>
                 <button onClick={onSignOut} className={card}>

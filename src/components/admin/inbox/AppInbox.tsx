@@ -15,7 +15,7 @@ import RejectDialog from "./RejectDialog";
 import { matchesSearch, type InboxItem } from "./inboxItems";
 
 const tabs: { key: InboxTab; label: string; dot: string }[] = [
-  { key: "pending", label: "Pending", dot: "bg-[#7a6248]" },
+  { key: "pending", label: "Pending", dot: "bg-[#ff5d7d]" },
   { key: "issues", label: "Issues", dot: "bg-[#ffb02e]" },
   { key: "completed", label: "Completed", dot: "bg-[#00a884]" },
   { key: "unused", label: "Unused", dot: "bg-[#7f66ff]" },

@@ -15,7 +15,7 @@ import ReplyDialog from "./ReplyDialog";
 import { titleFit, type InboxItem } from "./inboxItems";
 
 const accents: Record<InboxTab, string> = {
-  pending: "bg-[#7a6248]",
+  pending: "bg-[#ff5d7d]",
   issues: "bg-[#ffb02e]",
   completed: "bg-[#00a884]",
   unused: "bg-[#7f66ff]",
@@ -96,7 +96,14 @@ export default function AppInboxCard({ tab, item, now, onOpenChat }: AppInboxCar
 
           <div className="flex items-center gap-2">
             <button onClick={() => onOpenChat(item.customerId)} className="flex-1 min-w-0 text-left">
-              {line && <span className="mt-0.5 block truncate text-[12px] text-zinc-600">{line}</span>}
+              {line && (
+                <span className="mt-0.5 flex items-center gap-2">
+                  <span className="truncate text-[12px] text-zinc-600">{line}</span>
+                  {showsCode && (
+                    <span className="shrink-0 rounded-lg border border-dashed border-[#D4A551] bg-amber-50 px-[7px] py-[2px] font-mono text-[11px] font-bold tracking-[1.5px] text-[#0C2660]">{order?.code}</span>
+                  )}
+                </span>
+              )}
               {note && <span className={classNames("mt-0.5 block text-[12px] leading-snug break-words", note.tone)}>{note.text}</span>}
               {showsBadge && item.badge && <span className={classNames("mt-1 inline-block rounded-full px-[7px] py-0.5 text-[10px] font-semibold", badgeTone && badgeTones[badgeTone])}>{item.badge.label}</span>}
             </button>
@@ -104,9 +111,6 @@ export default function AppInboxCard({ tab, item, now, onOpenChat }: AppInboxCar
               <div className="mt-1 size-10 shrink-0 overflow-hidden rounded-[10px] border border-zinc-200 bg-zinc-50">
                 <StoredImage zoomable path={screenshot} alt="Screenshot" className="size-full object-cover object-top" />
               </div>
-            )}
-            {showsCode && (
-              <span className="mt-1 shrink-0 rounded-lg border border-dashed border-[#D4A551] bg-amber-50 px-[7px] py-[3px] font-mono text-[11px] font-bold tracking-[1.5px] text-[#0C2660]">{order?.code}</span>
             )}
           </div>
 

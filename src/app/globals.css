@@ -152,12 +152,24 @@ body {
   animation: fade-in 0.2s ease both;
 }
 
+.in-app {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+.in-app .overflow-y-auto {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 .from-right {
-  animation: from-right 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: from-right 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
 }
 
 .from-left {
-  animation: from-left 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: from-left 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
 }
 
 .toast-in {

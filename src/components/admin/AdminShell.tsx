@@ -77,6 +77,10 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
     if (inApp) tellApp(tabBarHidden ? "tabbar:hide" : "tabbar:show");
   }, [inApp, tabBarHidden]);
 
+  useEffect(() => {
+    if (inApp) tellApp(`theme:${theme}`);
+  }, [inApp, theme]);
+
   const sidebar = <AdminSidebar current={target.section} onNavigate={navigate} onSignOut={onSignOut} />;
 
   return (

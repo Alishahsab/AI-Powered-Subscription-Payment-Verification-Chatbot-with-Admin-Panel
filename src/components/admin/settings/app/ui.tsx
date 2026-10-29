@@ -77,7 +77,7 @@ export function Switch({ on, onChange, label }: { on: boolean; onChange: (value:
       }}
       className={classNames("relative h-6 w-10 shrink-0 rounded-full transition", on ? "bg-[#0C2660]" : "bg-zinc-300")}
     >
-      <span className={classNames("absolute top-[3px] size-[18px] rounded-full bg-white shadow transition-all", on ? "left-[19px]" : "left-[3px]")} />
+      <span className={classNames("absolute top-[3px] left-[3px] size-[18px] rounded-full bg-white shadow transition-transform duration-200 ease-out", on && "translate-x-4")} />
     </button>
   );
 }
