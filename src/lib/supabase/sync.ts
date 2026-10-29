@@ -401,7 +401,7 @@ async function catchUpChanges(client: SupabaseClient): Promise<ChangesResult> {
 // The data is kept on the device: a signed-in customer can open the chat without a connection, and the
 // admin panel opens at once with what it showed last time while the fresh data loads.
 let cacheKey = "";
-const CACHE_VERSION = 3;
+const cacheVersion = () => (activeRole === "admin" ? 3 : 2);
 let cacheTimer: ReturnType<typeof setTimeout> | undefined;
 const CACHE_DELAY_MS = 1500;
 
@@ -425,9 +425,9 @@ function writeCache() {
     const state = getState();
     const recentFrom = serverNow() - RECENT_MESSAGES_MS;
     const rowsFor = (table: TableSync) =>
-      table.name === "messages" ? table.readRows({ ...state, messages: state.messages.filter((message) => message.createdAt > recentFrom) }) : table.readRows(state);
+      table.name === "messages" && activeRole === "admin" ? table.readRows({ ...state, messages: state.messages.filter((message) => message.createdAt > recentFrom) }) : table.readRows(state);
     const snapshot = {
-      version: CACHE_VERSION,
+      version: cacheVersion(),
       tables: Object.fromEntries(tables.map((table) => [table.name, rowsFor(table)])),
       config: configToRow(pickConfig(state)),
       changesSince,
@@ -450,7 +450,7 @@ function loadCache() {
       changesSince?: number | null;
       lastFullLoadAt?: number;
     } | null;
-    if (!snapshot || snapshot.version !== CACHE_VERSION) return false;
+    if (!snapshot || snapshot.version !== cacheVersion()) return false;
     applyRemoteChange((draft) => {
       tables.forEach((table) => table.replaceAll(draft, snapshot.tables[table.name] ?? []));
       Object.assign(draft, configFromRow(snapshot.config));
@@ -470,6 +470,29 @@ const LOAD_RETRY_MS = 5000;
 // The admin panel opens with the last two days of chat; older messages follow in the background.
 const RECENT_MESSAGES_MS = 2 * 24 * 60 * 60_000;
 let olderMessagesLoaded = false;
+let olderMessagesDone = false;
+const loadedChats = new Set<string>();
+
+function mergeOlderMessages(rows: Row[]) {
+  applyRemoteChange((draft) => {
+    const known = new Set(draft.messages.map((message) => message.id));
+    const older = rows.filter((row) => !known.has(String(row.id))).map(messageFromRow);
+    if (older.length) draft.messages = [...older, ...draft.messages].sort((a, b) => a.createdAt - b.createdAt);
+  });
+}
+
+export function chatHistoryReady(customerId: string) {
+  return activeRole !== "admin" || olderMessagesDone || loadedChats.has(customerId);
+}
+
+// Opening a chat before the older messages have arrived loads that one chat straight away.
+export async function loadChatHistory(customerId: string) {
+  if (chatHistoryReady(customerId)) return;
+  const { data, error } = await getSupabase("admin").from("messages").select("*").eq("customer_id", customerId).order("created_at");
+  if (error || !data || activeRole !== "admin") return;
+  loadedChats.add(customerId);
+  mergeOlderMessages(data);
+}
 
 function recentMessagesFrom() {
   return activeRole === "admin" ? serverNow() - RECENT_MESSAGES_MS : undefined;
@@ -483,14 +506,12 @@ async function loadOlderMessages(client: SupabaseClient) {
   if (activeRole !== "admin") return;
   if (!result.data) {
     olderMessagesLoaded = false;
+  olderMessagesDone = false;
+  loadedChats.clear();
     return;
   }
-  const rows = result.data;
-  applyRemoteChange((draft) => {
-    const known = new Set(draft.messages.map((message) => message.id));
-    const older = rows.filter((row) => !known.has(String(row.id))).map(messageFromRow);
-    if (older.length) draft.messages = [...older, ...draft.messages].sort((a, b) => a.createdAt - b.createdAt);
-  });
+  mergeOlderMessages(result.data);
+  olderMessagesDone = true;
 }
 let loadRetryTimer: ReturnType<typeof setTimeout> | undefined;
 
