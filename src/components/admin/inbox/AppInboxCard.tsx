@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import StoredImage from "@/components/StoredImage";
-import { chatListTime, classNames, formatMoney, timeAgo } from "@/lib/format";
+import { chatListTime, classNames, formatMoney } from "@/lib/format";
 import { cancelOrderAsAdmin, setCodeUnused, setTicketResolved, unblockCustomer } from "@/lib/store/admin";
 import { useAppState } from "@/lib/store/state";
 import type { InboxTab } from "@/lib/types";
@@ -30,7 +30,7 @@ const badgeTones = {
   violet: "bg-violet-50 text-violet-700",
 };
 
-const button = "h-[30px] px-3.5 rounded-full text-[12px] font-bold transition active:scale-[0.97]";
+const button = "h-[30px] px-3.5 rounded-full text-[12px] font-semibold";
 const buttons = {
   navy: `${button} bg-[#0C2660] text-white shadow-[0_6px_14px_-8px_#0C2660]`,
   soft: `${button} bg-[#eef1f7] text-[#0C2660]`,
@@ -65,17 +65,16 @@ export default function AppInboxCard({ tab, item, now, onOpenChat }: AppInboxCar
   const badgeTone = tab === "unused" ? "violet" : item.badge?.tone;
   const customerName = customer?.email ?? "this customer";
 
-  let details = "";
-  if (tab === "pending" && order) details = `${formatMoney(order.amount)} · ${order.methodName}`;
-  if ((tab === "completed" || tab === "unused") && order) details = codeSentAt ? `Code sent ${chatListTime(codeSentAt, now)}` : `Approved ${chatListTime(order.reviewedAt ?? order.createdAt, now)}`;
-  if (ticket) details = ticket.orderId ? `${ticket.id} · Order ${ticket.orderId}` : ticket.id;
-  if (tab === "blocked" && customer) details = `Last active ${timeAgo(customer.lastSeenAt, now)}`;
+  let line = "";
+  if (tab === "pending" && order) line = [order.senderName, order.planName, formatMoney(order.amount), order.methodName].filter(Boolean).join(" · ");
+  if ((tab === "completed" || tab === "unused") && order) line = `${order.planName} · ${codeSentAt ? `Code sent ${chatListTime(codeSentAt, now)}` : "Code not sent yet"}`;
 
   let note: { text: string; tone: string } | null = null;
-  if (order?.status === "rejected") note = { text: `Rejected: ${order.rejectReason}`, tone: "bg-red-50 text-red-700" };
-  if (tab === "completed" && order && !order.code) note = { text: "Approved. Type the premium code in the chat to send it.", tone: "bg-emerald-50 text-emerald-700" };
-  if (ticket) note = { text: ticket.message, tone: "bg-zinc-50 text-zinc-700 line-clamp-2" };
-  if (tab === "blocked") note = { text: `Reason: ${item.subtitle}`, tone: "bg-red-50 text-red-700" };
+  if (order?.status === "rejected") note = { text: `Rejected: ${order.rejectReason}`, tone: "text-red-700" };
+  if (ticket) note = { text: ticket.message, tone: "text-zinc-600 line-clamp-2" };
+  if (tab === "blocked") note = { text: item.subtitle, tone: "text-red-700 line-clamp-2" };
+
+  const showsBadge = (tab === "pending" && order?.status !== "rejected") || tab === "issues";
 
   return (
     <div className="relative overflow-hidden rounded-[20px] bg-white px-3 py-[11px] shadow-[0_8px_24px_-20px_rgba(12,38,96,0.55)]">
@@ -86,57 +85,55 @@ export default function AppInboxCard({ tab, item, now, onOpenChat }: AppInboxCar
           <CustomerAvatar customerId={item.customerId} size={44} />
         </button>
 
-        <button onClick={() => onOpenChat(item.customerId)} className="flex-1 min-w-0 text-left">
-          <span className="flex items-center gap-1.5">
-            <span className="shrink-0 rounded-[5px] bg-[#0C2660]/[0.07] px-1.5 py-px text-[10.5px] font-extrabold text-[#0C2660]">{item.tag}</span>
-            <span className={classNames(titleFit(item.title), "text-[13.5px] text-zinc-900", item.unread ? "font-extrabold" : "font-bold")}>{item.title}</span>
-            <span className={classNames("ml-auto shrink-0 flex items-center gap-1 text-[10.5px]", item.unread ? "font-extrabold text-[#0C2660]" : "font-semibold text-zinc-400")}>
+        <div className="flex-1 min-w-0">
+          <button onClick={() => onOpenChat(item.customerId)} className="w-full flex items-center gap-1.5 text-left">
+            <span className="shrink-0 rounded-[5px] bg-[#0C2660]/[0.07] px-1.5 py-px text-[10.5px] font-bold text-[#0C2660]">{item.tag}</span>
+            <span className={classNames(titleFit(item.title), "text-[13.5px] text-zinc-900", item.unread ? "font-bold" : "font-semibold")}>{item.title}</span>
+            <span className={classNames("ml-auto shrink-0 flex items-center gap-1 text-[10.5px]", item.unread ? "font-bold text-[#0C2660]" : "font-medium text-zinc-400")}>
               {chatListTime(item.time, now)}
               {item.unread && <span className="size-[7px] rounded-full bg-[#0C2660]" />}
             </span>
-          </span>
-          {order?.senderName && <span className="mt-0.5 block truncate text-[12px] font-bold text-zinc-700">{order.senderName}</span>}
-          <span className="mt-px block truncate text-[11.5px] text-zinc-500">
-            {order && <b className="font-bold text-zinc-800">{order.planName}</b>}
-            {order && details && " · "}
-            {details}
-          </span>
-          {item.badge && <span className={classNames("mt-1 inline-block rounded-full px-[7px] py-0.5 text-[10px] font-extrabold", badgeTone && badgeTones[badgeTone])}>{item.badge.label}</span>}
-        </button>
+          </button>
 
-        {screenshot && (
-          <div className="self-center size-10 shrink-0 overflow-hidden rounded-[10px] border border-zinc-200 bg-zinc-50">
-            <StoredImage zoomable path={screenshot} alt="Screenshot" className="size-full object-cover object-top" />
+          <div className="flex items-center gap-2">
+            <button onClick={() => onOpenChat(item.customerId)} className="flex-1 min-w-0 text-left">
+              {line && <span className="mt-0.5 block truncate text-[12px] text-zinc-600">{line}</span>}
+              {note && <span className={classNames("mt-0.5 block text-[12px] leading-snug break-words", note.tone)}>{note.text}</span>}
+              {showsBadge && item.badge && <span className={classNames("mt-1 inline-block rounded-full px-[7px] py-0.5 text-[10px] font-semibold", badgeTone && badgeTones[badgeTone])}>{item.badge.label}</span>}
+            </button>
+            {screenshot && (
+              <div className="mt-1 size-10 shrink-0 overflow-hidden rounded-[10px] border border-zinc-200 bg-zinc-50">
+                <StoredImage zoomable path={screenshot} alt="Screenshot" className="size-full object-cover object-top" />
+              </div>
+            )}
+            {showsCode && (
+              <span className="mt-1 shrink-0 rounded-lg border border-dashed border-[#D4A551] bg-amber-50 px-[7px] py-[3px] font-mono text-[11px] font-bold tracking-[1.5px] text-[#0C2660]">{order?.code}</span>
+            )}
           </div>
-        )}
-        {showsCode && (
-          <span className="self-center shrink-0 rounded-lg border border-dashed border-[#D4A551] bg-amber-50 px-[7px] py-[3px] font-mono text-[11px] font-extrabold tracking-[1.5px] text-[#0C2660]">{order?.code}</span>
-        )}
-      </div>
 
-      {note && <div className={classNames("ml-[54px] mt-2 rounded-[10px] px-2.5 py-1.5 text-[11.5px] leading-snug break-words", note.tone)}>{note.text}</div>}
-
-      <div className="ml-[54px] mt-2.5 flex flex-wrap gap-1.5">
-        {tab === "pending" && order && (
-          <>
-            <button onClick={() => setDialog("approve")} className={buttons.navy}>Approve</button>
-            <button onClick={() => setDialog("reject")} className={buttons.reject}>Reject</button>
-            <button onClick={() => setDialog("cancel")} className={buttons.cancel}>Cancel</button>
-          </>
-        )}
-        {ticket && (
-          <>
-            <button onClick={() => setDialog("resolve")} className={buttons.navy}>Resolved</button>
-            <button onClick={() => setDialog("reply")} className={buttons.soft}>Reply</button>
-          </>
-        )}
-        {tab === "completed" && order && (order.code ? (
-          <button onClick={() => setDialog("unused")} className={buttons.soft}>Mark as unused</button>
-        ) : (
-          <button onClick={() => onOpenChat(item.customerId)} className={buttons.soft}>Open chat to send code</button>
-        ))}
-        {tab === "unused" && order && <button onClick={() => setDialog("unused")} className={buttons.violet}>Mark as used</button>}
-        {tab === "blocked" && <button onClick={() => setDialog("unblock")} className={buttons.unblock}>Unblock</button>}
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {tab === "pending" && order && (
+              <>
+                <button onClick={() => setDialog("approve")} className={buttons.navy}>Approve</button>
+                <button onClick={() => setDialog("reject")} className={buttons.reject}>Reject</button>
+                <button onClick={() => setDialog("cancel")} className={buttons.cancel}>Cancel</button>
+              </>
+            )}
+            {ticket && (
+              <>
+                <button onClick={() => setDialog("resolve")} className={buttons.navy}>Resolved</button>
+                <button onClick={() => setDialog("reply")} className={buttons.soft}>Reply</button>
+              </>
+            )}
+            {tab === "completed" && order && (order.code ? (
+              <button onClick={() => setDialog("unused")} className={buttons.soft}>Mark as unused</button>
+            ) : (
+              <button onClick={() => onOpenChat(item.customerId)} className={buttons.soft}>Open chat to send code</button>
+            ))}
+            {tab === "unused" && order && <button onClick={() => setDialog("unused")} className={buttons.violet}>Mark as used</button>}
+            {tab === "blocked" && <button onClick={() => setDialog("unblock")} className={buttons.unblock}>Unblock</button>}
+          </div>
+        </div>
       </div>
 
       {dialog === "approve" && order && <ApproveDialog order={order} customerEmail={customerName} onClose={close} />}

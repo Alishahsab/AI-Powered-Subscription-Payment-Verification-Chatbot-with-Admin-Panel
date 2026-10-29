@@ -92,7 +92,7 @@ function TextEditor({ field, draft, updateDraft }: PageProps & { field: TextFiel
 
   return (
     <div className="rounded-[20px] bg-white p-3.5 shadow-[0_10px_26px_-22px_rgba(12,38,96,0.55)]">
-      <div className="flex items-center gap-2 text-[13px] font-extrabold text-zinc-900">
+      <div className="flex items-center gap-2 text-[13px] font-bold text-zinc-900">
         {field.dot && <span className={`size-2 rounded-full ${field.dot}`} />}
         {field.label}
       </div>
@@ -110,10 +110,10 @@ function TextEditor({ field, draft, updateDraft }: PageProps & { field: TextFiel
 
       {field.variables && field.variables.length > 0 && (
         <>
-          <p className="mt-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-zinc-400">Tap to add</p>
+          <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.08em] text-zinc-400">Tap to add</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {field.variables.map((variable) => (
-              <button key={variable} onClick={() => insert(variable)} className="rounded-lg bg-amber-50 px-2.5 py-1 font-mono text-[12px] font-bold text-amber-800">
+              <button key={variable} onClick={() => insert(variable)} className="rounded-lg bg-amber-50 px-2.5 py-1 font-mono text-[12px] font-semibold text-amber-800">
                 {variable}
               </button>
             ))}
@@ -122,7 +122,7 @@ function TextEditor({ field, draft, updateDraft }: PageProps & { field: TextFiel
       )}
 
       {field.fallback && value !== field.fallback && (
-        <button onClick={() => updateDraft((next) => field.set(next, field.fallback ?? ""))} className="mt-3 text-[12.5px] font-bold text-zinc-500">
+        <button onClick={() => updateDraft((next) => field.set(next, field.fallback ?? ""))} className="mt-3 text-[12.5px] font-semibold text-zinc-500">
           Use the default text
         </button>
       )}

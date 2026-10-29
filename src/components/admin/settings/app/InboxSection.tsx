@@ -83,12 +83,12 @@ export default function InboxSection({ draft, updateDraft, open }: PageProps) {
       <Group title="Inbox tabs · names and order">
         {inboxTabs.map((tab, index) => (
           <div key={tab.key} className="flex items-center gap-2 px-3 py-2">
-            <span className="size-6 shrink-0 rounded-full bg-[#0C2660] text-white text-[11px] font-extrabold grid place-items-center">{index + 1}</span>
+            <span className="size-6 shrink-0 rounded-full bg-[#0C2660] text-white text-[11px] font-bold grid place-items-center">{index + 1}</span>
             <input
               value={tab.label}
               maxLength={24}
               onChange={(event) => updateDraft((next) => (next.settings.inboxTabs[index].label = event.target.value))}
-              className="flex-1 min-w-0 h-9 rounded-lg bg-transparent px-2 text-[13.5px] font-bold text-zinc-900 outline-none focus:bg-[#f3f5fa]"
+              className="flex-1 min-w-0 h-9 rounded-lg bg-transparent px-2 text-[13.5px] font-semibold text-zinc-900 outline-none focus:bg-[#f3f5fa]"
             />
             <button onClick={() => move(index, index - 1)} disabled={index === 0} className={arrow} aria-label="Move up">
               <ChevronUp size={16} />
@@ -113,7 +113,7 @@ export default function InboxSection({ draft, updateDraft, open }: PageProps) {
           {blocking.reasons
             .filter((reason) => reason.trim())
             .map((reason) => (
-              <span key={reason} className="rounded-full bg-red-50 px-2.5 py-1 text-[11.5px] font-bold text-red-700">
+              <span key={reason} className="rounded-full bg-red-50 px-2.5 py-1 text-[11.5px] font-semibold text-red-700">
                 {reason}
               </span>
             ))}

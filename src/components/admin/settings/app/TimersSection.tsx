@@ -26,13 +26,13 @@ function TimerRow({ label, help, minutes, onChange }: { label: string; help: str
   return (
     <div className="flex items-center gap-2 px-3.5 py-2.5">
       <span className="flex-1 min-w-0">
-        <span className="block truncate text-[13.5px] font-bold text-zinc-900">{label}</span>
+        <span className="block truncate text-[13.5px] font-semibold text-zinc-900">{label}</span>
         <span className="block truncate text-[11px] text-zinc-500">{help}</span>
       </span>
       <button onClick={() => onChange((amount - 1) * per)} disabled={amount <= 1} className={button} aria-label={`Less ${label}`}>
         <Minus size={15} strokeWidth={2.6} />
       </button>
-      <span className="w-7 text-center text-[15px] font-extrabold tabular-nums text-[#0C2660]">{amount}</span>
+      <span className="w-7 text-center text-[15px] font-bold tabular-nums text-[#0C2660]">{amount}</span>
       <button onClick={() => onChange((amount + 1) * per)} className={button} aria-label={`More ${label}`}>
         <Plus size={15} strokeWidth={2.6} />
       </button>
@@ -44,7 +44,7 @@ function TimerRow({ label, help, minutes, onChange }: { label: string; help: str
               setUnit(option);
               onChange(amount * (option === "hr" ? 60 : 1));
             }}
-            className={classNames("rounded-md px-1.5 py-1 text-[10.5px] font-bold", unit === option ? "segment-on bg-white text-[#0C2660] shadow-sm" : "text-zinc-400")}
+            className={classNames("rounded-md px-1.5 py-1 text-[10.5px] font-semibold", unit === option ? "segment-on bg-white text-[#0C2660] shadow-sm" : "text-zinc-400")}
           >
             {option}
           </button>
@@ -68,15 +68,15 @@ export default function TimersSection({ draft, updateDraft }: PageProps) {
 
       <Group title="Limits">
         <div className="px-3.5 py-3">
-          <p className="mb-2 text-[13px] font-bold text-zinc-900">Cancels before new orders pause</p>
+          <p className="mb-2 text-[13px] font-semibold text-zinc-900">Cancels before new orders pause</p>
           <Choices values={[1, 2, 3, 5]} value={limits.cancelsBeforeCooldown} onChange={(value) => updateDraft((next) => (next.settings.limits.cancelsBeforeCooldown = value))} />
         </div>
         <div className="px-3.5 py-3">
-          <p className="mb-2 text-[13px] font-bold text-zinc-900">Block after more cancels in a day than</p>
+          <p className="mb-2 text-[13px] font-semibold text-zinc-900">Block after more cancels in a day than</p>
           <Choices values={[2, 3, 5, 10]} value={limits.cancelsBeforeBlock} onChange={(value) => updateDraft((next) => (next.settings.limits.cancelsBeforeBlock = value))} />
         </div>
         <div className="px-3.5 py-3">
-          <p className="mb-2 text-[13px] font-bold text-zinc-900">Replies after a rejected payment</p>
+          <p className="mb-2 text-[13px] font-semibold text-zinc-900">Replies after a rejected payment</p>
           <Choices values={[1, 2, 3]} value={limits.repliesAfterRejection} onChange={(value) => updateDraft((next) => (next.settings.limits.repliesAfterRejection = value))} />
         </div>
       </Group>

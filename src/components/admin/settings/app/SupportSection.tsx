@@ -84,8 +84,8 @@ export default function SupportSection({ draft, updateDraft, open }: PageProps) 
           return (
             <div key={faq.id}>
               <button onClick={() => setOpenFaq(expanded ? null : faq.id)} className="w-full flex items-center gap-2.5 px-3.5 py-3 text-left">
-                <span className="size-6 shrink-0 rounded-full bg-[#0C2660] text-white text-[11px] font-extrabold grid place-items-center">{index + 1}</span>
-                <span className={classNames("flex-1 min-w-0 text-[13.5px] font-bold", faq.question ? "text-zinc-900" : "text-zinc-400")}>{faq.question || "New question"}</span>
+                <span className="size-6 shrink-0 rounded-full bg-[#0C2660] text-white text-[11px] font-bold grid place-items-center">{index + 1}</span>
+                <span className={classNames("flex-1 min-w-0 text-[13.5px] font-semibold", faq.question ? "text-zinc-900" : "text-zinc-400")}>{faq.question || "New question"}</span>
                 <ChevronDown size={16} className={classNames("shrink-0 text-zinc-400 transition", expanded && "rotate-180")} />
               </button>
               {expanded && (
@@ -95,7 +95,7 @@ export default function SupportSection({ draft, updateDraft, open }: PageProps) 
                     maxLength={limits.questionMax}
                     placeholder="Question"
                     onChange={(event) => updateDraft((next) => (next.faqs[index].question = event.target.value))}
-                    className={`${appInput} font-bold`}
+                    className={`${appInput} font-semibold`}
                   />
                   <textarea
                     rows={3}
@@ -107,7 +107,7 @@ export default function SupportSection({ draft, updateDraft, open }: PageProps) 
                   />
                   <button
                     onClick={() => updateDraft((next) => void next.faqs.splice(index, 1))}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1.5 text-[12px] font-bold text-red-600"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1.5 text-[12px] font-semibold text-red-600"
                   >
                     <Trash2 size={14} /> Delete
                   </button>

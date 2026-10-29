@@ -18,9 +18,9 @@ export function Group({ title, action, plain = false, children }: GroupProps) {
     <section>
       {(title || action) && (
         <div className="flex items-center justify-between px-1.5 pt-4 pb-2">
-          <h3 className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-zinc-400">{title}</h3>
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.08em] text-zinc-400">{title}</h3>
           {action && (
-            <button onClick={action.onClick} className="rounded-full bg-white px-3 py-1 text-[12px] font-bold text-[#0C2660] shadow-[0_4px_12px_-8px_rgba(12,38,96,0.4)]">
+            <button onClick={action.onClick} className="rounded-full bg-white px-3 py-1 text-[12px] font-semibold text-[#0C2660] shadow-[0_4px_12px_-8px_rgba(12,38,96,0.4)]">
               {action.label}
             </button>
           )}
@@ -47,11 +47,11 @@ export function Row({ title, sub, preview = false, dot, value, count, end, onCli
     <>
       {dot && <span className={classNames("mt-1.5 size-2 shrink-0 self-start rounded-full", dot)} />}
       <span className="flex-1 min-w-0">
-        <span className="block text-[13.5px] font-bold text-zinc-900">{title}</span>
+        <span className="block text-[13.5px] font-semibold text-zinc-900">{title}</span>
         {sub && <span className={classNames("block mt-0.5 text-[12px] text-zinc-500", preview ? "line-clamp-2" : "truncate")}>{sub}</span>}
       </span>
-      {value && <span className="shrink-0 max-w-[45%] truncate text-[13px] font-bold text-[#0C2660]">{value}</span>}
-      {count !== undefined && <span className="shrink-0 rounded-full bg-[#eef1f7] px-2 py-0.5 text-[10.5px] font-extrabold text-[#0C2660]">{count}</span>}
+      {value && <span className="shrink-0 max-w-[45%] truncate text-[13px] font-semibold text-[#0C2660]">{value}</span>}
+      {count !== undefined && <span className="shrink-0 rounded-full bg-[#eef1f7] px-2 py-0.5 text-[10.5px] font-bold text-[#0C2660]">{count}</span>}
       {end ?? (onClick && <ChevronRight size={16} className="shrink-0 text-zinc-300" />)}
     </>
   );
@@ -95,7 +95,7 @@ type InputFieldProps = {
 export function InputField({ label, hint, children }: InputFieldProps) {
   return (
     <label className="block px-3.5 py-3">
-      <span className="block mb-1.5 text-[12px] font-bold text-zinc-500">{label}</span>
+      <span className="block mb-1.5 text-[12px] font-semibold text-zinc-500">{label}</span>
       {children}
       {hint && <span className="block mt-1.5 text-[11.5px] text-zinc-400">{hint}</span>}
     </label>
@@ -115,7 +115,7 @@ export function Choices({ values, value, onChange }: ChoicesProps) {
         <button
           key={option}
           onClick={() => onChange(option)}
-          className={classNames("flex-1 h-9 rounded-xl text-[13px] font-bold transition", value === option ? "bg-[#0C2660] text-white" : "bg-[#f3f5fa] text-zinc-600")}
+          className={classNames("flex-1 h-9 rounded-xl text-[13px] font-semibold transition", value === option ? "bg-[#0C2660] text-white" : "bg-[#f3f5fa] text-zinc-600")}
         >
           {option}
         </button>

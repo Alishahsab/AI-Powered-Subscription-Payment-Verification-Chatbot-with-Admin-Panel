@@ -45,11 +45,11 @@ export default function AppDashboard({ onNavigate }: { onNavigate: Navigate }) {
       >
         <span className="absolute -right-9 -top-11 size-[150px] rounded-full border-[20px] border-[#D4A551]/15" />
         <span className="relative flex-1 min-w-0">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold">
             <span className={classNames("size-1.5 rounded-full", pending ? "bg-red-400" : "bg-emerald-400")} />
             {pending ? "Needs your review" : "All caught up"}
           </span>
-          <span className="mt-2 block text-[26px] font-extrabold leading-tight tracking-tight">
+          <span className="mt-2 block text-[26px] font-bold leading-tight tracking-tight">
             {pending} <span className="text-[#D4A551]">{pending === 1 ? "payment" : "payments"}</span>
           </span>
           <span className="block text-[12.5px] text-white/70">waiting for verification</span>
@@ -62,11 +62,11 @@ export default function AppDashboard({ onNavigate }: { onNavigate: Navigate }) {
       <div className="shrink-0 grid grid-cols-2 gap-2.5">
         {stats.map((stat) => (
           <button key={stat.label} onClick={() => onNavigate(stat.target)} className="text-left rounded-[22px] bg-white px-4 py-3.5 shadow-[0_8px_24px_-16px_rgba(12,38,96,0.28)]">
-            <span className="flex items-center gap-1.5 text-[12px] font-bold text-zinc-500 whitespace-nowrap">
+            <span className="flex items-center gap-1.5 text-[12px] font-semibold text-zinc-500 whitespace-nowrap">
               <span className={`size-2 rounded-full shrink-0 ${stat.dot}`} />
               {stat.label}
             </span>
-            <span className="mt-1.5 block text-[26px] font-extrabold leading-none text-zinc-900 tabular-nums">{stat.value}</span>
+            <span className="mt-1.5 block text-[26px] font-bold leading-none text-zinc-900 tabular-nums">{stat.value}</span>
           </button>
         ))}
       </div>
@@ -74,10 +74,10 @@ export default function AppDashboard({ onNavigate }: { onNavigate: Navigate }) {
       <div className="flex-1 min-h-[180px] flex flex-col rounded-[26px] bg-white px-4 pt-4 pb-3 shadow-[0_8px_24px_-16px_rgba(12,38,96,0.28)]">
         <div className="flex items-start justify-between">
           <div>
-            <div className="text-[15px] font-extrabold text-zinc-900">Completed orders</div>
+            <div className="text-[15px] font-bold text-zinc-900">Completed orders</div>
             <div className="text-[12px] font-semibold text-zinc-500">Last 7 days · {total} orders</div>
           </div>
-          <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11.5px] font-extrabold text-emerald-700">
+          <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11.5px] font-bold text-emerald-700">
             <TrendingUp size={14} />
             {days[DAYS - 1].count} today
           </span>
@@ -90,7 +90,7 @@ export default function AppDashboard({ onNavigate }: { onNavigate: Navigate }) {
                 <span className="relative w-full flex-1 min-h-0 rounded-full bg-[#eef1f7] flex items-end">
                   {picked && (
                     <span
-                      className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-zinc-900 px-2 py-1 text-[11px] font-extrabold text-white"
+                      className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-zinc-900 px-2 py-1 text-[11px] font-bold text-white"
                       style={{ bottom: `calc(${(day.count / top) * 100}% + 6px)` }}
                     >
                       {day.count}
@@ -98,7 +98,7 @@ export default function AppDashboard({ onNavigate }: { onNavigate: Navigate }) {
                   )}
                   <span className={classNames("w-full rounded-full transition-all duration-300", picked ? "chart-picked bg-[#0C2660]" : "bg-[#c7d2ec]")} style={{ height: `${Math.max(6, (day.count / top) * 100)}%` }} />
                 </span>
-                <span className={classNames("text-[11px] font-bold", picked ? "text-zinc-900" : "text-zinc-400")}>{day.label}</span>
+                <span className={classNames("text-[11px] font-semibold", picked ? "text-zinc-900" : "text-zinc-400")}>{day.label}</span>
               </button>
             );
           })}
@@ -114,7 +114,7 @@ export default function AppDashboard({ onNavigate }: { onNavigate: Navigate }) {
             <span
               key={letter}
               className={classNames(
-                "size-[34px] rounded-full border-2 border-white grid place-items-center text-[12px] font-extrabold",
+                "size-[34px] rounded-full border-2 border-white grid place-items-center text-[12px] font-bold",
                 index > 0 && "-ml-2.5",
                 ["bg-[#e9eefb] text-[#0C2660]", "bg-[#f6eedc] text-[#8a6420]", "bg-[#e3f5ef] text-[#047857]"][index]
               )}
@@ -124,7 +124,7 @@ export default function AppDashboard({ onNavigate }: { onNavigate: Navigate }) {
           ))}
         </span>
         <span className="flex-1 min-w-0">
-          <span className="block text-[14.5px] font-extrabold text-zinc-900">Customer list</span>
+          <span className="block text-[14.5px] font-bold text-zinc-900">Customer list</span>
           <span className="block text-[12px] font-semibold text-zinc-500">{state.customers.length} customers · tap to see all</span>
         </span>
         <span className="size-9 rounded-full bg-zinc-100 text-zinc-800 grid place-items-center">

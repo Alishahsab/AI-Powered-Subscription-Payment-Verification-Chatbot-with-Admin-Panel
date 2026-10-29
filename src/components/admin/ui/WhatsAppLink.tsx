@@ -1,3 +1,4 @@
+import { openOutsideApp } from "@/lib/appMode";
 import { classNames } from "@/lib/format";
 import { whatsAppLink } from "@/lib/validation";
 import WhatsAppIcon from "./WhatsAppIcon";
@@ -23,6 +24,7 @@ export default function WhatsAppLink({ number, clickable = true, className }: Wh
   return (
     <a
       href={whatsAppLink(number)}
+      onClick={openOutsideApp}
       target="_blank"
       rel="noopener noreferrer"
       title="Open WhatsApp chat"

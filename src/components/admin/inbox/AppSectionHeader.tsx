@@ -27,7 +27,7 @@ export default function AppSectionHeader({ title, query, onQueryChange, placehol
               <ChevronLeft size={22} strokeWidth={2.4} />
             </button>
           )}
-          <h1 className={classNames("truncate font-extrabold tracking-tight text-[#0C2660]", onBack ? "text-[24px]" : "text-[28px]")}>{title}</h1>
+          <h1 className={classNames("truncate font-bold tracking-tight text-[#0C2660]", onBack ? "text-[24px]" : "text-[28px]")}>{title}</h1>
         </div>
         <span className="size-11 shrink-0" />
         <ExpandingSearch open={searching} onOpenChange={setSearching} query={query} onQueryChange={onQueryChange} placeholder={placeholder} rightSpace={52} />

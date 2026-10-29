@@ -97,7 +97,7 @@ export default function AvailabilitySection({ draft, updateDraft, open }: PagePr
                 onClick={() => setAdminStatus(item.status)}
                 className={classNames("rounded-2xl p-2.5 text-left transition", selected ? "bg-[#0C2660] text-white" : "bg-[#f3f5fa] text-zinc-900")}
               >
-                <span className="flex items-center gap-1.5 text-[13px] font-extrabold">
+                <span className="flex items-center gap-1.5 text-[13px] font-bold">
                   <span className={`size-2 rounded-full ${item.dot}`} />
                   {item.label}
                 </span>
@@ -112,12 +112,12 @@ export default function AvailabilitySection({ draft, updateDraft, open }: PagePr
         <div className="grid grid-cols-2 gap-2 p-2.5">
           {(["start", "end"] as const).map((key) => (
             <label key={key} className="rounded-2xl bg-[#f3f5fa] px-3 py-2">
-              <span className="block text-[11px] font-bold text-zinc-500">{key === "start" ? "Opens" : "Closes"}</span>
+              <span className="block text-[11px] font-semibold text-zinc-500">{key === "start" ? "Opens" : "Closes"}</span>
               <input
                 type="time"
                 value={hours[key]}
                 onChange={(event) => updateDraft((next) => (next.settings.hours[key] = event.target.value))}
-                className="w-full bg-transparent text-[18px] font-extrabold text-[#0C2660] outline-none"
+                className="w-full bg-transparent text-[18px] font-bold text-[#0C2660] outline-none"
               />
             </label>
           ))}

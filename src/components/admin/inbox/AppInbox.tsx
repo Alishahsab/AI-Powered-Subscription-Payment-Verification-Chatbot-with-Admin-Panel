@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Inbox as InboxIcon } from "lucide-react";
 import { useCategorySwipe } from "@/hooks/useCategorySwipe";
+import { useShowMore } from "@/hooks/useShowMore";
 import { useAppState } from "@/lib/store/state";
 import type { InboxTab } from "@/lib/types";
 import EmptyState from "../ui/EmptyState";
@@ -11,12 +12,12 @@ import AppSectionHeader from "./AppSectionHeader";
 import CategoryChips from "./CategoryChips";
 import { matchesSearch, type InboxItem } from "./inboxItems";
 
-const tabs: { key: InboxTab; label: string }[] = [
-  { key: "pending", label: "Pending" },
-  { key: "issues", label: "Issues" },
-  { key: "completed", label: "Completed" },
-  { key: "unused", label: "Unused" },
-  { key: "blocked", label: "Blocked" },
+const tabs: { key: InboxTab; label: string; dot: string }[] = [
+  { key: "pending", label: "Pending", dot: "bg-[#7a6248]" },
+  { key: "issues", label: "Issues", dot: "bg-[#ffb02e]" },
+  { key: "completed", label: "Completed", dot: "bg-[#00a884]" },
+  { key: "unused", label: "Unused", dot: "bg-[#7f66ff]" },
+  { key: "blocked", label: "Blocked", dot: "bg-[#ef4444]" },
 ];
 
 const urgentTabs: InboxTab[] = ["pending", "issues"];
@@ -45,6 +46,7 @@ export default function AppInbox({ tab, onTabChange, counts, items, now, onOpenC
 
   const words = query.trim().toLowerCase();
   const shown = words ? items.filter((item) => matchesSearch(state, item, words)) : items;
+  const { visible, sentinel, hasMore } = useShowMore(shown, `${tab}-${words}`);
 
   return (
     <div className="h-full flex flex-col">
@@ -56,8 +58,9 @@ export default function AppInbox({ tab, onTabChange, counts, items, now, onOpenC
         {shown.length === 0 ? (
           <EmptyState icon={<InboxIcon size={20} />} title="Nothing here" description={words ? "No match for your search." : emptyText[tab]} />
         ) : (
-          shown.map((item) => <AppInboxCard key={item.key} tab={tab} item={item} now={now} onOpenChat={onOpenChat} />)
+          visible.map((item) => <AppInboxCard key={item.key} tab={tab} item={item} now={now} onOpenChat={onOpenChat} />)
         )}
+        {hasMore && <div ref={sentinel} className="h-10" />}
       </div>
     </div>
   );

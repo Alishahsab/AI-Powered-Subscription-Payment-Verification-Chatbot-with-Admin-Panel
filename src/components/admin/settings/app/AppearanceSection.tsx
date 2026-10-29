@@ -12,7 +12,7 @@ const colors = [
   { name: "Charcoal", value: "#1F2329" },
 ];
 
-const tile = "rounded-2xl border-2 p-2.5 text-center text-[12px] font-bold text-zinc-700";
+const tile = "rounded-2xl border-2 p-2.5 text-center text-[12px] font-semibold text-zinc-700";
 
 export default function AppearanceSection({ draft, updateDraft }: PageProps) {
   const accent = draft.settings.accent;
@@ -42,21 +42,6 @@ export default function AppearanceSection({ draft, updateDraft }: PageProps) {
           Custom
           <input type="color" value={accent} onChange={(event) => updateDraft((next) => (next.settings.accent = event.target.value))} className="absolute inset-0 opacity-0 cursor-pointer" />
         </label>
-      </div>
-
-      <div className="mx-2.5 mb-2.5 rounded-2xl bg-[#f3f5fa] p-3">
-        <p className="text-[10.5px] font-extrabold uppercase tracking-[0.08em] text-zinc-400">Preview</p>
-        <div className="mt-2 max-w-[80%] rounded-2xl rounded-tl-md bg-white px-3 py-2 text-[12.5px] text-zinc-800">Welcome to {draft.settings.storeName}! How can we help?</div>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {["Buy a Subscription", "Customer Support"].map((label) => (
-            <span key={label} className="rounded-full px-3 py-1.5 text-[11.5px] font-bold text-white" style={{ background: accent }}>
-              {label}
-            </span>
-          ))}
-        </div>
-        <div className="ml-auto mt-2 w-fit max-w-[80%] rounded-2xl rounded-tr-md px-3 py-2 text-[12.5px] text-white" style={{ background: accent }}>
-          1 Month please
-        </div>
       </div>
     </Group>
   );

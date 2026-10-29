@@ -26,10 +26,10 @@ export default function AppTopBar({ searchQuery, onSearch, onClearSearch }: AppT
         <div className="flex-1 min-w-0 flex items-center gap-2.5 rounded-full bg-white p-1.5 pr-4 shadow-[0_8px_24px_-16px_rgba(12,38,96,0.35)]">
           <img src="/logo-icon.png" alt="" className="size-10 rounded-full shrink-0" />
           <div className="min-w-0">
-            <div className="text-[15px] font-extrabold text-zinc-900 truncate">Premium Store</div>
+            <div className="text-[15px] font-bold text-zinc-900 truncate">Premium Store</div>
             <div className="flex items-center gap-1.5 text-[11.5px] font-semibold text-zinc-500">
               <span className={`size-1.5 rounded-full ${status.dot}`} />
-              Admin · {status.label}
+              {status.label}
             </div>
           </div>
         </div>

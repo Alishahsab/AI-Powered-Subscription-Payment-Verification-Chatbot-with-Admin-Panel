@@ -17,3 +17,9 @@ export function isInApp() {
 export function tellApp(message: string) {
   (window as unknown as { PremiumStoreApp?: AppChannel }).PremiumStoreApp?.postMessage(message);
 }
+
+export function openOutsideApp(event: React.MouseEvent<HTMLAnchorElement>) {
+  if (!isInApp()) return;
+  event.preventDefault();
+  tellApp(`open-url:${event.currentTarget.href}`);
+}

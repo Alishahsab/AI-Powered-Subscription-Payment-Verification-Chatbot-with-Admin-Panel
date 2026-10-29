@@ -17,7 +17,7 @@ type BlockCustomerButtonProps = {
   pill?: boolean;
 };
 
-const pillClass = "h-[30px] px-3 rounded-full text-[12px] font-bold transition";
+const pillClass = "h-[30px] px-3 rounded-full text-[12px] font-semibold";
 
 export default function BlockCustomerButton({ customer, compact = false, pill = false }: BlockCustomerButtonProps) {
   const [open, setOpen] = useState(false);

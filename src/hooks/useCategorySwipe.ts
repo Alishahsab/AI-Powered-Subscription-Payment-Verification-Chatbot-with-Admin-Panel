@@ -21,6 +21,8 @@ export function useCategorySwipe<Key extends string>(keys: Key[], current: Key, 
 
   const swipe = {
     onTouchStart: (event: React.TouchEvent) => {
+      start.current = null;
+      if ((event.target as HTMLElement).closest('[role="dialog"]')) return;
       const touch = event.touches[0];
       start.current = { x: touch.clientX, y: touch.clientY };
     },

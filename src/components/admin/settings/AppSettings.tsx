@@ -66,7 +66,7 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSett
 
         <div className="-mt-16 min-h-[calc(100%-4rem)] rounded-t-[34px] bg-white px-4 pt-[84px] pb-[116px]">
           <button onClick={() => profile && setEditingName(true)} className="block mx-auto text-center">
-            <span className="block text-[26px] font-extrabold tracking-tight text-[#0C2660]">{profile?.name ?? " "}</span>
+            <span className="block text-[26px] font-bold tracking-tight text-[#0C2660]">{profile?.name ?? " "}</span>
             <span className="block mt-0.5 text-[13.5px] text-zinc-500">{profile?.email}</span>
           </button>
 
@@ -77,7 +77,7 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSett
                   <Icon size={18} />
                 </span>
                 <span className="flex-1 min-w-0">
-                  <span className="block text-[14px] font-bold text-zinc-900">{label}</span>
+                  <span className="block text-[14px] font-semibold text-zinc-900">{label}</span>
                   <span className="block truncate text-[11.5px] text-zinc-500">{description}</span>
                 </span>
                 <ChevronRight size={17} className="text-zinc-400" />
@@ -91,7 +91,7 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSett
                     <Moon size={18} />
                   </span>
                   <span className="flex-1 min-w-0">
-                    <span className="block text-[14px] font-bold text-zinc-900">Dark mode</span>
+                    <span className="block text-[14px] font-semibold text-zinc-900">Dark mode</span>
                     <span className="block truncate text-[11.5px] text-zinc-500">Switch between light and dark</span>
                   </span>
                   <span className={classNames("relative h-6 w-[42px] shrink-0 rounded-full transition", theme === "dark" ? "bg-[#D4A551]" : "bg-zinc-300")}>
@@ -102,7 +102,7 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSett
                   <span className={`${cardIcon} bg-red-50 text-red-600`}>
                     <LogOut size={18} />
                   </span>
-                  <span className="flex-1 text-[14px] font-bold text-red-600">Sign out</span>
+                  <span className="flex-1 text-[14px] font-semibold text-red-600">Sign out</span>
                 </button>
               </>
             )}
@@ -168,7 +168,7 @@ function SettingsScreen({ tab, settings, onBack }: SettingsScreenProps) {
           <ChevronLeft size={22} strokeWidth={2.4} />
         </button>
         <div className="flex-1 min-w-0 pr-11 text-center">
-          <h1 className="truncate text-[17px] font-extrabold text-[#0C2660]">{title}</h1>
+          <h1 className="truncate text-[17px] font-bold text-[#0C2660]">{title}</h1>
           {subtitle && <p className="truncate text-[11.5px] font-semibold text-zinc-500">{subtitle}</p>}
         </div>
       </header>
@@ -190,16 +190,16 @@ function SaveBar({ settings }: { settings: ReturnType<typeof useSettingsDraft> }
   if (hasChanges) {
     return (
       <div className="grid grid-cols-[1fr_2fr] gap-2">
-        <button onClick={discard} className="h-12 rounded-2xl bg-white text-[14px] font-bold text-zinc-700 shadow-[0_8px_24px_-16px_rgba(12,38,96,0.35)]">
+        <button onClick={discard} className="h-12 rounded-2xl bg-white text-[14px] font-semibold text-zinc-700 shadow-[0_8px_24px_-16px_rgba(12,38,96,0.35)]">
           Discard
         </button>
-        <button onClick={save} className="h-12 rounded-2xl bg-[#0C2660] text-[14px] font-extrabold text-white shadow-[0_12px_24px_-12px_#0C2660]">
+        <button onClick={save} className="h-12 rounded-2xl bg-[#0C2660] text-[14px] font-bold text-white shadow-[0_12px_24px_-12px_#0C2660]">
           Save changes
         </button>
       </div>
     );
   }
-  if (justSaved) return <div className="h-12 rounded-2xl bg-emerald-50 text-emerald-700 text-[13.5px] font-bold grid place-items-center fade-in">Saved and live</div>;
+  if (justSaved) return <div className="h-12 rounded-2xl bg-emerald-50 text-emerald-700 text-[13.5px] font-semibold grid place-items-center fade-in">Saved and live</div>;
   return null;
 }
 

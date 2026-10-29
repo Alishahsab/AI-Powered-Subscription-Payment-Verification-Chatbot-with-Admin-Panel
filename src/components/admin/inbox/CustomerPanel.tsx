@@ -23,12 +23,14 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
 
   return (
     <div className="p-5 space-y-4">
-      <div className="flex flex-col items-center text-center pt-2">
-        <CustomerAvatar customerId={customer.id} size={104} />
-        <div className="mt-3 font-bold text-[18px] text-[#0C2660]">{customerNumberLabel(customer)}</div>
-        {customer.whatsapp && <WhatsAppLink number={customer.whatsapp} className="mt-0.5 text-[14px]" />}
-        <div className="text-[13.5px] font-medium text-zinc-800 break-all">{customer.email}</div>
-        <div className="text-[12px] text-zinc-400 mt-0.5">Customer since {formatDate(customer.createdAt)}</div>
+      <div className="flex items-center gap-3.5 pt-1">
+        <CustomerAvatar customerId={customer.id} size={72} />
+        <div className="min-w-0 flex-1">
+          <span className="inline-block rounded-[5px] bg-[#0C2660]/[0.07] px-1.5 py-px text-[11px] font-bold text-[#0C2660]">{customerNumberLabel(customer)}</span>
+          {customer.whatsapp && <div className="mt-1"><WhatsAppLink number={customer.whatsapp} className="text-[14px]" /></div>}
+          <div className="mt-0.5 truncate text-[13px] text-zinc-700">{customer.email}</div>
+          <div className="text-[11.5px] text-zinc-400">Customer since {formatDate(customer.createdAt)}</div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2">

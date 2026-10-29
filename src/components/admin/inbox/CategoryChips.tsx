@@ -37,7 +37,7 @@ export default function CategoryChips<Key extends string>({ chips, selected, onS
             {chip.count > 0 && (
               <span
                 className={classNames(
-                  "min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-extrabold grid place-items-center",
+                  "min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-bold grid place-items-center",
                   active ? "bg-[#D4A551] text-[#0C2660]" : chip.urgent ? "bg-red-500 text-white" : "bg-[#eef1f7] text-[#0C2660]"
                 )}
               >

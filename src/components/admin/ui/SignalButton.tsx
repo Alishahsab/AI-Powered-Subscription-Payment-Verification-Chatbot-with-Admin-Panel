@@ -39,12 +39,12 @@ export default function SignalButton() {
             />
           ))}
         </span>
-        {bars === 0 && <span className="absolute right-1 bottom-1 size-[15px] rounded-full bg-red-500 ring-2 ring-white text-white text-[10px] font-extrabold grid place-items-center">!</span>}
+        {bars === 0 && <span className="absolute right-1 bottom-1 size-[15px] rounded-full bg-red-500 ring-2 ring-white text-white text-[10px] font-bold grid place-items-center">!</span>}
       </button>
 
       {open && (
         <div className="fade-in absolute right-0 top-[52px] z-30 min-w-[170px] rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_16px_40px_-14px_rgba(12,38,96,0.45)]">
-          <span className="flex items-center gap-2 text-[13.5px] font-bold text-zinc-900 whitespace-nowrap">
+          <span className="flex items-center gap-2 text-[13.5px] font-semibold text-zinc-900 whitespace-nowrap">
             <span className="size-[7px] rounded-full" style={{ background: level.color }} />
             {level.name} connection
           </span>

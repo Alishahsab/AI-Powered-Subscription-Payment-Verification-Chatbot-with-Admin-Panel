@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCategorySwipe } from "@/hooks/useCategorySwipe";
+import { useShowMore } from "@/hooks/useShowMore";
 import { Inbox as InboxIcon } from "lucide-react";
 import { chatListTime, classNames, formatMoney } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
@@ -49,6 +50,7 @@ export default function AppBotChat({ filter, onFilterChange, counts, items, now,
 
   const words = query.trim().toLowerCase();
   const shown = words ? items.filter((item) => matchesSearch(state, item, words)) : items;
+  const { visible, sentinel, hasMore } = useShowMore(shown, `${filter}-${words}`);
   const isOrderList = filter === "active_orders" || filter === "cancelled";
 
   return (
@@ -62,7 +64,7 @@ export default function AppBotChat({ filter, onFilterChange, counts, items, now,
           <EmptyState icon={<InboxIcon size={20} />} title="Nothing here" description={words ? "No match for your search." : emptyText[filter]} />
         ) : (
           <div className="rounded-3xl bg-white py-1 shadow-[0_10px_30px_-24px_rgba(12,38,96,0.55)] divide-y divide-zinc-100">
-            {shown.map((item) => {
+            {visible.map((item) => {
               const order = isOrderList ? state.orders.find((entry) => entry.id === item.key) : undefined;
               const unreadCount = isOrderList ? 0 : (state.conversations[item.customerId]?.unreadByAdmin ?? 0);
               const timeLeft = order && filter === "active_orders" ? Math.max(0, (order.expiresAt - now) / (order.expiresAt - order.createdAt)) : 0;
@@ -72,15 +74,15 @@ export default function AppBotChat({ filter, onFilterChange, counts, items, now,
                   <CustomerAvatar customerId={item.customerId} size={44} />
                   <span className="flex-1 min-w-0 flex flex-col gap-[3px]">
                     <span className="flex items-center gap-1.5">
-                      <span className="shrink-0 rounded-[5px] bg-[#0C2660]/[0.07] px-1.5 py-px text-[10.5px] font-extrabold text-[#0C2660]">{item.tag}</span>
-                      <span className={classNames(titleFit(item.title), "text-[13.5px] font-extrabold text-zinc-900")}>{item.title}</span>
-                      <span className={classNames("ml-auto shrink-0 text-[10.5px]", item.unread ? "font-extrabold text-[#0C2660]" : "font-semibold text-zinc-400")}>{chatListTime(item.time, now)}</span>
+                      <span className="shrink-0 rounded-[5px] bg-[#0C2660]/[0.07] px-1.5 py-px text-[10.5px] font-bold text-[#0C2660]">{item.tag}</span>
+                      <span className={classNames(titleFit(item.title), "text-[13.5px] font-bold text-zinc-900")}>{item.title}</span>
+                      <span className={classNames("ml-auto shrink-0 text-[10.5px]", item.unread ? "font-bold text-[#0C2660]" : "font-semibold text-zinc-400")}>{chatListTime(item.time, now)}</span>
                     </span>
                     <span className="flex items-center gap-1.5">
                       <span className={classNames("truncate text-[12px]", item.unread ? "font-semibold text-zinc-700" : "text-zinc-500")}>
                         {order ? (
                           <>
-                            <b className="font-bold text-zinc-800">{order.planName}</b> · {formatMoney(order.amount)}
+                            <b className="font-semibold text-zinc-800">{order.planName}</b> · {formatMoney(order.amount)}
                             {filter === "active_orders" && ` · ${order.methodName}`}
                           </>
                         ) : (
@@ -88,12 +90,12 @@ export default function AppBotChat({ filter, onFilterChange, counts, items, now,
                         )}
                       </span>
                       {unreadCount > 0 && (
-                        <span className="ml-auto shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-[#0C2660] text-white text-[10px] font-extrabold grid place-items-center">{unreadCount}</span>
+                        <span className="ml-auto shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-[#0C2660] text-white text-[10px] font-bold grid place-items-center">{unreadCount}</span>
                       )}
                     </span>
                     {item.badge && (
                       <span>
-                        <span className={classNames("inline-block rounded-full px-[7px] py-0.5 text-[10px] font-extrabold", badgeTones[item.badge.tone])}>{item.badge.label}</span>
+                        <span className={classNames("inline-block rounded-full px-[7px] py-0.5 text-[10px] font-bold", badgeTones[item.badge.tone])}>{item.badge.label}</span>
                       </span>
                     )}
                     {filter === "active_orders" && (
@@ -107,6 +109,7 @@ export default function AppBotChat({ filter, onFilterChange, counts, items, now,
             })}
           </div>
         )}
+        {hasMore && <div ref={sentinel} className="h-10" />}
       </div>
     </div>
   );

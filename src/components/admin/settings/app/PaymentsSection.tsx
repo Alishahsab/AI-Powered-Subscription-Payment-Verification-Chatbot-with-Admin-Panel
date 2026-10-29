@@ -184,12 +184,12 @@ export default function PaymentsSection({ draft, updateDraft, open }: PageProps)
           <div key={plan.id} className="flex items-center gap-2.5 pr-3.5">
             <button onClick={() => open(planPage(index))} className="flex-1 min-w-0 flex items-center gap-2.5 py-3 pl-3.5 text-left">
               <span className="flex-1 min-w-0">
-                <span className={classNames("block truncate text-[14px] font-extrabold", plan.active ? "text-zinc-900" : "text-zinc-400")}>{plan.name}</span>
+                <span className={classNames("block truncate text-[14px] font-bold", plan.active ? "text-zinc-900" : "text-zinc-400")}>{plan.name}</span>
                 <span className="block text-[11.5px] text-zinc-500">{plan.active ? "Visible to customers" : "Hidden"}</span>
               </span>
               <span
                 className={classNames(
-                  "shrink-0 rounded-full border px-2.5 py-1 text-[12.5px] font-extrabold tabular-nums",
+                  "shrink-0 rounded-full border px-2.5 py-1 text-[12.5px] font-bold tabular-nums",
                   plan.active ? "border-[#D4A551] bg-amber-50 text-[#0C2660]" : "border-zinc-200 text-zinc-400"
                 )}
               >
