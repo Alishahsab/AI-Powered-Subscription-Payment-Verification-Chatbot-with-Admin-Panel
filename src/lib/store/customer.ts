@@ -31,19 +31,25 @@ export async function signIn(email: string, pin: string): Promise<AuthResult> {
   return { error: null };
 }
 
-// null when the number could not be checked (no connection, or the database does not have numbers yet).
 async function isWhatsAppTaken(number: string) {
-  const { data, error } = await getSupabase("customer").rpc("whatsapp_taken", { check_number: number });
-  if (error) return { taken: false, checked: false, missing: error.code === "PGRST202" };
-  return { taken: Boolean(data), checked: true, missing: false };
+  const client = getSupabase("customer");
+  const owner = await client.rpc("whatsapp_owner", { check_number: number });
+  if (!owner.error) return { taken: Boolean(owner.data), owner: (owner.data as string | null) ?? null, checked: true, missing: false };
+
+  const { data, error } = await client.rpc("whatsapp_taken", { check_number: number });
+  if (error) return { taken: false, owner: null, checked: false, missing: error.code === "PGRST202" };
+  return { taken: Boolean(data), owner: null, checked: true, missing: false };
 }
 
-const WHATSAPP_TAKEN = "This number is already used by another account.";
+function takenMessage(owner: string | null) {
+  return owner ? `This number is already used by ${owner}. Please log in with that email.` : "This number is already used by another account.";
+}
+
 const WHATSAPP_UNCHECKED = "We couldn't check this number right now. Please try again.";
 
 export async function signUp(email: string, pin: string, whatsapp: string): Promise<AuthResult> {
   const check = await isWhatsAppTaken(whatsapp);
-  if (check.taken) return { error: WHATSAPP_TAKEN };
+  if (check.taken) return { error: takenMessage(check.owner) };
   if (!check.checked && !check.missing) return { error: WHATSAPP_UNCHECKED };
 
   const { data, error } = await getSupabase("customer").auth.signUp({
@@ -62,11 +68,11 @@ export async function signUp(email: string, pin: string, whatsapp: string): Prom
 
 export async function saveWhatsApp(customerId: string, whatsapp: string): Promise<AuthResult> {
   const check = await isWhatsAppTaken(whatsapp);
-  if (check.taken) return { error: WHATSAPP_TAKEN };
+  if (check.taken) return { error: takenMessage(check.owner) };
   if (!check.checked) return { error: WHATSAPP_UNCHECKED };
 
   const { error } = await getSupabase("customer").from("customers").update({ whatsapp }).eq("id", customerId);
-  if (error?.code === "23505") return { error: WHATSAPP_TAKEN };
+  if (error?.code === "23505") return { error: takenMessage(null) };
   if (error) return { error: WHATSAPP_UNCHECKED };
 
   applyRemoteChange((state) => {
