@@ -217,3 +217,7 @@ export function matchesSearch(state: AppState, item: InboxItem, words: string) {
   const order = state.orders.find((entry) => entry.id === item.key);
   return [item.title, item.tag, item.subtitle, order?.senderName, order?.code].join(" ").toLowerCase().includes(words);
 }
+
+export function titleFit(title: string) {
+  return /^\d+$/.test(title) ? "shrink-0 whitespace-nowrap" : "truncate";
+}

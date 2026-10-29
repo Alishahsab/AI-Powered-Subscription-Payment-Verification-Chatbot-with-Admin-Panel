@@ -33,9 +33,9 @@ export default function AppTopBar({ searchQuery, onSearch, onClearSearch }: AppT
             </div>
           </div>
         </div>
-        <SignalButton />
         <span className="size-11 shrink-0" />
-        <ExpandingSearch open={searching} onOpenChange={toggleSearch} query={searchQuery} onQueryChange={onSearch} placeholder="Search codes, customers, orders…" />
+        <ExpandingSearch open={searching} onOpenChange={toggleSearch} query={searchQuery} onQueryChange={onSearch} placeholder="Search codes, customers, orders…" rightSpace={52} />
+        <SignalButton />
       </div>
     </header>
   );

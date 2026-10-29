@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, LogOut, Moon } from "lucide-react";
 import type { AdminTheme } from "@/hooks/useAdminTheme";
 import { useBackButton } from "@/hooks/useBackButton";
+import { useHideTabBar } from "@/hooks/useTabBar";
 import { classNames } from "@/lib/format";
 import { setAdminProfile, useAdminProfile } from "@/hooks/useAdminProfile";
 import { saveAdminName, type AdminProfile } from "@/lib/supabase/adminProfile";
@@ -40,6 +41,7 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSett
   const [query, setQuery] = useState("");
   const [editingName, setEditingName] = useState(false);
   useBackButton(Boolean(openTab), () => setOpenTab(null));
+  useHideTabBar(Boolean(openTab));
 
   if (openTab) return <SettingsScreen tab={openTab} settings={settings} onBack={() => setOpenTab(null)} />;
 
@@ -53,9 +55,9 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSett
 
       <div className="relative px-4 pt-3">
         <div className="relative h-11 flex justify-end gap-2">
-          <SignalButton />
           <span className="size-11 shrink-0" />
-          <ExpandingSearch open={searching} onOpenChange={setSearching} query={query} onQueryChange={setQuery} placeholder="Search settings" />
+          <ExpandingSearch open={searching} onOpenChange={setSearching} query={query} onQueryChange={setQuery} placeholder="Search settings" rightSpace={52} />
+          <SignalButton />
         </div>
       </div>
 

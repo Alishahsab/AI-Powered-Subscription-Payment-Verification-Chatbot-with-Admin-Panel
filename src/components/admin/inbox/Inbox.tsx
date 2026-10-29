@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { MessageSquareText, X } from "lucide-react";
 import { useBackButton } from "@/hooks/useBackButton";
+import { useHideTabBar } from "@/hooks/useTabBar";
 import { useNow } from "@/hooks/useNow";
 import { isInApp } from "@/lib/appMode";
 import { classNames } from "@/lib/format";
@@ -43,6 +44,7 @@ export default function Inbox({ view, initialTab, initialCustomerId, initialBotF
   const counts = useMemo(() => countInboxTabs(state), [state]);
   const botCounts = useMemo(() => countBotFilters(state, now), [state, now]);
   const selectedCustomerId = chosenCustomerId ?? (isWideScreen ? items[0]?.customerId : undefined);
+  useHideTabBar(inApp && Boolean(selectedCustomerId));
 
   useEffect(() => {
     if (selectedCustomerId) markConversationRead(selectedCustomerId);

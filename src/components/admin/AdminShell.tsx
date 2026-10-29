@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAdminTheme } from "@/hooks/useAdminTheme";
 import { useBackButton } from "@/hooks/useBackButton";
 import { useOrderExpiry } from "@/hooks/useOrderExpiry";
+import { useTabBarHidden } from "@/hooks/useTabBar";
 import { isInApp, tellApp } from "@/lib/appMode";
 import SyncNotice from "../SyncNotice";
 import AdminSidebar from "./layout/AdminSidebar";
@@ -37,6 +38,7 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
   useOrderExpiry();
   const { theme, toggleTheme } = useAdminTheme();
+  const innerScreen = useTabBarHidden() || ["customers", "search"].includes(target.section);
 
   const navigate = (next: NavTarget) => {
     setTarget(next);
@@ -68,6 +70,10 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
     if (inApp) tellApp(target.section);
   }, [inApp, target.section]);
 
+  useEffect(() => {
+    if (inApp) tellApp(innerScreen ? "tabbar:hide" : "tabbar:show");
+  }, [inApp, innerScreen]);
+
   const sidebar = <AdminSidebar current={target.section} onNavigate={navigate} onSignOut={onSignOut} />;
 
   return (
@@ -97,7 +103,7 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
         )}
         <ConnectionBar />
 
-        <main className={inApp ? "flex-1 min-h-0 overflow-hidden pb-[92px]" : "flex-1 min-h-0 overflow-hidden"}>
+        <main className={inApp && !innerScreen ? "flex-1 min-h-0 overflow-hidden pb-[92px]" : "flex-1 min-h-0 overflow-hidden"}>
           {target.section === "dashboard" && (inApp ? <AppDashboard onNavigate={navigate} /> : <Dashboard onNavigate={navigate} />)}
           {target.section === "customers" && (inApp ? <AppCustomers onNavigate={navigate} /> : <Customers onNavigate={navigate} />)}
           {target.section === "inbox" && <Inbox key={`inbox-${target.customerId}-${target.tab}`} view="inbox" initialTab={target.tab} initialCustomerId={target.customerId} />}

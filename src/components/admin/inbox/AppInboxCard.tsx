@@ -11,7 +11,7 @@ import CustomerAvatar from "../ui/CustomerAvatar";
 import ApproveDialog from "./ApproveDialog";
 import RejectDialog from "./RejectDialog";
 import ReplyDialog from "./ReplyDialog";
-import type { InboxItem } from "./inboxItems";
+import { titleFit, type InboxItem } from "./inboxItems";
 
 const accents: Record<InboxTab, string> = {
   pending: "bg-[#7a6248]",
@@ -89,7 +89,7 @@ export default function AppInboxCard({ tab, item, now, onOpenChat }: AppInboxCar
         <button onClick={() => onOpenChat(item.customerId)} className="flex-1 min-w-0 text-left">
           <span className="flex items-center gap-1.5">
             <span className="shrink-0 rounded-[5px] bg-[#0C2660]/[0.07] px-1.5 py-px text-[10.5px] font-extrabold text-[#0C2660]">{item.tag}</span>
-            <span className={classNames("truncate text-[13.5px] text-zinc-900", item.unread ? "font-extrabold" : "font-bold")}>{item.title}</span>
+            <span className={classNames(titleFit(item.title), "text-[13.5px] text-zinc-900", item.unread ? "font-extrabold" : "font-bold")}>{item.title}</span>
             <span className={classNames("ml-auto shrink-0 flex items-center gap-1 text-[10.5px]", item.unread ? "font-extrabold text-[#0C2660]" : "font-semibold text-zinc-400")}>
               {chatListTime(item.time, now)}
               {item.unread && <span className="size-[7px] rounded-full bg-[#0C2660]" />}

@@ -1,18 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { useCategorySwipe } from "@/hooks/useCategorySwipe";
 import { Inbox as InboxIcon } from "lucide-react";
 import { chatListTime, classNames, formatMoney } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import CustomerAvatar from "../ui/CustomerAvatar";
 import EmptyState from "../ui/EmptyState";
 import AppSectionHeader from "./AppSectionHeader";
-import { matchesSearch, type BotFilter, type InboxItem } from "./inboxItems";
+import CategoryChips from "./CategoryChips";
+import { matchesSearch, titleFit, type BotFilter, type InboxItem } from "./inboxItems";
 
 const filters: { key: BotFilter; label: string; dot: string }[] = [
-  { key: "active_orders", label: "Orders", dot: "bg-[#0a84ff]" },
+  { key: "active_chats", label: "Active chats", dot: "bg-[#22c55e]" },
+  { key: "active_orders", label: "Active orders", dot: "bg-[#0a84ff]" },
   { key: "cancelled", label: "Cancelled", dot: "bg-[#c38763]" },
-  { key: "active_chats", label: "Active", dot: "bg-[#22c55e]" },
   { key: "inactive_chats", label: "Inactive", dot: "bg-[#9ca3af]" },
 ];
 
@@ -43,6 +45,7 @@ type AppBotChatProps = {
 export default function AppBotChat({ filter, onFilterChange, counts, items, now, onOpenChat }: AppBotChatProps) {
   const state = useAppState();
   const [query, setQuery] = useState("");
+  const { select, slide, swipe } = useCategorySwipe(filters.map((option) => option.key), filter, onFilterChange);
 
   const words = query.trim().toLowerCase();
   const shown = words ? items.filter((item) => matchesSearch(state, item, words)) : items;
@@ -51,30 +54,10 @@ export default function AppBotChat({ filter, onFilterChange, counts, items, now,
   return (
     <div className="h-full flex flex-col">
       <AppSectionHeader title="Bot chat" query={query} onQueryChange={setQuery}>
-        <div className="mt-3 pb-3 grid grid-cols-4 gap-1.5">
-          {filters.map((option) => {
-            const selected = filter === option.key;
-            return (
-              <button
-                key={option.key}
-                onClick={() => onFilterChange(option.key)}
-                className={classNames(
-                  "rounded-[14px] px-1 pt-[7px] pb-1.5 text-center shadow-[0_8px_24px_-20px_rgba(12,38,96,0.55)] transition",
-                  selected ? "bg-[#0C2660]" : "bg-white"
-                )}
-              >
-                <span className={classNames("flex items-center justify-center gap-1.5 text-[16px] font-extrabold leading-tight", selected ? "text-white" : "text-zinc-900")}>
-                  <span className={classNames("size-[7px] rounded-full", option.dot)} />
-                  {counts[option.key]}
-                </span>
-                <span className={classNames("block text-[10px] font-bold truncate", selected ? "text-white/75" : "text-zinc-500")}>{option.label}</span>
-              </button>
-            );
-          })}
-        </div>
+        <CategoryChips chips={filters.map((option) => ({ ...option, count: counts[option.key] }))} selected={filter} onSelect={select} />
       </AppSectionHeader>
 
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
+      <div key={filter} {...swipe} className={`${slide} flex-1 min-h-0 overflow-y-auto px-4 pb-4`}>
         {shown.length === 0 ? (
           <EmptyState icon={<InboxIcon size={20} />} title="Nothing here" description={words ? "No match for your search." : emptyText[filter]} />
         ) : (
@@ -90,7 +73,7 @@ export default function AppBotChat({ filter, onFilterChange, counts, items, now,
                   <span className="flex-1 min-w-0 flex flex-col gap-[3px]">
                     <span className="flex items-center gap-1.5">
                       <span className="shrink-0 rounded-[5px] bg-[#0C2660]/[0.07] px-1.5 py-px text-[10.5px] font-extrabold text-[#0C2660]">{item.tag}</span>
-                      <span className="truncate text-[13.5px] font-extrabold text-zinc-900">{item.title}</span>
+                      <span className={classNames(titleFit(item.title), "text-[13.5px] font-extrabold text-zinc-900")}>{item.title}</span>
                       <span className={classNames("ml-auto shrink-0 text-[10.5px]", item.unread ? "font-extrabold text-[#0C2660]" : "font-semibold text-zinc-400")}>{chatListTime(item.time, now)}</span>
                     </span>
                     <span className="flex items-center gap-1.5">
