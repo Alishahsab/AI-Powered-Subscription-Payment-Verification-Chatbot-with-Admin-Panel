@@ -49,7 +49,7 @@ export default function AppBotChat({ filter, onFilterChange, counts, items, now,
   const state = useAppState();
   const [query, setQuery] = useState("");
   const { select, slide, swipe } = useCategorySwipe(filters.map((option) => option.key), filter, onFilterChange, {
-    before: () => onNavigate?.({ section: "inbox", tab: "blocked" }),
+    before: () => onNavigate?.({ section: "inbox", tab: state.settings.inboxTabs.at(-1)?.key }),
     after: () => onNavigate?.({ section: "settings" }),
   });
 

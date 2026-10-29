@@ -11,7 +11,7 @@ import { useAppState } from "@/lib/store/state";
 import { whatsAppLink } from "@/lib/validation";
 import AppSectionHeader from "../inbox/AppSectionHeader";
 import CategoryChips, { type Chip } from "../inbox/CategoryChips";
-import { isCustomerActive } from "../inbox/inboxItems";
+import { isCustomerActive, lastActivityAt } from "../inbox/inboxItems";
 import type { Navigate } from "../navigation";
 import CustomerAvatar from "../ui/CustomerAvatar";
 import EmptyState from "../ui/EmptyState";
@@ -27,7 +27,9 @@ export default function AppCustomers({ onNavigate }: { onNavigate: Navigate }) {
   const [query, setQuery] = useState("");
   const words = query.trim().toLowerCase();
 
-  const customers = [...state.customers].sort((a, b) => b.lastSeenAt - a.lastSeenAt);
+  const activity = new Map(state.customers.map((customer) => [customer.id, lastActivityAt(state, customer.id)]));
+  const lastActive = (id: string) => activity.get(id) ?? 0;
+  const customers = [...state.customers].sort((a, b) => lastActive(b.id) - lastActive(a.id));
   const active = customers.filter((customer) => !customer.blocked && isCustomerActive(state, customer.id, now));
   const blocked = customers.filter((customer) => customer.blocked);
   const lists: Record<Filter, typeof customers> = { all: customers, active, blocked };
@@ -74,7 +76,11 @@ export default function AppCustomers({ onNavigate }: { onNavigate: Navigate }) {
                   <div className="mt-0.5 flex items-center gap-2">
                     <div className="flex-1 min-w-0">
                       <span className="block truncate text-[11.5px] text-zinc-500">{customer.email}</span>
-                      <span className="block text-[11px] text-zinc-400">{timeAgo(customer.lastSeenAt, now)}</span>
+                      {isCustomerActive(state, customer.id, now) ? (
+                        <span className="block text-[11px] font-semibold text-emerald-600">Active now</span>
+                      ) : (
+                        <span className="block text-[11px] text-zinc-400">{timeAgo(lastActive(customer.id), now)}</span>
+                      )}
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
                       <button onClick={() => onNavigate({ section: "bot", customerId: customer.id })} className="h-[30px] px-3 rounded-full bg-[#eef1f7] text-[12px] font-semibold text-[#0C2660]">

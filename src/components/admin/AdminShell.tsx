@@ -122,7 +122,7 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
       </div>
 
       {inApp && <AppInboxCount />}
-      <Toasts onNavigate={navigate} />
+      {!inApp && <Toasts onNavigate={navigate} />}
       <SyncNotice />
       <PaymentIssueTimer />
     </div>

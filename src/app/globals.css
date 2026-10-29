@@ -163,13 +163,11 @@ body {
 }
 
 .from-right {
-  animation: from-right 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
-  will-change: transform, opacity;
+  animation: from-right 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .from-left {
-  animation: from-left 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
-  will-change: transform, opacity;
+  animation: from-left 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .toast-in {

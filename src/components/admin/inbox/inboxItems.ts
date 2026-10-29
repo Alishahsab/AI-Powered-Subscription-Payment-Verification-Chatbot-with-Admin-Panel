@@ -41,7 +41,7 @@ function customerTag(state: AppState, customerId: string) {
 
 // When the customer last did something: a tap, a message, or coming back to the chat.
 // A customer who just sent a message counts, even if their last-seen update has not arrived yet.
-function lastActivityAt(state: AppState, customerId: string) {
+export function lastActivityAt(state: AppState, customerId: string) {
   const customer = state.customers.find((item) => item.id === customerId);
   return Math.max(customer?.lastSeenAt ?? 0, lastCustomerMessageAt(state, customerId));
 }

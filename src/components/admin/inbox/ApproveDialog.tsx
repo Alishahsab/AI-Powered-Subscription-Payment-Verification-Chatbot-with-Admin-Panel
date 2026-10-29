@@ -45,7 +45,7 @@ export default function ApproveDialog({ order, customerEmail, onClose }: Approve
             setMessage(event.target.value);
           }}
           placeholder="Paste the message from your portal"
-          className={`${textareaClass} mt-1.5 text-[14px]`}
+          className={`${textareaClass} mt-1.5 max-h-[20dvh] text-[14px]`}
         />
       </label>
       {message.trim() && codeFound && <p className="mt-1.5 text-[12px] text-zinc-500">Code found: {code}</p>}

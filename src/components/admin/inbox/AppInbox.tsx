@@ -14,13 +14,13 @@ import CategoryChips from "./CategoryChips";
 import RejectDialog from "./RejectDialog";
 import { matchesSearch, type InboxItem } from "./inboxItems";
 
-const tabs: { key: InboxTab; label: string; dot: string }[] = [
-  { key: "pending", label: "Pending", dot: "bg-[#ff5d7d]" },
-  { key: "issues", label: "Issues", dot: "bg-[#ffb02e]" },
-  { key: "completed", label: "Completed", dot: "bg-[#00a884]" },
-  { key: "unused", label: "Unused", dot: "bg-[#7f66ff]" },
-  { key: "blocked", label: "Blocked", dot: "bg-[#ef4444]" },
-];
+const dots: Record<InboxTab, string> = {
+  pending: "bg-[#ff5d7d]",
+  issues: "bg-[#ffb02e]",
+  completed: "bg-[#00a884]",
+  unused: "bg-[#7f66ff]",
+  blocked: "bg-[#ef4444]",
+};
 
 const urgentTabs: InboxTab[] = ["pending", "issues"];
 
@@ -48,6 +48,7 @@ export default function AppInbox({ tab, onTabChange, counts, items, now, onOpenC
   const [query, setQuery] = useState("");
   const [rejecting, setRejecting] = useState(rejectOrderId);
   const rejectingOrder = state.orders.find((order) => order.id === rejecting && (order.status === "pending_review" || order.status === "rejected"));
+  const tabs = state.settings.inboxTabs.map((item) => ({ ...item, dot: dots[item.key] }));
   const { select, slide, swipe } = useCategorySwipe(tabs.map((item) => item.key), tab, onTabChange, {
     before: () => onNavigate?.({ section: "dashboard" }),
     after: () => onNavigate?.({ section: "bot" }),

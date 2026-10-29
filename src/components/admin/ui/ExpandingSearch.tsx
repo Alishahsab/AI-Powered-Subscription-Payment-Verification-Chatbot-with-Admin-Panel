@@ -17,7 +17,7 @@ export default function ExpandingSearch({ open, onOpenChange, query, onQueryChan
     <div
       style={{ right: rightSpace, width: open ? `calc(100% - ${rightSpace}px)` : 44 }}
       className={classNames(
-        "absolute top-1/2 z-10 h-11 -translate-y-1/2 flex items-center overflow-hidden rounded-full bg-white will-change-[width] transition-[width,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+        "absolute top-1/2 z-10 h-11 -translate-y-1/2 flex items-center overflow-hidden rounded-full bg-white transition-[width,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
         open ? "shadow-[0_14px_34px_-14px_rgba(12,38,96,0.55)] ring-2 ring-[#D4A551]/50" : "shadow-[0_8px_24px_-16px_rgba(12,38,96,0.4)]"
       )}
     >
