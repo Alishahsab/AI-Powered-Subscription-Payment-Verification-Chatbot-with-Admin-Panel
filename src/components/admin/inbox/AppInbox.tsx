@@ -6,10 +6,12 @@ import { useCategorySwipe } from "@/hooks/useCategorySwipe";
 import { useShowMore } from "@/hooks/useShowMore";
 import { useAppState } from "@/lib/store/state";
 import type { InboxTab } from "@/lib/types";
+import type { Navigate } from "../navigation";
 import EmptyState from "../ui/EmptyState";
 import AppInboxCard from "./AppInboxCard";
 import AppSectionHeader from "./AppSectionHeader";
 import CategoryChips from "./CategoryChips";
+import RejectDialog from "./RejectDialog";
 import { matchesSearch, type InboxItem } from "./inboxItems";
 
 const tabs: { key: InboxTab; label: string; dot: string }[] = [
@@ -37,12 +39,19 @@ type AppInboxProps = {
   items: InboxItem[];
   now: number;
   onOpenChat: (customerId: string) => void;
+  onNavigate?: Navigate;
+  rejectOrderId?: string;
 };
 
-export default function AppInbox({ tab, onTabChange, counts, items, now, onOpenChat }: AppInboxProps) {
+export default function AppInbox({ tab, onTabChange, counts, items, now, onOpenChat, onNavigate, rejectOrderId }: AppInboxProps) {
   const state = useAppState();
   const [query, setQuery] = useState("");
-  const { select, slide, swipe } = useCategorySwipe(tabs.map((item) => item.key), tab, onTabChange);
+  const [rejecting, setRejecting] = useState(rejectOrderId);
+  const rejectingOrder = state.orders.find((order) => order.id === rejecting && (order.status === "pending_review" || order.status === "rejected"));
+  const { select, slide, swipe } = useCategorySwipe(tabs.map((item) => item.key), tab, onTabChange, {
+    before: () => onNavigate?.({ section: "dashboard" }),
+    after: () => onNavigate?.({ section: "bot" }),
+  });
 
   const words = query.trim().toLowerCase();
   const shown = words ? items.filter((item) => matchesSearch(state, item, words)) : items;
@@ -62,6 +71,8 @@ export default function AppInbox({ tab, onTabChange, counts, items, now, onOpenC
         )}
         {hasMore && <div ref={sentinel} className="h-10" />}
       </div>
+
+      {rejectingOrder && <RejectDialog order={rejectingOrder} onClose={() => setRejecting(undefined)} />}
     </div>
   );
 }

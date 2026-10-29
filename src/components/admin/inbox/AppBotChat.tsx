@@ -7,6 +7,7 @@ import { Inbox as InboxIcon } from "lucide-react";
 import { chatListTime, classNames, formatMoney } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
 import CustomerAvatar from "../ui/CustomerAvatar";
+import type { Navigate } from "../navigation";
 import EmptyState from "../ui/EmptyState";
 import AppSectionHeader from "./AppSectionHeader";
 import CategoryChips from "./CategoryChips";
@@ -41,12 +42,16 @@ type AppBotChatProps = {
   items: InboxItem[];
   now: number;
   onOpenChat: (customerId: string) => void;
+  onNavigate?: Navigate;
 };
 
-export default function AppBotChat({ filter, onFilterChange, counts, items, now, onOpenChat }: AppBotChatProps) {
+export default function AppBotChat({ filter, onFilterChange, counts, items, now, onOpenChat, onNavigate }: AppBotChatProps) {
   const state = useAppState();
   const [query, setQuery] = useState("");
-  const { select, slide, swipe } = useCategorySwipe(filters.map((option) => option.key), filter, onFilterChange);
+  const { select, slide, swipe } = useCategorySwipe(filters.map((option) => option.key), filter, onFilterChange, {
+    before: () => onNavigate?.({ section: "inbox", tab: "blocked" }),
+    after: () => onNavigate?.({ section: "settings" }),
+  });
 
   const words = query.trim().toLowerCase();
   const shown = words ? items.filter((item) => matchesSearch(state, item, words)) : items;

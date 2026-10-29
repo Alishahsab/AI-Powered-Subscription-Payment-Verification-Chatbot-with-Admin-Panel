@@ -10,6 +10,7 @@ export type NavTarget = {
   tab?: InboxTab;
   botFilter?: BotFilter;
   customerId?: string;
+  rejectOrderId?: string;
 };
 
 export type Navigate = (target: NavTarget) => void;

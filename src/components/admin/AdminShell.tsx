@@ -101,15 +101,15 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
             onToggleTheme={toggleTheme}
           />
         )}
-        <ConnectionBar />
+        {!inApp && <ConnectionBar />}
 
         <main className={inApp && !innerScreen ? "flex-1 min-h-0 overflow-hidden pb-[92px]" : "flex-1 min-h-0 overflow-hidden"}>
           {target.section === "dashboard" && (inApp ? <AppDashboard onNavigate={navigate} /> : <Dashboard onNavigate={navigate} />)}
           {target.section === "customers" && (inApp ? <AppCustomers onNavigate={navigate} /> : <Customers onNavigate={navigate} />)}
-          {target.section === "inbox" && <Inbox key={`inbox-${target.customerId}-${target.tab}`} view="inbox" initialTab={target.tab} initialCustomerId={target.customerId} />}
-          {target.section === "bot" && <Inbox key={`bot-${target.customerId}-${target.botFilter}`} view="bot" initialCustomerId={target.customerId} initialBotFilter={target.botFilter} />}
+          {target.section === "inbox" && <Inbox key={`inbox-${target.customerId}-${target.tab}-${target.rejectOrderId}`} view="inbox" initialTab={target.tab} initialCustomerId={target.customerId} rejectOrderId={target.rejectOrderId} onNavigate={navigate} />}
+          {target.section === "bot" && <Inbox key={`bot-${target.customerId}-${target.botFilter}`} view="bot" initialCustomerId={target.customerId} initialBotFilter={target.botFilter} onNavigate={navigate} />}
           {target.section === "settings" &&
-            (inApp ? <AppSettings theme={theme} onToggleTheme={toggleTheme} onSignOut={() => tellApp("sign-out")} /> : <Settings />)}
+            (inApp ? <AppSettings theme={theme} onToggleTheme={toggleTheme} onSignOut={() => tellApp("sign-out")} onNavigate={navigate} /> : <Settings />)}
           {target.section === "search" && <SearchResults query={searchQuery} onNavigate={navigate} />}
         </main>
       </div>

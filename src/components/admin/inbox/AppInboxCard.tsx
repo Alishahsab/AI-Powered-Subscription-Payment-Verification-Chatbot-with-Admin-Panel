@@ -57,8 +57,6 @@ export default function AppInboxCard({ tab, item, now, onOpenChat }: AppInboxCar
   const customer = state.customers.find((entry) => entry.id === item.customerId);
   const order = state.orders.find((entry) => entry.id === item.key);
   const ticket = tab === "issues" ? state.tickets.find((entry) => entry.id === item.key) : undefined;
-  const codeMessage = order?.code ? state.messages.find((message) => message.orderId === order.id && message.kind === "code") : undefined;
-  const codeSentAt = order?.code ? (codeMessage?.createdAt ?? order.reviewedAt) : undefined;
 
   const showsCode = (tab === "completed" || tab === "unused") && Boolean(order?.code);
   const screenshot = showsCode ? undefined : (order?.screenshot ?? ticket?.screenshot);
@@ -67,7 +65,7 @@ export default function AppInboxCard({ tab, item, now, onOpenChat }: AppInboxCar
 
   let line = "";
   if (tab === "pending" && order) line = [order.senderName, order.planName, formatMoney(order.amount), order.methodName].filter(Boolean).join(" · ");
-  if ((tab === "completed" || tab === "unused") && order) line = `${order.planName} · ${codeSentAt ? `Code sent ${chatListTime(codeSentAt, now)}` : "Code not sent yet"}`;
+  if ((tab === "completed" || tab === "unused") && order) line = order.code ? order.planName : `${order.planName} · Code not sent yet`;
 
   let note: { text: string; tone: string } | null = null;
   if (order?.status === "rejected") note = { text: `Rejected: ${order.rejectReason}`, tone: "text-red-700" };

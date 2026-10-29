@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ArrowRight, ChevronRight, TrendingUp } from "lucide-react";
+import { useSwipe } from "@/hooks/useCategorySwipe";
 import { useNow } from "@/hooks/useNow";
 import { classNames } from "@/lib/format";
 import { useAppState } from "@/lib/store/state";
@@ -37,8 +38,10 @@ export default function AppDashboard({ onNavigate }: { onNavigate: Navigate }) {
   const total = days.reduce((sum, day) => sum + day.count, 0);
   const top = Math.max(4, ...days.map((day) => day.count));
 
+  const swipe = useSwipe(() => onNavigate({ section: "inbox" }));
+
   return (
-    <div className="h-full flex flex-col gap-3 px-4 pt-1 pb-3">
+    <div {...swipe} className="h-full flex flex-col gap-3 px-4 pt-1 pb-3">
       <button
         onClick={() => onNavigate({ section: "inbox", tab: "pending" })}
         className="relative overflow-hidden shrink-0 rounded-[26px] bg-[linear-gradient(135deg,#0C2660_0%,#1B3A85_100%)] text-white text-left px-[18px] py-4 flex items-center gap-3.5"

@@ -12,6 +12,7 @@ import { useAppState } from "@/lib/store/state";
 import type { InboxTab } from "@/lib/types";
 import EmptyState from "../ui/EmptyState";
 import AppBotChat from "./AppBotChat";
+import type { Navigate } from "../navigation";
 import AppInbox from "./AppInbox";
 import ChatList from "./ChatList";
 import ChatThread from "./ChatThread";
@@ -25,9 +26,11 @@ type InboxProps = {
   initialTab?: InboxTab;
   initialCustomerId?: string;
   initialBotFilter?: BotFilter;
+  onNavigate?: Navigate;
+  rejectOrderId?: string;
 };
 
-export default function Inbox({ view, initialTab, initialCustomerId, initialBotFilter }: InboxProps) {
+export default function Inbox({ view, initialTab, initialCustomerId, initialBotFilter, onNavigate, rejectOrderId }: InboxProps) {
   const state = useAppState();
   const now = useNow(15_000);
   const [tab, setTab] = useState<InboxTab>(initialTab ?? state.settings.inboxTabs[0]?.key ?? "pending");
@@ -52,9 +55,9 @@ export default function Inbox({ view, initialTab, initialCustomerId, initialBotF
 
   if (inApp && !selectedCustomerId) {
     return view === "bot" ? (
-      <AppBotChat filter={botFilter} onFilterChange={setBotFilter} counts={botCounts} items={items} now={now} onOpenChat={setChosenCustomerId} />
+      <AppBotChat filter={botFilter} onFilterChange={setBotFilter} counts={botCounts} items={items} now={now} onOpenChat={setChosenCustomerId} onNavigate={onNavigate} />
     ) : (
-      <AppInbox tab={tab} onTabChange={setTab} counts={counts} items={items} now={now} onOpenChat={setChosenCustomerId} />
+      <AppInbox tab={tab} onTabChange={setTab} counts={counts} items={items} now={now} onOpenChat={setChosenCustomerId} onNavigate={onNavigate} rejectOrderId={rejectOrderId} />
     );
   }
 

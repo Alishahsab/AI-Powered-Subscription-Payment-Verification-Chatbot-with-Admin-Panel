@@ -57,18 +57,21 @@ async function accessToken() {
   return googleToken.value;
 }
 
-async function send(device: string, notification: AdminNotification, bearer: string) {
+async function send(device: string, notification: AdminNotification, orderId: string | null, bearer: string) {
+  const data = { section: "inbox", tab: tabs[notification.kind] ?? "pending", customerId: notification.customer_id };
+  const message = orderId
+    ? { token: device, data: { ...data, orderId, title: notification.title, body: notification.body }, android: { priority: "high" } }
+    : {
+        token: device,
+        notification: { title: notification.title, body: notification.body },
+        data,
+        android: { priority: "high", notification: { channel_id: "admin_alerts", sound: "default" } },
+      };
+
   const response = await fetch(`https://fcm.googleapis.com/v1/projects/${account.project_id}/messages:send`, {
     method: "POST",
     headers: { Authorization: `Bearer ${bearer}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message: {
-        token: device,
-        notification: { title: notification.title, body: notification.body },
-        data: { section: "inbox", tab: tabs[notification.kind] ?? "pending", customerId: notification.customer_id },
-        android: { priority: "high", notification: { channel_id: "admin_alerts", sound: "default" } },
-      },
-    }),
+    body: JSON.stringify({ message }),
   });
   if (response.ok) return true;
 
@@ -76,6 +79,22 @@ async function send(device: string, notification: AdminNotification, bearer: str
   const code = error?.error?.details?.find((detail: { errorCode?: string }) => detail.errorCode)?.errorCode ?? error?.error?.status;
   if (goneCodes.includes(code)) await supabase.from("admin_devices").delete().eq("token", device);
   return false;
+}
+
+async function waitingOrder(customerId: string) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { data } = await supabase
+      .from("orders")
+      .select("id")
+      .eq("customer_id", customerId)
+      .eq("status", "pending_review")
+      .order("submitted_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (data?.id) return data.id as string;
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+  return null;
 }
 
 Deno.serve(async (request) => {
@@ -87,7 +106,8 @@ Deno.serve(async (request) => {
   if (error) return Response.json({ sent: 0, reason: error.message }, { status: 500 });
   if (!devices?.length) return Response.json({ sent: 0, reason: "no admin phones" });
 
+  const orderId = notification.kind === "payment" ? await waitingOrder(notification.customer_id) : null;
   const bearer = await accessToken();
-  const results = await Promise.all(devices.map(({ token }) => send(token, notification, bearer)));
+  const results = await Promise.all(devices.map(({ token }) => send(token, notification, orderId, bearer)));
   return Response.json({ sent: results.filter(Boolean).length, of: devices.length });
 });

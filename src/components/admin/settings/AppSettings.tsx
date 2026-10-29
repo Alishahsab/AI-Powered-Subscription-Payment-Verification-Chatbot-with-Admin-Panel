@@ -4,10 +4,12 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, LogOut, Moon } from "lucide-react";
 import type { AdminTheme } from "@/hooks/useAdminTheme";
 import { useBackButton } from "@/hooks/useBackButton";
+import { useSwipe } from "@/hooks/useCategorySwipe";
 import { useHideTabBar } from "@/hooks/useTabBar";
 import { classNames } from "@/lib/format";
 import { setAdminProfile, useAdminProfile } from "@/hooks/useAdminProfile";
 import { saveAdminName, type AdminProfile } from "@/lib/supabase/adminProfile";
+import type { Navigate } from "../navigation";
 import ExpandingSearch from "../ui/ExpandingSearch";
 import Modal from "../ui/Modal";
 import SignalButton from "../ui/SignalButton";
@@ -27,13 +29,14 @@ type AppSettingsProps = {
   theme: AdminTheme;
   onToggleTheme: () => void;
   onSignOut: () => void;
+  onNavigate: Navigate;
 };
 
 const roundButton = "size-11 shrink-0 rounded-full bg-white text-[#0C2660] shadow-[0_6px_18px_-10px_rgba(12,38,96,0.4)] grid place-items-center";
 const card = "w-full flex items-center gap-3 rounded-[20px] bg-[#f3f5fa] px-3.5 py-[11px] text-left";
 const cardIcon = "size-9 shrink-0 rounded-xl grid place-items-center";
 
-export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSettingsProps) {
+export default function AppSettings({ theme, onToggleTheme, onSignOut, onNavigate }: AppSettingsProps) {
   const settings = useSettingsDraft();
   const [openTab, setOpenTab] = useState<SettingsTabKey | null>(null);
   const profile = useAdminProfile();
@@ -42,6 +45,7 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSett
   const [editingName, setEditingName] = useState(false);
   useBackButton(Boolean(openTab), () => setOpenTab(null));
   useHideTabBar(Boolean(openTab));
+  const swipe = useSwipe(undefined, () => onNavigate({ section: "bot", botFilter: "inactive_chats" }));
 
   if (openTab) return <SettingsScreen tab={openTab} settings={settings} onBack={() => setOpenTab(null)} />;
 
@@ -49,7 +53,7 @@ export default function AppSettings({ theme, onToggleTheme, onSignOut }: AppSett
   const tabs = settingsTabs.filter((tab) => `${tab.label} ${tab.description}`.toLowerCase().includes(words));
 
   return (
-    <div className="relative h-[calc(100%+92px)] overflow-y-auto">
+    <div {...swipe} className="relative h-[calc(100%+92px)] overflow-y-auto">
       <div className="profile-glow pointer-events-none absolute inset-x-0 top-0 h-[520px]" />
       <div className="profile-doodle pointer-events-none absolute inset-x-0 top-0 h-[240px]" />
 

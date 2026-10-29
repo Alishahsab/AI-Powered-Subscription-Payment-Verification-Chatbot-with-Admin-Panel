@@ -57,9 +57,9 @@ export default function AppCustomers({ onNavigate }: { onNavigate: Navigate }) {
         ) : (
           <ul className="rounded-3xl bg-white py-1 shadow-[0_10px_30px_-24px_rgba(12,38,96,0.55)] divide-y divide-zinc-100">
             {visible.map((customer) => (
-              <li key={customer.id} className="flex items-center gap-2.5 px-3 py-2.5">
+              <li key={customer.id} className="flex items-start gap-2.5 px-3 py-2.5">
                 <CustomerAvatar customerId={customer.id} size={44} />
-                <div className="flex-1 min-w-0 flex flex-col">
+                <div className="flex-1 min-w-0">
                   <span className="flex items-center gap-1.5">
                     <span className="shrink-0 rounded-[5px] bg-[#0C2660]/[0.07] px-1.5 py-px text-[10.5px] font-bold text-[#0C2660]">{customerNumberLabel(customer)}</span>
                     {customer.whatsapp ? (
@@ -71,14 +71,18 @@ export default function AppCustomers({ onNavigate }: { onNavigate: Navigate }) {
                       <span className="text-[13px] font-medium text-zinc-400">No WhatsApp</span>
                     )}
                   </span>
-                  <span className="mt-0.5 truncate text-[11.5px] text-zinc-500">{customer.email}</span>
-                  <span className="text-[11px] text-zinc-400">{timeAgo(customer.lastSeenAt, now)}</span>
-                </div>
-                <div className="flex shrink-0 items-center gap-1.5">
-                  <button onClick={() => onNavigate({ section: "bot", customerId: customer.id })} className="h-[30px] px-3 rounded-full bg-[#eef1f7] text-[12px] font-semibold text-[#0C2660]">
-                    Chat
-                  </button>
-                  <BlockCustomerButton customer={customer} pill />
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <span className="block truncate text-[11.5px] text-zinc-500">{customer.email}</span>
+                      <span className="block text-[11px] text-zinc-400">{timeAgo(customer.lastSeenAt, now)}</span>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <button onClick={() => onNavigate({ section: "bot", customerId: customer.id })} className="h-[30px] px-3 rounded-full bg-[#eef1f7] text-[12px] font-semibold text-[#0C2660]">
+                        Chat
+                      </button>
+                      <BlockCustomerButton customer={customer} pill />
+                    </div>
+                  </div>
                 </div>
               </li>
             ))}
