@@ -57,10 +57,12 @@ async function accessToken() {
   return googleToken.value;
 }
 
-async function send(device: string, notification: AdminNotification, orderId: string | null, bearer: string) {
+type Target = { orderId: string } | { ticketId: string } | null;
+
+async function send(device: string, notification: AdminNotification, target: Target, bearer: string) {
   const data = { section: "inbox", tab: tabs[notification.kind] ?? "pending", customerId: notification.customer_id };
-  const message = orderId
-    ? { token: device, data: { ...data, orderId, title: notification.title, body: notification.body }, android: { priority: "high" } }
+  const message = target
+    ? { token: device, data: { ...data, ...target, title: notification.title, body: notification.body }, android: { priority: "high" } }
     : {
         token: device,
         notification: { title: notification.title, body: notification.body },
@@ -81,18 +83,26 @@ async function send(device: string, notification: AdminNotification, orderId: st
   return false;
 }
 
-async function waitingOrder(customerId: string) {
+async function latestId(table: "orders" | "tickets", customerId: string) {
   for (let attempt = 0; attempt < 3; attempt++) {
-    const { data } = await supabase
-      .from("orders")
-      .select("id")
-      .eq("customer_id", customerId)
-      .eq("status", "pending_review")
-      .order("submitted_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const query = table === "orders"
+      ? supabase.from("orders").select("id").eq("customer_id", customerId).eq("status", "pending_review").order("submitted_at", { ascending: false })
+      : supabase.from("tickets").select("id").eq("customer_id", customerId).eq("kind", "support").eq("status", "open").order("created_at", { ascending: false });
+    const { data } = await query.limit(1).maybeSingle();
     if (data?.id) return data.id as string;
     await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+  return null;
+}
+
+async function targetFor(notification: AdminNotification): Promise<Target> {
+  if (notification.kind === "payment") {
+    const orderId = await latestId("orders", notification.customer_id);
+    return orderId ? { orderId } : null;
+  }
+  if (notification.kind === "support") {
+    const ticketId = await latestId("tickets", notification.customer_id);
+    return ticketId ? { ticketId } : null;
   }
   return null;
 }
@@ -106,8 +116,8 @@ Deno.serve(async (request) => {
   if (error) return Response.json({ sent: 0, reason: error.message }, { status: 500 });
   if (!devices?.length) return Response.json({ sent: 0, reason: "no admin phones" });
 
-  const orderId = notification.kind === "payment" ? await waitingOrder(notification.customer_id) : null;
+  const target = await targetFor(notification);
   const bearer = await accessToken();
-  const results = await Promise.all(devices.map(({ token }) => send(token, notification, orderId, bearer)));
+  const results = await Promise.all(devices.map(({ token }) => send(token, notification, target, bearer)));
   return Response.json({ sent: results.filter(Boolean).length, of: devices.length });
 });

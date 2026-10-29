@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 
-let hiders = 0;
+const counts = { screens: 0, covers: 0 };
 const listeners = new Set<() => void>();
 
 function notify() {
@@ -16,18 +16,30 @@ function subscribe(listener: () => void) {
   };
 }
 
-export function useHideTabBar(hide: boolean) {
+function useCount(kind: keyof typeof counts, active: boolean) {
   useEffect(() => {
-    if (!hide) return;
-    hiders += 1;
+    if (!active) return;
+    counts[kind] += 1;
     notify();
     return () => {
-      hiders -= 1;
+      counts[kind] -= 1;
       notify();
     };
-  }, [hide]);
+  }, [kind, active]);
+}
+
+export function useHideTabBar(hide: boolean) {
+  useCount("screens", hide);
+}
+
+export function useCoverTabBar(cover: boolean) {
+  useCount("covers", cover);
 }
 
 export function useTabBarHidden() {
-  return useSyncExternalStore(subscribe, () => hiders > 0, () => false);
+  return useSyncExternalStore(subscribe, () => counts.screens > 0, () => false);
+}
+
+export function useTabBarCovered() {
+  return useSyncExternalStore(subscribe, () => counts.covers > 0, () => false);
 }

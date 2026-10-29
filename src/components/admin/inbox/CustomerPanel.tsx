@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDate } from "@/lib/format";
-import { customerNumberLabel } from "@/lib/store/helpers";
+import { customerNumberLabel, customerTitle } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import CustomerAvatar from "../ui/CustomerAvatar";
 import WhatsAppLink from "../ui/WhatsAppLink";
@@ -39,7 +39,7 @@ export default function CustomerPanel({ customerId }: { customerId: string }) {
       </div>
 
       {[...pending, ...completed].map((order) => (
-        <OrderReview key={order.id + order.status} order={order} customerEmail={customer.email} />
+        <OrderReview key={order.id + order.status} order={order} customerEmail={customerTitle(customer)} />
       ))}
 
       {tickets.map((ticket) => (

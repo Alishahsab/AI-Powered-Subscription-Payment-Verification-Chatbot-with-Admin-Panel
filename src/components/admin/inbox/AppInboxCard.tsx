@@ -4,6 +4,7 @@ import { useState } from "react";
 import StoredImage from "@/components/StoredImage";
 import { chatListTime, classNames, formatMoney } from "@/lib/format";
 import { cancelOrderAsAdmin, setCodeUnused, setTicketResolved, unblockCustomer } from "@/lib/store/admin";
+import { customerTitle } from "@/lib/store/helpers";
 import { useAppState } from "@/lib/store/state";
 import type { InboxTab } from "@/lib/types";
 import ConfirmDialog from "../ui/ConfirmDialog";
@@ -61,7 +62,7 @@ export default function AppInboxCard({ tab, item, now, onOpenChat }: AppInboxCar
   const showsCode = (tab === "completed" || tab === "unused") && Boolean(order?.code);
   const screenshot = showsCode ? undefined : (order?.screenshot ?? ticket?.screenshot);
   const badgeTone = tab === "unused" ? "violet" : item.badge?.tone;
-  const customerName = customer?.email ?? "this customer";
+  const customerName = customer ? customerTitle(customer) : "this customer";
 
   let line = "";
   if (tab === "pending" && order) line = [order.senderName, order.planName, formatMoney(order.amount), order.methodName].filter(Boolean).join(" · ");

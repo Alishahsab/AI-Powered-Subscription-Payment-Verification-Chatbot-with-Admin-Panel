@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAdminTheme } from "@/hooks/useAdminTheme";
 import { useBackButton } from "@/hooks/useBackButton";
 import { useOrderExpiry } from "@/hooks/useOrderExpiry";
-import { useTabBarHidden } from "@/hooks/useTabBar";
+import { useTabBarCovered, useTabBarHidden } from "@/hooks/useTabBar";
 import { isInApp, tellApp } from "@/lib/appMode";
 import SyncNotice from "../SyncNotice";
 import AdminSidebar from "./layout/AdminSidebar";
@@ -38,7 +38,10 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
   useOrderExpiry();
   const { theme, toggleTheme } = useAdminTheme();
-  const innerScreen = useTabBarHidden() || ["customers", "search"].includes(target.section);
+  const screenHidesTabBar = useTabBarHidden();
+  const tabBarCovered = useTabBarCovered();
+  const innerScreen = screenHidesTabBar || ["customers", "search"].includes(target.section);
+  const tabBarHidden = innerScreen || tabBarCovered;
 
   const navigate = (next: NavTarget) => {
     setTarget(next);
@@ -71,8 +74,8 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
   }, [inApp, target.section]);
 
   useEffect(() => {
-    if (inApp) tellApp(innerScreen ? "tabbar:hide" : "tabbar:show");
-  }, [inApp, innerScreen]);
+    if (inApp) tellApp(tabBarHidden ? "tabbar:hide" : "tabbar:show");
+  }, [inApp, tabBarHidden]);
 
   const sidebar = <AdminSidebar current={target.section} onNavigate={navigate} onSignOut={onSignOut} />;
 

@@ -6,7 +6,7 @@ import { uploadScreenshot } from "../supabase/screenshots";
 import type { AppState, Customer, Stage, TicketKind } from "../types";
 import { validateName } from "../validation";
 import { hasWaitingReplies } from "./connection";
-import { ADMIN_CANCEL_REASON, addMessage, botText, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerEmail, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
+import { ADMIN_CANCEL_REASON, addMessage, botText, canStillPay, createOrderNumber, createTicketNumber, fillPlaceholders, findCustomerTitle, getActiveOrder, notifyAdmin, replyAsBot } from "./helpers";
 import { applyRemoteChange, getState, updateState } from "./state";
 
 const MINUTE = 60_000;
@@ -440,7 +440,7 @@ export async function submitPaymentProof(customerId: string, screenshot: string,
     notifyAdmin(state, {
       kind: "payment",
       title: "Payment submitted",
-      body: `${findCustomerEmail(state, customerId)} · ${current.planName} · Rs ${current.amount.toLocaleString()}`,
+      body: `${findCustomerTitle(state, customerId)} · ${current.planName} · Rs ${current.amount.toLocaleString()}`,
       customerId,
     });
   });
@@ -526,7 +526,7 @@ export async function submitSupportIssue(customerId: string, description: string
 
     state.tickets.unshift({ id: ticketId, customerId, kind: "support", message: description, screenshot: screenshotPath, status: "open", createdAt: serverNow() });
     state.conversations[customerId].unreadByAdmin += 1;
-    notifyAdmin(state, { kind: "support", title: "New support issue", body: `${findCustomerEmail(state, customerId)} · ${description.slice(0, 70)}`, customerId });
+    notifyAdmin(state, { kind: "support", title: "New support issue", body: `${findCustomerTitle(state, customerId)} · ${description.slice(0, 70)}`, customerId });
   });
 
   replyAsBot(customerId, (state) => {
@@ -632,7 +632,7 @@ export async function sendRejectionReply(customerId: string, text: string, scree
     addMessage(state, customerId, "customer", text);
     if (screenshotPath) addMessage(state, customerId, "customer", "Screenshot", { kind: "image", image: screenshotPath });
     state.conversations[customerId].unreadByAdmin += 1;
-    notifyAdmin(state, { kind: "payment", title: "Reply to a rejected payment", body: `${findCustomerEmail(state, customerId)} · ${text.slice(0, 70)}`, customerId });
+    notifyAdmin(state, { kind: "payment", title: "Reply to a rejected payment", body: `${findCustomerTitle(state, customerId)} · ${text.slice(0, 70)}`, customerId });
   });
 }
 

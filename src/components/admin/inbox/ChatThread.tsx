@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useFloatingDay } from "@/hooks/useFloatingDay";
 import { useNow } from "@/hooks/useNow";
 import { chatDayLabel, classNames, pakistanDay } from "@/lib/format";
@@ -46,8 +46,8 @@ export default function ChatThread({ customerId, onBack, onShowDetails }: ChatTh
   return (
     <div className="flex-1 min-w-0 flex flex-col bg-[#f7f8fa] overflow-hidden lg:rounded-2xl lg:border lg:border-zinc-200/70 lg:shadow-[0_1px_3px_rgba(16,24,40,0.06)]">
       <div className="h-16 shrink-0 bg-white border-b border-zinc-200/80 flex items-center gap-3 px-3 lg:px-6">
-        <button onClick={onBack} className="lg:hidden size-9 grid place-items-center rounded-lg hover:bg-zinc-100" aria-label="Back">
-          <ArrowLeft size={18} />
+        <button onClick={onBack} className="lg:hidden size-11 shrink-0 rounded-full bg-white text-[#0C2660] shadow-[0_6px_18px_-10px_rgba(12,38,96,0.45)] ring-1 ring-zinc-100 grid place-items-center" aria-label="Back">
+          <ChevronLeft size={22} strokeWidth={2.4} />
         </button>
         <CustomerAvatar customerId={customer.id} size={46} />
         <div className="min-w-0 flex-1">
