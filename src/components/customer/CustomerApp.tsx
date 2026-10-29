@@ -64,7 +64,7 @@ export default function CustomerApp() {
     <div className="customer-app min-h-dvh w-full bg-[var(--page)] flex" style={themeStyle}>
       {checking || (user && !customer) ? (
         <LoadingScreen />
-      ) : customer?.whatsapp === "" ? (
+      ) : customer && !customer.whatsapp ? (
         <WhatsAppScreen customerId={customer.id} onSignOut={askToSignOut} />
       ) : customer ? (
         <div className="flex-1 flex h-dvh md:p-4 lg:p-5">
