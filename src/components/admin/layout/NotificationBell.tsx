@@ -14,6 +14,7 @@ export const tabForNotification: Record<NotificationKind, InboxTab> = {
   payment: "pending",
   payment_issue: "pending",
   support: "issues",
+  blocked: "blocked",
 };
 
 export default function NotificationBell({ onNavigate }: { onNavigate: Navigate }) {

@@ -224,7 +224,7 @@ export type Ticket = {
   createdAt: number;
 };
 
-export type NotificationKind = "payment" | "payment_issue" | "support";
+export type NotificationKind = "payment" | "payment_issue" | "support" | "blocked";
 
 export type AdminNotification = {
   id: string;

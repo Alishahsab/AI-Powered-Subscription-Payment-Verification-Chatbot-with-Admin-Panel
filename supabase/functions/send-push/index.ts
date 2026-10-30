@@ -3,7 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 type ServiceAccount = { project_id: string; client_email: string; private_key: string };
 type AdminNotification = { kind: string; title: string; body: string; customer_id: string };
 
-const tabs: Record<string, string> = { payment: "pending", payment_issue: "pending", support: "issues" };
+const tabs: Record<string, string> = { payment: "pending", payment_issue: "pending", support: "issues", blocked: "blocked" };
 const goneCodes = ["UNREGISTERED", "SENDER_ID_MISMATCH"];
 
 const account: ServiceAccount = JSON.parse(Deno.env.get("FCM_SERVICE_ACCOUNT") ?? "{}");

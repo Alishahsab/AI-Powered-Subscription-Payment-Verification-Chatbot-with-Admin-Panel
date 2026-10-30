@@ -72,7 +72,7 @@ export default function TimersSection({ draft, updateDraft }: PageProps) {
           <Choices values={[1, 2, 3, 5]} value={limits.cancelsBeforeCooldown} onChange={(value) => updateDraft((next) => (next.settings.limits.cancelsBeforeCooldown = value))} />
         </div>
         <div className="px-3.5 py-3">
-          <p className="mb-2 text-[13px] font-semibold text-zinc-900">Block after more cancels in a day than</p>
+          <p className="mb-2 text-[13px] font-semibold text-zinc-900">Block after this many cancels in a day</p>
           <Choices values={[2, 3, 5, 10]} value={limits.cancelsBeforeBlock} onChange={(value) => updateDraft((next) => (next.settings.limits.cancelsBeforeBlock = value))} />
         </div>
         <div className="px-3.5 py-3">
