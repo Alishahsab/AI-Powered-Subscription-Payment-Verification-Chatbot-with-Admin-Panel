@@ -1,8 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ImageIcon } from "lucide-react";
-import { isImageFile, prepareImageWithStatus } from "@/lib/browser";
+import { galleryAccept, isImageFile, MAX_ORIGINAL_BYTES, prepareImageWithStatus } from "@/lib/browser";
+
+const WAIT_FOR_FILE_MS = 1500;
+
+type Source = "gallery" | "files";
 
 type ImagePickerProps = {
   image: string | null;
@@ -11,18 +15,63 @@ type ImagePickerProps = {
 };
 
 export default function ImagePicker({ image, onChange, label = "Choose screenshot" }: ImagePickerProps) {
-  const fileInput = useRef<HTMLInputElement>(null);
+  const galleryInput = useRef<HTMLInputElement>(null);
+  const filesInput = useRef<HTMLInputElement>(null);
+  const stopWaiting = useRef<(() => void) | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   // An old browser could not make the picture smaller; the picture still goes, with a hint to update.
   const [outdated, setOutdated] = useState(false);
+  const [missed, setMissed] = useState<Source[]>([]);
 
-  const pickFile = async (file?: File) => {
+  useEffect(() => () => stopWaiting.current?.(), []);
+
+  // Some browsers come back from the picker without giving the page a file, and without any error.
+  const waitForFile = (source: Source) => {
+    stopWaiting.current?.();
+    let timer: number | undefined;
+
+    const onReturn = () => {
+      if (document.visibilityState !== "visible") return;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        stopWaiting.current?.();
+        setMissed((list) => (list.includes(source) ? list : [...list, source]));
+      }, WAIT_FOR_FILE_MS);
+    };
+
+    document.addEventListener("visibilitychange", onReturn);
+    window.addEventListener("focus", onReturn);
+    stopWaiting.current = () => {
+      document.removeEventListener("visibilitychange", onReturn);
+      window.removeEventListener("focus", onReturn);
+      window.clearTimeout(timer);
+      stopWaiting.current = null;
+    };
+  };
+
+  const openPicker = (source: Source) => {
+    const input = source === "gallery" ? galleryInput.current : filesInput.current;
+    if (!input) return;
+    if (source === "gallery") input.accept = galleryAccept();
+    setError("");
+    waitForFile(source);
+    input.click();
+  };
+
+  const pickFile = async (input: HTMLInputElement, maxBytes = Infinity) => {
+    const file = input.files?.[0];
     // Cleared so the same picture can be chosen again after removing it.
-    if (fileInput.current) fileInput.current.value = "";
+    input.value = "";
     if (!file) return;
+    stopWaiting.current?.();
+    setMissed([]);
     if (!isImageFile(file)) {
       setError("Please choose an image file.");
+      return;
+    }
+    if (file.size > maxBytes) {
+      setError("This picture is too large. Please choose a screenshot under 1 MB.");
       return;
     }
     setError("");
@@ -39,11 +88,12 @@ export default function ImagePicker({ image, onChange, label = "Choose screensho
 
   return (
     <div>
-      <input ref={fileInput} type="file" accept="image/*" hidden onChange={(event) => pickFile(event.target.files?.[0])} />
+      <input ref={galleryInput} type="file" accept="image/*" hidden onChange={(event) => pickFile(event.target)} />
+      <input ref={filesInput} type="file" hidden onChange={(event) => pickFile(event.target, MAX_ORIGINAL_BYTES)} />
       <button
         type="button"
         disabled={loading}
-        onClick={() => fileInput.current?.click()}
+        onClick={() => openPicker("gallery")}
         className="w-full rounded-2xl border border-dashed border-black/15 bg-[var(--bg)]/50 hover:border-[color-mix(in_srgb,var(--accent)_55%,transparent)] transition overflow-hidden"
       >
         {image ? (
@@ -58,12 +108,21 @@ export default function ImagePicker({ image, onChange, label = "Choose screensho
           </div>
         )}
       </button>
-      {image && (
+      {image ? (
         <button type="button" onClick={() => onChange(null)} className="mt-2 text-[12.5px] text-[var(--muted)] hover:text-[var(--text)]">
           Remove screenshot
         </button>
+      ) : (
+        <button type="button" disabled={loading} onClick={() => openPicker("files")} className="mt-2 text-[12.5px] text-[var(--muted)] hover:text-[var(--text)]">
+          <span className="font-semibold text-[var(--text)] underline">Choose from Files</span> · under 1 MB
+        </button>
       )}
       {error && <p className="mt-2 text-[12.5px] text-red-600">{error}</p>}
+      {!image && !error && missed.length > 0 && (
+        <p className="mt-2 text-[12.5px] text-red-600">
+          {missed.length > 1 ? "Picture still wasn't added. Please update Chrome, then try again." : "Picture wasn't added. Please try again, or use Choose from Files."}
+        </p>
+      )}
       {image && outdated && <p className="mt-2 text-[12.5px] text-amber-700">Your browser is out of date. Please update it for a smoother experience.</p>}
     </div>
   );

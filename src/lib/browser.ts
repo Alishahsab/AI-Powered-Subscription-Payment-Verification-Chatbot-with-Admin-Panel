@@ -1,5 +1,5 @@
 // Only for browsers that cannot make the picture smaller: the original is sent, up to 1 MB.
-const MAX_ORIGINAL_BYTES = 1024 * 1024;
+export const MAX_ORIGINAL_BYTES = 1024 * 1024;
 const SENDABLE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const TYPES_BY_EXTENSION: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", heif: "image/heif" };
 
@@ -12,6 +12,12 @@ function imageTypeOf(file: File) {
 export function isImageFile(file: File) {
   const type = imageTypeOf(file);
   return type ? type.startsWith("image/") : true;
+}
+
+// Android Chrome opens the system Photo Picker when only images are accepted, and that picker can
+// return without giving the page the file. One non-image type makes Chrome use its normal chooser.
+export function galleryAccept() {
+  return /android/i.test(navigator.userAgent) ? "image/*,application/x-premium-store" : "image/*";
 }
 
 async function compressImage(file: File, maxSize: number, quality: number) {
