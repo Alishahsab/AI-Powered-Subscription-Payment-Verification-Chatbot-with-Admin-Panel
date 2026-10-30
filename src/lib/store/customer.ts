@@ -636,22 +636,3 @@ export async function sendRejectionReply(customerId: string, text: string, scree
   });
 }
 
-export function expireUnpaidOrders() {
-  const now = serverNow();
-  const hasExpired = getState().orders.some((order) => order.status === "awaiting_payment" && order.expiresAt <= now);
-  if (!hasExpired) return;
-
-  updateState((state) => {
-    for (const order of state.orders) {
-      if (order.status !== "awaiting_payment" || order.expiresAt > now) continue;
-
-      order.status = "expired";
-      const conversation = state.conversations[order.customerId];
-      if (conversation?.activeOrderId !== order.id) continue;
-
-      addMessage(state, order.customerId, "bot", botText(state, "orderExpired", { order_id: order.id }));
-      conversation.activeOrderId = undefined;
-      conversation.stage = "menu";
-    }
-  });
-}

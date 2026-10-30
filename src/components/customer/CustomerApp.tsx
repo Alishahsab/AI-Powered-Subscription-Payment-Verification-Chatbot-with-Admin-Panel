@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
-import { useOrderExpiry } from "@/hooks/useOrderExpiry";
 import { usePresence } from "@/hooks/usePresence";
 import { textColorFor } from "@/lib/format";
 import { ensureCustomerProfile, signOut } from "@/lib/store/customer";
@@ -47,7 +46,6 @@ export default function CustomerApp() {
     }
   }, [customer, user]);
 
-  useOrderExpiry();
   usePresence(customer?.id);
 
   const handleSignOut = async () => {

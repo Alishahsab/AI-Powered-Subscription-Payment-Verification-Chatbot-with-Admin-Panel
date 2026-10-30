@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useAdminTheme } from "@/hooks/useAdminTheme";
 import { useBackButton } from "@/hooks/useBackButton";
-import { useOrderExpiry } from "@/hooks/useOrderExpiry";
 import { useTabBarCovered, useTabBarHidden } from "@/hooks/useTabBar";
 import { isInApp, tellApp } from "@/lib/appMode";
 import SyncNotice from "../SyncNotice";
@@ -36,7 +35,6 @@ export default function AdminShell({ onSignOut }: { onSignOut: () => void }) {
   const [target, setTarget] = useState<NavTarget>(() => ({ section: inApp ? sectionFromHash() : "dashboard" }));
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
-  useOrderExpiry();
   const { theme, toggleTheme } = useAdminTheme();
   const screenHidesTabBar = useTabBarHidden();
   const tabBarCovered = useTabBarCovered();

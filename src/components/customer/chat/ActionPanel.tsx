@@ -1,5 +1,6 @@
 "use client";
 
+import { useNow } from "@/hooks/useNow";
 import { findMenuLock, findOpenTicket } from "@/lib/store/customer";
 import { canStillPay, findOrderMethod, getActiveOrder } from "@/lib/store/helpers";
 import { getState } from "@/lib/store/state";
@@ -35,6 +36,14 @@ export default function ActionPanel({ customerId, conversation, onOpenSheet }: A
   );
 }
 
+function AwaitingPaymentActions({ customerId, onOpenSheet }: Omit<ActionPanelProps, "conversation">) {
+  const now = useNow(1000);
+  const order = getActiveOrder(getState(), customerId);
+  if (order?.status === "pending_review") return <PendingOrderNotice customerId={customerId} />;
+  if (!order || !canStillPay(order, now)) return <BackToMenuButton customerId={customerId} />;
+  return <PaymentActions customerId={customerId} method={findOrderMethod(getState(), customerId)} onOpenSheet={onOpenSheet} />;
+}
+
 // Steps that start from the menu close with it (store closed, or a payment or request waiting for the admin).
 const MENU_STEPS = ["support", "choose_plan", "choose_method", "terms"];
 
@@ -50,12 +59,8 @@ function StageActions({ customerId, conversation, onOpenSheet }: ActionPanelProp
       return <MethodOptions customerId={customerId} />;
     case "terms":
       return <TermsActions customerId={customerId} />;
-    case "awaiting_payment": {
-      const order = getActiveOrder(getState(), customerId);
-      if (order?.status === "pending_review") return <PendingOrderNotice customerId={customerId} />;
-      if (!order || !canStillPay(order)) return <BackToMenuButton customerId={customerId} />;
-      return <PaymentActions customerId={customerId} method={findOrderMethod(getState(), customerId)} onOpenSheet={onOpenSheet} />;
-    }
+    case "awaiting_payment":
+      return <AwaitingPaymentActions customerId={customerId} onOpenSheet={onOpenSheet} />;
     case "support":
       return <SupportOptions customerId={customerId} />;
     case "support_other":
