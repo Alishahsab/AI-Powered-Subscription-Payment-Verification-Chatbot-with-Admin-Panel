@@ -7,6 +7,7 @@ import { getState } from "@/lib/store/state";
 import type { Conversation } from "@/lib/types";
 import type { OpenSheet } from "./ChatScreen";
 import BackToMenuButton from "./actions/BackToMenuButton";
+import ClosingOrderNotice from "./actions/ClosingOrderNotice";
 import CodeDeliveredActions from "./actions/CodeDeliveredActions";
 import IssueComposer from "./actions/IssueComposer";
 import IssueFollowUp from "./actions/IssueFollowUp";
@@ -40,6 +41,7 @@ function AwaitingPaymentActions({ customerId, onOpenSheet }: Omit<ActionPanelPro
   const now = useNow(1000);
   const order = getActiveOrder(getState(), customerId);
   if (order?.status === "pending_review") return <PendingOrderNotice customerId={customerId} />;
+  if (order?.status === "awaiting_payment" && !canStillPay(order, now)) return <ClosingOrderNotice />;
   if (!order || !canStillPay(order, now)) return <BackToMenuButton customerId={customerId} />;
   return <PaymentActions customerId={customerId} method={findOrderMethod(getState(), customerId)} onOpenSheet={onOpenSheet} />;
 }

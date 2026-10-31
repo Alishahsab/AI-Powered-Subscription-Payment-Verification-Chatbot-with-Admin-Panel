@@ -232,6 +232,13 @@ function startBuying(state: AppState, customerId: string) {
     return;
   }
 
+  const closingOrder = state.orders.find((order) => order.customerId === customerId && order.status === "awaiting_payment");
+  if (closingOrder) {
+    conversation.activeOrderId = closingOrder.id;
+    conversation.stage = "awaiting_payment";
+    return;
+  }
+
   const pendingOrder = state.orders.find((order) => order.customerId === customerId && (order.status === "pending_review" || order.status === "rejected"));
   if (pendingOrder) {
     // Shown as a notice under the chat (like an open support request), not as a chat message.

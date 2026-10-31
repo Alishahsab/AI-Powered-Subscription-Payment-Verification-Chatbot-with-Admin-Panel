@@ -1623,3 +1623,25 @@ select cron.unschedule('clean-cron-history')
 where exists (select 1 from cron.job where jobname = 'clean-cron-history');
 
 select cron.schedule('clean-cron-history', '0 3 * * *', $$ delete from cron.job_run_details where end_time < now() - interval '1 day'; $$);
+
+-- ---------- one open order until the server closes it (037) ----------
+
+create or replace function public.guard_one_open_order()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if public.is_trusted() then return new; end if;
+  if exists (select 1 from public.orders where customer_id = new.customer_id and status = 'awaiting_payment') then
+    raise exception 'There is already an open order';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists guard_one_open_order on public.orders;
+create trigger guard_one_open_order
+before insert on public.orders
+for each row execute function public.guard_one_open_order();
