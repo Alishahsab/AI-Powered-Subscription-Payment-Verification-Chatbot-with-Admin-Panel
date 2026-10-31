@@ -6,7 +6,7 @@ export const statusColors = {
   activeOrder: "#0a84ff",
   appIssue: "#ffb02e",
   unused: "#7f66ff",
-  pending: "#ff5d7d",
+  pending: "#794983",
   complete: "#00a884",
   cancelled: "#c38763",
   activeChat: "#22c55e",

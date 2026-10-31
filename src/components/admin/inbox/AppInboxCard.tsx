@@ -15,7 +15,7 @@ import ReplyDialog from "./ReplyDialog";
 import { titleFit, type InboxItem } from "./inboxItems";
 
 const accents: Record<InboxTab, string> = {
-  pending: "bg-[#ff5d7d]",
+  pending: "bg-[#794983]",
   issues: "bg-[#ffb02e]",
   completed: "bg-[#00a884]",
   unused: "bg-[#7f66ff]",
