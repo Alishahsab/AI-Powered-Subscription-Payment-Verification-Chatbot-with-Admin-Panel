@@ -92,7 +92,7 @@ export default function ImagePicker({ image, onChange, label = "Choose screensho
   };
 
   const tries = failures + failedUploads;
-  const showFiles = !image && tries >= TRIES_BEFORE_FILES;
+  const useFiles = !image && tries >= TRIES_BEFORE_FILES;
 
   return (
     <div>
@@ -101,7 +101,7 @@ export default function ImagePicker({ image, onChange, label = "Choose screensho
       <button
         type="button"
         disabled={loading}
-        onClick={() => openPicker(false)}
+        onClick={() => openPicker(useFiles)}
         className="w-full rounded-2xl border border-dashed border-black/15 bg-[var(--bg)]/50 hover:border-[color-mix(in_srgb,var(--accent)_55%,transparent)] transition overflow-hidden"
       >
         {image ? (
@@ -111,8 +111,8 @@ export default function ImagePicker({ image, onChange, label = "Choose screensho
             <div className="size-11 rounded-full bg-black/[0.04] grid place-items-center text-[var(--text)]">
               <ImageIcon size={19} />
             </div>
-            <div className="text-[14px] font-semibold text-[var(--text)]">{loading ? "Loading…" : label}</div>
-            <div className="text-[12px]">PNG or JPG from your gallery</div>
+            <div className="text-[14px] font-semibold text-[var(--text)]">{loading ? "Loading…" : useFiles ? "Choose from Files" : label}</div>
+            <div className="text-[12px]">PNG or JPG from your {useFiles ? "files" : "gallery"}</div>
           </div>
         )}
       </button>
@@ -121,15 +121,10 @@ export default function ImagePicker({ image, onChange, label = "Choose screensho
           Remove screenshot
         </button>
       )}
-      {showFiles && (
-        <button type="button" disabled={loading} onClick={() => openPicker(true)} className="mt-2 text-[12.5px] font-semibold text-[var(--text)] underline">
-          Choose from Files
-        </button>
-      )}
-      {error && <p className="mt-2 text-[12.5px] text-red-600">{error}</p>}
+      {error &&<p className="mt-2 text-[12.5px] text-red-600">{error}</p>}
       {!image && !error && tries > 0 && (
         <p className="mt-2 text-[12.5px] text-red-600">
-          {filesFailed ? "Picture still wasn't added. Please update Chrome, then try again." : showFiles ? "Now you can try Choose from Files." : "Picture wasn't added. Please try again."}
+          {filesFailed ? "Picture still wasn't added. Please update Chrome, then try again." : useFiles ? "Now you can try Choose from Files." : "Picture wasn't added. Please try again."}
         </p>
       )}
       {image && outdated && <p className="mt-2 text-[12.5px] text-amber-700">Your browser is out of date. Please update it for a smoother experience.</p>}
