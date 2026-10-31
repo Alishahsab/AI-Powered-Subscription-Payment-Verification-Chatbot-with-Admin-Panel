@@ -22,6 +22,7 @@ export default function UploadProofSheet({ customerId, onClose }: UploadProofShe
   const [senderName, setSenderName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [failedUploads, setFailedUploads] = useState(0);
 
   const order = getActiveOrder(state, customerId);
   if (!order) return null;
@@ -41,13 +42,17 @@ export default function UploadProofSheet({ customerId, onClose }: UploadProofShe
     const problem = await submitPaymentProof(customerId, screenshot, senderName);
     setBusy(false);
 
-    if (problem) setError(problem);
-    else onClose();
+    if (problem) {
+      setError(problem);
+      setFailedUploads((count) => count + 1);
+    } else {
+      onClose();
+    }
   };
 
   return (
     <Sheet title="Upload payment proof" subtitle={`Order ${order.id} · Rs ${order.amount.toLocaleString()} · ${formatCountdown(order.expiresAt - now)} left`} onClose={onClose}>
-      <ImagePicker image={screenshot} onChange={setScreenshot} />
+      <ImagePicker image={screenshot} onChange={setScreenshot} failedUploads={failedUploads} />
 
       <label className="block mt-4">
         <span className="text-[13px] font-medium">Sender account name</span>

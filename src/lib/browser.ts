@@ -1,5 +1,5 @@
-// Only for browsers that cannot make the picture smaller: the original is sent, up to 1 MB.
-export const MAX_ORIGINAL_BYTES = 1024 * 1024;
+// Only for browsers that cannot make the picture smaller: the original is sent, up to 2 MB.
+const MAX_ORIGINAL_BYTES = 2 * 1024 * 1024;
 const SENDABLE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const TYPES_BY_EXTENSION: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", heif: "image/heif" };
 
@@ -97,7 +97,7 @@ export async function prepareImageWithStatus(file: File, maxSize = 1000, quality
   } catch {
     const type = imageTypeOf(file);
     if (!SENDABLE_TYPES.includes(type)) throw new Error("This picture couldn't be opened. Please choose a PNG or JPG screenshot, or update your browser.");
-    if (file.size > MAX_ORIGINAL_BYTES) throw new Error("This picture is too large. Please choose a screenshot under 1 MB, or update your browser.");
+    if (file.size > MAX_ORIGINAL_BYTES) throw new Error("This picture is too large. Please choose a screenshot under 2 MB, or update your browser.");
     const dataUrl = await readAsDataUrl(file).catch(() => {
       throw new Error("This picture couldn't be opened. Please choose it again.");
     });
