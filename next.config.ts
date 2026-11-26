@@ -10,13 +10,13 @@ const contentSecurityPolicy = [
   "default-src 'self'",
   // Cloudflare adds its Web Analytics beacon to every page on the live site.
   // `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com${isDev ? " 'unsafe-eval'" : ""}`,
-  `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://ep2.adtrafficquality.google${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://*.adtrafficquality.google${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${supabaseUrl} https://res.cloudinary.com`,
+  `img-src 'self' data: blob: ${supabaseUrl} https://res.cloudinary.com https://*.adtrafficquality.google`,
   "font-src 'self' data:",
   // data: and blob: let the app turn a picked image into a file before uploading it.
-  `connect-src 'self' data: blob: ${supabaseUrl} ${supabaseSocket} https://api.cloudinary.com https://cloudflareinsights.com https://ep1.adtrafficquality.google https://pagead2.googlesyndication.com`,
-  "frame-src 'self' https://googleads.g.doubleclick.net https://ep2.adtrafficquality.google https://www.google.com",
+  `connect-src 'self' data: blob: ${supabaseUrl} ${supabaseSocket} https://api.cloudinary.com https://cloudflareinsights.com https://*.adtrafficquality.google https://pagead2.googlesyndication.com`,
+  "frame-src 'self' https://googleads.g.doubleclick.net https://*.adtrafficquality.google https://www.google.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
