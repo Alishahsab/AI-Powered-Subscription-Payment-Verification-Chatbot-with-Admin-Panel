@@ -1,0 +1,14 @@
+
+# Allow Google AdSense crawler
+User-agent: Mediapartners-Google
+Allow: /
+
+# Allow Google Search crawler
+User-agent: Googlebot
+Allow: /
+
+# Allow other search engine crawlers
+User-agent: *
+Allow: /
+
+Sitemap: https://premiumstore.online/sitemap.xml

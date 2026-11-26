@@ -38,7 +38,7 @@ const securityHeaders = [
     value: "max-age=63072000; includeSubDomains",
   },
   // Keeps every page, image and file out of Google and other search engines; customers come by direct link.
-  { key: "X-Robots-Tag", value: "noindex, nofollow, noimageindex" },
+  // { key: "X-Robots-Tag", value: "noindex, nofollow, noimageindex" },
 ];
 
 const nextConfig: NextConfig = {
