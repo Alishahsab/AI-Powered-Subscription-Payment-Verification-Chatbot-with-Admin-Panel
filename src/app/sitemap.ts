@@ -1,5 +1,11 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [{ url: "https://premiumstore.online" }];
+  const siteUrl = "https://premiumstore.online";
+
+  return [
+    { url: siteUrl },
+    { url: `${siteUrl}/admin` },
+    { url: `${siteUrl}/reset-pin` },
+  ];
 }
