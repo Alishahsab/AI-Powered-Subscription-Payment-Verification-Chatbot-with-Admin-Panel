@@ -37,13 +37,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full">
         <OldBrowserNotice />
         {children}
-        <Script
+        {/* <Script
           id="google-adsense"
           async
           strategy="afterInteractive"
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2681063438215630"
           crossOrigin="anonymous"
-        />
+        /> */}
+
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2681063438215630" crossOrigin="anonymous"></script>
+
       </body>
     </html>
   );
