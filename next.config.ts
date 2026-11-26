@@ -16,7 +16,7 @@ const contentSecurityPolicy = [
   "font-src 'self' data:",
   // data: and blob: let the app turn a picked image into a file before uploading it.
   `connect-src 'self' data: blob: ${supabaseUrl} ${supabaseSocket} https://api.cloudinary.com https://cloudflareinsights.com https://ep1.adtrafficquality.google https://pagead2.googlesyndication.com`,
-  "frame-src 'self' https://googleads.g.doubleclick.net",
+  "frame-src 'self' https://googleads.g.doubleclick.net https://ep2.adtrafficquality.google https://www.google.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
