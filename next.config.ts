@@ -3,12 +3,14 @@ import type { NextConfig } from "next";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const supabaseSocket = supabaseUrl.replace(/^https:/, "wss:");
 const isDev = process.env.NODE_ENV !== "production";
-const buildId = process.env.WORKERS_CI_COMMIT_SHA ?? process.env.VERCEL_GIT_COMMIT_SHA ?? "";
+const buildId =
+  process.env.WORKERS_CI_COMMIT_SHA ?? process.env.VERCEL_GIT_COMMIT_SHA ?? "";
 
 const contentSecurityPolicy = [
   "default-src 'self'",
   // Cloudflare adds its Web Analytics beacon to every page on the live site.
-  `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com${isDev ? " 'unsafe-eval'" : ""}`,
+  // `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${supabaseUrl} https://res.cloudinary.com`,
   "font-src 'self' data:",
@@ -18,6 +20,8 @@ const contentSecurityPolicy = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
+
+  //
 ].join("; ");
 
 const securityHeaders = [
@@ -25,8 +29,14 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
-  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=()",
+  },
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains",
+  },
   // Keeps every page, image and file out of Google and other search engines; customers come by direct link.
   { key: "X-Robots-Tag", value: "noindex, nofollow, noimageindex" },
 ];

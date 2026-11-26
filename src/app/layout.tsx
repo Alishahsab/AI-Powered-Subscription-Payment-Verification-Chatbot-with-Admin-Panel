@@ -33,6 +33,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${fallbackFont.variable} h-full`}>
+      <head>
+        <meta name="google-adsense-account" content="ca-pub-2681063438215630" />
+      </head>
       <body className="min-h-full">
         <OldBrowserNotice />
         {children}
